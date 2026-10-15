@@ -1,0 +1,360 @@
+/*
+ * Copyright © 2026 Ebrahim Pak
+ *
+ * SPDX-License-Identifier: CECILL-B
+ *
+ * This file is part of BizDiag.
+ *
+ * BizDiag is distributed under the CeCILL-B Free Software License Agreement,
+ * Version 1.0. See the LICENSE file for details.
+ *
+ * The French and English versions of the license are available in
+ * LICENSE-FR and LICENSE, respectively.
+ *
+ * Author: Ebrahim Pak
+ *
+ * ---------------------------------------------------------------------------------------------------------------------
+ * Diagnose Value Proposition Structure
+ * 
+ * This script analyzes the model's value proposition definition and identifies:
+ * 1. Which value propositions are aggregated/unnamed vs individual
+ * 2. What each VP delivers/offers and to whom
+ * 3. What critical definition gaps exist
+ * 4. Recommendations for model completion
+ *
+ */
+
+console.show();
+console.clear();
+
+(function() {
+    "use strict";
+    
+
+    // Setup logging to temp file for GUI access
+    const System = Java.type('java.lang.System');
+    const File = Java.type('java.io.File');
+    const FileWriter = Java.type('java.io.FileWriter');
+    const PrintWriter = Java.type('java.io.PrintWriter');
+    
+    const tempDir = System.getProperty('java.io.tmpdir');
+    const logFile = new File(tempDir, 'BizModelCanvas_output.log');
+    let logWriter = null;
+    
+    function initLog() {
+        try {
+            logWriter = new PrintWriter(new FileWriter(logFile, false)); // false = overwrite
+        } catch (e) {
+            console.error("Could not initialize log file"); }
+    }
+    
+    function logOutput(msg) {
+        console.log(msg);
+        if (logWriter) {
+            try {
+                logWriter.println(msg);
+                logWriter.flush();
+            } catch (e) { }
+        }
+    }
+    
+    function closeLog() {
+        if (logWriter) {
+            try {
+                logWriter.flush();
+                logWriter.close();
+            } catch (e) { }
+        }
+    }
+    
+    initLog();
+    
+    try {
+        if (!model) {
+            console.error("Error: No ArchiMate model is open.");
+            return;
+        }
+        
+        logOutput("=" .repeat(80));
+        logOutput("VALUE PROPOSITION STRUCTURE DIAGNOSTIC");
+        logOutput("=" .repeat(80));
+        logOutput("");
+        
+        // ======================== DISCOVER VPs ========================
+        logOutput("STEP 1: VALUE PROPOSITION DISCOVERY");
+        logOutput("-" .repeat(80));
+        
+        const vpElements = [];
+        const vpMap = new Map(); // Map by ID for tracking
+        
+        // Find all elements tagged as [VP] or containing "VALUE PROPOSITION"
+        $("*").each(function(el) {
+            const name = el.getName();
+            if (name.includes("[VP]") || name.includes("VALUE PROPOSITION")) {
+                vpElements.push(el);
+                vpMap.set(el.getId(), {
+                    element: el,
+                    name: name,
+                    type: el.getType ? el.getType() : "unknown",
+                    id: el.getId()
+                });
+            }
+        });
+        
+        logOutput("Found " + vpElements.length + " value proposition element(s):\n");
+        
+        // ======================== CLASSIFY VPs ========================
+        logOutput("STEP 2: CLASSIFICATION & DEFINITION ANALYSIS");
+        logOutput("-" .repeat(80));
+        
+        const aggregated = [];
+        const individual = [];
+        const unnamed = [];
+        
+        vpElements.forEach(function(vp, index) {
+            const name = vp.getName();
+            const isAggregated = name.includes("VALUE PROPOSITIONS") || 
+                                 name.includes("VALUE PROPOSITION") && !name.includes("[VP]");
+            const isIndividual = name.includes("[VP]") && 
+                                !name.includes("VALUE PROPOSITIONS") &&
+                                name.length > 4; // [VP] + something specific
+            const isUnnamed = name === "[VP]" || name === "[VP] VALUE PROPOSITION";
+            
+            logOutput((index + 1) + ". " + name);
+            logOutput("   Type: " + (vp.getType ? vp.getType() : "unknown"));
+            logOutput("   ID: " + vp.getId());
+            logOutput("   Status: ", end = "");
+            
+            if (isAggregated) {
+                logOutput("❌ AGGREGATED (multiple values combined)");
+                aggregated.push({vp: vp, name: name});
+            } else if (isUnnamed) {
+                logOutput("❌ UNNAMED (needs specific value definition)");
+                unnamed.push({vp: vp, name: name});
+            } else if (isIndividual) {
+                logOutput("✓ INDIVIDUAL (well-defined)");
+                individual.push({vp: vp, name: name});
+            } else {
+                logOutput("⚠️ UNKNOWN STATE");
+            }
+            
+            logOutput("");
+        });
+        
+        // ======================== ANALYZE RELATIONSHIPS ========================
+        logOutput("STEP 3: RELATIONSHIP MAPPING");
+        logOutput("-" .repeat(80));
+        
+        const vpDelivers = new Map();  // VP -> what it delivers
+        const vpOffers = new Map();    // VP -> what it offers
+        const vpReceivers = new Map(); // VP -> who receives it
+        
+        $("relationship").each(function(rel) {
+            const src = rel.getSource();
+            const tgt = rel.getTarget();
+            const type = rel.getType();
+            
+            if (!src || !tgt) return;
+            
+            const srcName = src.getName();
+            const tgtName = tgt.getName();
+            const srcIsVP = vpMap.has(src.getId());
+            const tgtIsVP = vpMap.has(tgt.getId());
+            
+            if (srcIsVP) {
+                if (!vpDelivers.has(src.getId())) {
+                    vpDelivers.set(src.getId(), []);
+                }
+                vpDelivers.get(src.getId()).push({
+                    type: type,
+                    target: tgtName,
+                    targetEl: tgt
+                });
+            }
+            
+            if (tgtIsVP) {
+                if (!vpReceivers.has(tgt.getId())) {
+                    vpReceivers.set(tgt.getId(), []);
+                }
+                vpReceivers.get(tgt.getId()).push({
+                    type: type,
+                    source: srcName,
+                    sourceEl: src
+                });
+            }
+        });
+        
+        vpElements.forEach(function(vp) {
+            const vpId = vp.getId();
+            const vpName = vp.getName();
+            
+            logOutput("📋 " + vpName);
+            
+            // Check for incoming relationships
+            if (vpReceivers.has(vpId)) {
+                logOutput("   ← Receives from:");
+                vpReceivers.get(vpId).forEach(function(rel) {
+                    logOutput("      [" + rel.type + "] " + rel.source);
+                });
+            } else {
+                logOutput("   ⚠️ No incoming relationships");
+            }
+            
+            // Check for outgoing relationships
+            if (vpDelivers.has(vpId)) {
+                logOutput("   → Delivers to:");
+                vpDelivers.get(vpId).forEach(function(rel) {
+                    logOutput("      [" + rel.type + "] " + rel.target);
+                });
+            } else {
+                logOutput("   ⚠️ No outgoing relationships");
+            }
+            
+            logOutput("");
+        });
+        
+        // ======================== IDENTIFY GAPS ========================
+        logOutput("STEP 4: DEFINITION GAPS & ISSUES");
+        logOutput("-" .repeat(80));
+        
+        const issues = [];
+        
+        if (aggregated.length > 0) {
+            logOutput("❌ AGGREGATED VALUE PROPOSITIONS (CRITICAL):");
+            logOutput("   These combine multiple values. They should be broken down:\n");
+            aggregated.forEach(function(item) {
+                logOutput("   • " + item.name);
+                logOutput("     → Break into individual values like:");
+                logOutput("        [VP] Fast Claims Processing");
+                logOutput("        [VP] Transparent Communication");
+                logOutput("        [VP] 24/7 Support");
+                logOutput("        [VP] Competitive Pricing");
+                logOutput("");
+            });
+            issues.push({severity: "CRITICAL", count: aggregated.length});
+        }
+        
+        if (unnamed.length > 0) {
+            logOutput("❌ UNNAMED VALUE PROPOSITIONS (HIGH PRIORITY):");
+            logOutput("   These lack specific definitions. Examples of what to add:\n");
+            unnamed.forEach(function(item) {
+                logOutput("   • " + item.name);
+                logOutput("     → Consider: What SPECIFIC value does this provide?");
+                logOutput("        Examples: Faster claims, Lower cost, Better service, etc.");
+                logOutput("");
+            });
+            issues.push({severity: "HIGH", count: unnamed.length});
+        }
+        
+        if (individual.length > 0) {
+            logOutput("✓ WELL-DEFINED VALUE PROPOSITIONS:");
+            individual.forEach(function(item) {
+                logOutput("   • " + item.name + " ✓");
+            });
+            logOutput("");
+        }
+        
+        // Check for relationship gaps
+        logOutput("\n❌ RELATIONSHIP COMPLETENESS:");
+        let relationshipGaps = 0;
+        vpElements.forEach(function(vp) {
+            const vpId = vp.getId();
+            const hasIncoming = vpReceivers.has(vpId);
+            const hasOutgoing = vpDelivers.has(vpId);
+            
+            if (!hasIncoming || !hasOutgoing) {
+                logOutput("   • " + vp.getName());
+                if (!hasIncoming) logOutput("      ⚠️ No source defined (what creates this VP?)");
+                if (!hasOutgoing) logOutput("      ⚠️ No target defined (who receives this VP?)");
+                relationshipGaps++;
+            }
+        });
+        
+        if (relationshipGaps === 0) {
+            logOutput("   ✓ All VPs have incoming and outgoing relationships");
+        }
+        logOutput("");
+        
+        // ======================== REMEDIATION PLAN ========================
+        logOutput("STEP 5: REMEDIATION PLAN");
+        logOutput("-" .repeat(80));
+        
+        logOutput("\n📋 TO COMPLETE YOUR MODEL:\n");
+        
+        if (aggregated.length > 0) {
+            logOutput("1. BREAK DOWN AGGREGATED VPS (Do this FIRST):");
+            logOutput("   • Select the aggregated VP element in Archi");
+            logOutput("   • Delete it");
+            logOutput("   • Create 3-5 individual value elements, e.g.:");
+            logOutput("     - [VP] Fast Claims Processing");
+            logOutput("     - [VP] Transparent Communication");
+            logOutput("     - [VP] 24/7 Customer Support");
+            logOutput("     - [VP] Competitive Pricing");
+            logOutput("     - [VP] Personalized Service");
+            logOutput("");
+        }
+        
+        if (unnamed.length > 0) {
+            logOutput((aggregated.length > 0 ? "2" : "1") + ". SPECIFY UNNAMED VPS:");
+            logOutput("   • Edit each [VP] element name to be specific");
+            logOutput("   • Use the format: [VP] [Specific Value]");
+            logOutput("   • Examples where you have just '[VP]' elements:");
+            logOutput("     - [VP] Reduced Claims Time");
+            logOutput("     - [VP] Omnichannel Experience");
+            logOutput("     - [VP] Data Security");
+            logOutput("");
+        }
+        
+        if (relationshipGaps > 0) {
+            logOutput((aggregated.length + unnamed.length > 0 ? (aggregated.length > 0 ? "3" : "2") : "1") + ". CONNECT VPS TO SOURCES & TARGETS:");
+            logOutput("   • Each VP should have:");
+            logOutput("     → An incoming relationship from a Business Service or Actor");
+            logOutput("       (what delivers/enables this value?)");
+            logOutput("     → An outgoing relationship to a Business Actor or Role");
+            logOutput("       (who receives this value?)");
+            logOutput("");
+        }
+        
+        logOutput("⚠️  IMPORTANT: Archi doesn't allow live editing of names while scripts run.");
+        logOutput("   You must manually edit the model elements, then re-run this script.");
+        logOutput("");
+        
+        // ======================== SUMMARY ========================
+        logOutput("STEP 6: SUMMARY");
+        logOutput("-" .repeat(80));
+        
+        logOutput("\n📊 STATISTICS:\n");
+        logOutput("   Total VP Elements: " + vpElements.length);
+        logOutput("   ✓ Individual/Named: " + individual.length);
+        logOutput("   ❌ Aggregated: " + aggregated.length);
+        logOutput("   ❌ Unnamed: " + unnamed.length);
+        logOutput("   ⚠️ Incomplete Relationships: " + relationshipGaps);
+        logOutput("");
+        
+        const healthPercent = Math.round((individual.length / vpElements.length) * 100) || 0;
+        logOutput("   Model Health Score: " + healthPercent + "%");
+        
+        if (healthPercent === 100) {
+            logOutput("   ✓ Model structure is complete!");
+        } else if (healthPercent >= 50) {
+            logOutput("   ⚠️ Significant work needed before reports are meaningful");
+        } else {
+            logOutput("   ❌ Model needs substantial completion");
+        }
+        
+        logOutput("\n" + "=" .repeat(80));
+        logOutput("END OF DIAGNOSTIC");
+        logOutput("=" .repeat(80));
+        
+    } catch (err) {
+        console.error("Error: " + err.message);
+        console.error(err); }
+})();
+
+
+
+
+
+
+
+

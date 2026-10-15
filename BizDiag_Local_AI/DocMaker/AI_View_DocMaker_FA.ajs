@@ -1,0 +1,503 @@
+/*
+ * Copyright © 2026 Ebrahim Pak
+ *
+ * SPDX-License-Identifier: CECILL-B
+ *
+ * This file is part of BizDiag.
+ *
+ * BizDiag is distributed under the CeCILL-B Free Software License Agreement,
+ * Version 1.0. See the LICENSE file for details.
+ *
+ * The French and English versions of the license are available in
+ * LICENSE-FR and LICENSE, respectively.
+ *
+ * Author: Ebrahim Pak
+ *
+ * ---------------------------------------------------------------------------------------------------------------------
+ *
+ * This script generates AI Analysis for the selected view in Archi, in Persian. The generated documentation will be
+ * stored in the Properties tab of the selected view, a json documentation file in the documentation folder, and also
+ * displayed in a native dialog box.
+ *
+ *
+ * Requirements:
+ *   * jArchi
+ *   * AI_REST_JSON.js
+ *   * Ollama_Olalla.ajs
+ *   * Ollama
+ *   * locally-installed AI Model
+ *   * Export To Markdown.ajs
+ *
+ * Version 2.0
+ *
+ */
+
+console.show();
+console.clear();
+console.log("تولید مستندات با هوش مصنوعی [ذخیره سازی در قالب جیسان]");
+
+// Java Imports
+const ai = require("./AI_REST_JSON.js");
+const exportDocs = require("./Ollama_Olalla.ajs");
+const Display = Java.type("org.eclipse.swt.widgets.Display");
+const display = Display.getDefault();
+const SWT = Java.type("org.eclipse.swt.SWT");
+const Paths = Java.type("java.nio.file.Paths");
+const Files = Java.type("java.nio.file.Files");
+const StandardOpenOption = Java.type("java.nio.file.StandardOpenOption");
+const GridLayout = Java.type("org.eclipse.swt.layout.GridLayout");
+const GridData = Java.type("org.eclipse.swt.layout.GridData");
+const Label = Java.type("org.eclipse.swt.widgets.Label");
+const Listener = Java.type("org.eclipse.swt.widgets.Listener");
+const Button = Java.type("org.eclipse.swt.widgets.Button");
+const Table = Java.type("org.eclipse.swt.widgets.Table");
+const tableItem = Java.type("org.eclipse.swt.widgets.TableItem");
+const tableColumn = Java.type("org.eclipse.swt.widgets.TableColumn");
+const color = Java.type("org.eclipse.swt.graphics.Color");
+const rgb = Java.type("org.eclipse.swt.graphics.RGB");
+
+// Constants
+const guise = `As an expert Enterprise Architect trained in TOGAF, ArchiMate, model-driven enterprise architecture, and digital transformation`;
+const viewPromptTemplate = `${guise}, provide a clear and concise summary of the following ArchiMate view. 
+The summary must be written entirely in Persian, using professional and business-friendly language.
+
+Your summary should cover these key areas:
+1.  **Overview**: Start with a high-level overview of the view's purpose and scope.
+2.  **Business & Technical Context**: Explain the view's business relevance, its connection to goals, and its technical 
+implications or architectural decisions.
+3.  **Key Insights**: Highlight any important assumptions, constraints, or relationships that are critical for understanding the view.
+
+**IMPORTANT**:
+- The entire response must be in Persian.
+- Do not use any English words. Transliterate into Persian only if a direct equivalent does not exist.
+- The tone should be professional and informative.
+- Do not greet the user. The output will be used as documentation.
+
+Begin the summary now:\n`;
+
+const componentPromptTemplate = `${guise}, using language which can be understood by the business in Persian, 
+summarize the following component into no one sentence, include product details if this is a application, service or 
+device. IMPORTANT: DO NOT USE ENGLISH; WRITE ONLY IN PERSIAN, USE ONLY PERSIAN EQUIVALENTS OF THE ENGLISH WORDS, AND IF 
+YOU COULDN'T FIND ANY PERSIAN WORD OR PHRASE FOR IT, TRANSCRIBE IT IN PERSIAN. Do not greet the user, 
+The summary will be retained against the component for future users.`;
+
+// RTL text helper function
+function forceRTL(text) {
+  return text
+    .split(/\r?\n/)
+    .map((p) => "\u202B" + p + "\u202C")
+    .join("\n");
+}
+
+// Dialog helper function
+function kewud(message, options) {
+  const tmpShell = new org.eclipse.swt.widgets.Shell(
+    shell,
+    SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RIGHT_TO_LEFT
+  );
+
+  shell.setTextDirection(SWT.RIGHT_TO_LEFT);
+
+  var dialog = new org.eclipse.jface.dialogs.MessageDialog(
+    tmpShell,
+    "مستندسازی نما",
+    null,
+    message,
+    3,
+    options.concat(["لغو"]),
+    0
+  );
+
+  var result = dialog.open();
+  return result == options.length ? null : (result + 1).toString();
+}
+
+// Generate documentation for a component
+async function generateComponentDoc(parag) {
+  console.log(forceRTL("پردازش المان: " + parag.name));
+
+  let componentPrompt = ` نام المان  "${parag.name}", نوع المان  "${parag.type}"`;
+
+  if (parag.specialization) {
+    componentPrompt += `, ویژه‌کاری المان "${parag.specialization}"`;
+  }
+
+  if (parag.documentation) {
+    componentPrompt += `, مستند کنونی "${parag.documentation}"`;
+  }
+
+  parag.prop().forEach(function (prop) {
+    componentPrompt += `, ویژگی "${prop}" = "${parag.prop(prop)}"`;
+  });
+
+  // ASYNCHRONOUS OPERATION:
+  // The 'await' keyword pauses the execution of 'generateComponentDoc' until the Promise returned by the 'ai' function is either resolved or rejected.
+  // The 'ai' function, defined in 'AI_REST_JSON.js', handles the network request and its own retry logic.
+  // If the Promise resolves, 'await' unwraps it, and the resolved value (the AI-generated summary) is returned from this function.
+  // If the Promise is rejected after all retries, 'await' throws an exception, which would be caught by a try/catch block in the calling function.
+  return await ai(
+    componentPromptTemplate + ": " + componentPrompt,
+    parag,
+    true
+  );
+}
+
+// Process a view and its components
+// This function is declared 'async' because it uses the 'await' keyword to handle asynchronous operations,
+// namely the call to the AI service. This allows for writing non-blocking code in a synchronous, readable style.
+async function processView(view) {
+  let waitShell = null; // Define here to be accessible in finally block
+  try {
+    console.log(forceRTL("پردازش نمای: " + view.name));
+
+    // Ask user for confirmation
+    const choice = kewud(
+      forceRTL(
+        `نمای انتخاب‌شده: "${view.name}"\n\nآیا از مستندسازی نمای انتخابی مطمئن هستید؟`
+      ),
+      ["بله"]
+    );
+
+    if (choice !== "1") {
+      console.log(forceRTL("عملیات لغو شد"));
+      return;
+    }
+
+    console.log(forceRTL("شروع مستندسازی نما..."));
+
+    // --- Create and Display Wait Dialog ---
+    waitShell = new org.eclipse.swt.widgets.Shell(
+      shell,
+      SWT.TITLE | SWT.BORDER | SWT.APPLICATION_MODAL | SWT.RIGHT_TO_LEFT
+    );
+    waitShell.setText("در حال پردازش");
+    const layout = new GridLayout(1, false);
+    layout.marginWidth = 70;
+    layout.marginHeight = 24;
+    waitShell.setLayout(layout);
+    const waitLabel = new Label(waitShell, SWT.NONE);
+    waitLabel.setText(
+      forceRTL(
+        "در حال ارتباط با سرویس هوش مصنوعی... ⏳\n\nخواهشمندم بردبار باشید."
+      )
+    );
+    waitLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+    waitShell.pack();
+    waitShell.setLocation(
+      shell.getLocation().x + (shell.getSize().x - waitShell.getSize().x) / 2,
+      shell.getLocation().y + (shell.getSize().y - waitShell.getSize().y) / 2
+    );
+    waitShell.open();
+
+    // Safely construct view prompt
+    let viewPrompt = `نام نما "${view.name || ""}"`;
+    if (view.type) {
+      viewPrompt += `, نوع نما "${view.type}"`;
+    }
+    if (view.documentation) {
+      viewPrompt += `, مستند کنونی "${view.documentation}"`;
+    }
+
+    console.log(forceRTL("در حال تولید مستندات برای نما..."));
+    // ASYNCHRONOUS OPERATION & EVENT LOOP:
+    // The 'await' keyword is the core of this script's asynchronous behavior. It pauses the 'processView' function at this line.
+    // It does NOT block the entire script engine or the Archi UI. Instead, it yields control back to the JavaScript event loop.
+    // The underlying network I/O operation (HTTP request) happens in the background.
+    // Once the Promise from the 'ai' function settles (resolves with a value or rejects with an error),
+    // the execution of 'processView' resumes from this point.
+    const summary = await ai(viewPromptTemplate + viewPrompt, view, true);
+
+    // Check for timeout error returned as a string from the AI module
+    if (
+      typeof summary === "string" &&
+      summary.toLowerCase().includes("timed out")
+    ) {
+      // This check handles cases where the error is caught and returned as a string instead of being thrown.
+      // The robust solution is for the callee ('ai' function) to always throw on error, which is now the case.
+      throw new Error("Read timed out");
+    }
+
+    if (!summary || typeof summary.trim() === "") {
+      throw new Error("پاسخ دریافتی از سرویس هوش مصنوعی نامعتبر یا خالی است.");
+    }
+
+    console.log(
+      forceRTL("پاسخ از هوش مصنوعی دریافت شد. در حال بروزرسانی مدل...")
+    );
+    console.log("AI Summary:\n---\n" + summary + "\n---");
+
+    // Update the model
+    view.documentation = forceRTL(summary);
+
+    // Verification step
+    console.log(forceRTL("تأیید به‌روزرسانی مستندات در حافظه..."));
+    if (view.documentation === forceRTL(summary)) {
+      console.log(
+        forceRTL("تأیید موفق: مستندات در شیء مدل در حافظه به‌روز شد.")
+      );
+    } else {
+      console.log(forceRTL("تأیید ناموفق: مستندات در حافظه به‌روز نشد."));
+    }
+
+    // PREPARE FOR EXPORT:
+    // To ensure the documentation file is replaced instead of appended to, we will first clear it.
+    // This is done by constructing the file path and writing an empty string to it with the TRUNCATE_EXISTING option.
+    console.log(forceRTL("در حال آماده‌سازی فایل مارک داون برای جایگزینی..."));
+    const basePath = Paths.get(__DIR__);
+    const viewPath = basePath
+      .resolve("documentation")
+      .resolve(view.name.replace(/[<>:"/\\|?*]/g, "_"));
+    const markdownPath = viewPath.resolve("documentation.md");
+
+    // Ensure the directory exists before trying to write the file.
+    Files.createDirectories(viewPath);
+    // Write an empty string to the file, creating it if it doesn't exist and truncating it if it does.
+    Files.write(
+      markdownPath,
+      "".getBytes("UTF-8"),
+      StandardOpenOption.CREATE,
+      StandardOpenOption.TRUNCATE_EXISTING
+    );
+    console.log(forceRTL("فایل مارک‌داون با موفقیت پاکسازی شد."));
+
+    // Export documentation to markdown
+    exportDocs(view.name);
+
+    kewud(
+      forceRTL(
+        `نما: "${view.name}"\n\nمستندات جدید با موفقیت ایجاد و ذخیره شد.`
+      ),
+      ["تأیید"]
+    );
+  } catch (error) {
+    // ASYNCHRONOUS ERROR HANDLING:
+    // This 'catch' block is the centralized error handler for the 'processView' function.
+    // It will catch any exception that occurs during the 'await' operation (e.g., a network failure, a timeout after all retries)
+    // or any other synchronous error within the 'try' block. This is the standard error handling mechanism for async/await syntax.
+    console.log(forceRTL("خطا در پردازش نما: " + error));
+    kewud(forceRTL("خطا در پردازش نما: " + error.message), ["باشه"]);
+  } finally {
+    // --- Cleanup: Ensure the wait dialog is always closed ---
+    if (waitShell && !waitShell.isDisposed()) {
+      waitShell.close();
+      waitShell.dispose();
+    }
+  }
+}
+
+// Show batch confirmation dialog
+/**
+ * Creates and shows a custom dialog to confirm batch processing of multiple views.
+ * This function builds a UI from scratch using SWT widgets to provide a richer user experience
+ * than a standard JFace MessageDialog. It includes a scrollable list of all selected views.
+ *
+ * @param {object[]} views - The array of selected ArchiMate view objects.
+ * @returns {boolean} - True if the user clicks "Continue", false if they click "Cancel" or close the dialog.
+ */
+function showBatchConfirmationDialog(views) {
+  // This variable will hold the dialog's result. It's 'false' by default, acting as a safeguard.
+  let proceed = false;
+
+  // 1. CREATE THE DIALOG WINDOW (SHELL)
+  // The Shell is the main window for any SWT application or dialog.
+  // SWT.DIALOG_TRIM: Provides standard window decorations like a title bar and close button.
+  // SWT.APPLICATION_MODAL: Blocks all other windows in the application until this one is closed.
+  // SWT.RIGHT_TO_LEFT: Sets the default layout direction for widgets within the shell, essential for RTL languages.
+  const dialogShell = new org.eclipse.swt.widgets.Shell(
+    shell, // The parent shell (the main Archi window).
+    SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RIGHT_TO_LEFT
+  );
+  dialogShell.setText("تایید پردازش گروهی"); // Set the window title.
+
+  // 2. SET THE LAYOUT MANAGER
+  // A GridLayout arranges widgets in a grid. Here, it's a simple 1-column grid.
+  dialogShell.setLayout(new GridLayout(1, false));
+
+  // 3. CREATE AND CONFIGURE WIDGETS
+  // A. Informational Label
+  const label = new org.eclipse.swt.widgets.Label(dialogShell, SWT.WRAP);
+  label.setText(
+    `\u202Bشما ${views.length} نما را انتخاب کرده‌اید. مستندات برای هر کدام پی‌درپی ایجاد خواهد شد. آیا مایل به ادامه هستید؟\u202C`
+  );
+  // GridData controls how a widget is positioned and sized within a GridLayout.
+  let labelData = new GridData(SWT.FILL, SWT.CENTER, true, false);
+  labelData.verticalIndent = 10; // Add padding above the label.
+  labelData.horizontalIndent = 10; // Add padding on the sides.
+  label.setLayoutData(labelData);
+
+  // B. Scrollable Table for View Names
+  const table = new Table(
+    dialogShell,
+    SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL | SWT.CHECK | SWT.FULL_SELECTION
+  );
+  let tableData = new GridData(SWT.FILL, SWT.FILL, true, true);
+  tableData.heightHint = 150; // Suggest a preferred height for the list box.
+  tableData.horizontalIndent = 10;
+  table.setLayoutData(tableData);
+  table.setHeaderVisible(true);
+  table.setLinesVisible(true);
+
+  // Create three columns: Index, View Name, Status
+  const col1 = new tableColumn(table, SWT.NONE);
+  col1.setText("دارای مستندات");
+  col1.setWidth(50);
+
+  const col2 = new tableColumn(table, SWT.NONE);
+  col2.setText("نام نما");
+  col2.setWidth(350);
+
+  const col3 = new tableColumn(table, SWT.NONE);
+  col3.setText("مستندات فعلی");
+  col3.setWidth(150);
+
+  const verylightblue = new color(display, new rgb(214, 255, 255));
+
+  // Populate the table with the names of the selected views.
+  for (let i = 0; i < views.length; i++) {
+    const item = new tableItem(table, SWT.NONE);
+    //item.setText(0, `${i + 1}`); // column 0: index
+    if (i % 2 === 0) {
+      item.setBackground(verylightblue);
+    }
+    item.setText(1, views[i].name); // column 1: view name
+    if (views[i].documentation != 0) {
+      item.setChecked(true);
+    }
+    item.setText(2, `${views[i].documentation}`);
+  }
+  col1.setAlignment(SWT.CENTER);
+  col2.setAlignment(SWT.CENTER);
+  col3.setAlignment(SWT.CENTER);
+  col1.pack();
+  col2.pack();
+  col3.setWidth(500);
+
+  // C. Composite for Buttons
+  // A Composite is a container widget used to group other widgets. Here, it groups the buttons
+  // so they can be aligned together to the right, independent of other widgets in the main dialog shell.
+  const buttonComposite = new org.eclipse.swt.widgets.Composite(
+    dialogShell,
+    SWT.NONE
+  );
+  // Align the composite itself to the right side of the dialog's grid.
+  buttonComposite.setLayoutData(
+    new GridData(SWT.RIGHT, SWT.CENTER, false, false)
+  );
+  // The composite has its own layout manager to arrange the buttons inside it.
+  buttonComposite.setLayout(new GridLayout(2, false)); // 2 columns for 2 buttons.
+
+  // D. "Continue" and "Cancel" Buttons
+  const continueButton = new Button(buttonComposite, SWT.PUSH);
+  continueButton.setText("بله، ادامه بده");
+  dialogShell.setDefaultButton(continueButton); // Makes this the default button (activated by Enter key).
+
+  const cancelButton = new Button(buttonComposite, SWT.PUSH);
+  cancelButton.setText("لغو");
+
+  // 4. SET UP EVENT HANDLING
+  // A Listener is an object that responds to events (like button clicks).
+  // Creating one reusable listener is more efficient than creating separate anonymous functions for each button.
+  const listener = new Listener({
+    handleEvent: function (e) {
+      // Check which widget triggered the event.
+      if (e.widget == continueButton) {
+        proceed = true; // If "Continue" was clicked, set our result variable to true.
+      }
+      // In either case (Continue or Cancel), close the dialog.
+      dialogShell.close();
+    },
+  });
+
+  // Attach the listener to the 'Selection' event of both buttons. This event fires when a button is clicked.
+  continueButton.addListener(SWT.Selection, listener);
+  cancelButton.addListener(SWT.Selection, listener);
+
+  // 5. OPEN THE DIALOG AND RUN THE EVENT LOOP
+  dialogShell.pack(); // Automatically resize the dialog to the minimum size needed to fit all its contents.
+  dialogShell.open(); // Make the dialog visible and active.
+
+  // This is the UI event loop. It's a critical piece for custom dialogs.
+  // It continuously reads and dispatches UI events (like clicks, mouse movements, etc.)
+  // until the shell is disposed (closed). Without this loop, the dialog would appear and then
+  // immediately disappear, and it would not be responsive to user input.
+  //const display = shell.getDisplay();
+  while (!dialogShell.isDisposed()) {
+    if (!display.readAndDispatch()) {
+      display.sleep(); // If there are no events to process, put the UI thread to sleep to conserve CPU.
+    }
+  }
+
+  // 6. RETURN THE RESULT
+  // Once the dialog is closed (either by a button click or the window's close button), the event loop terminates.
+  // The function then returns the value of 'proceed', indicating the user's choice.
+  return proceed;
+} // Main execution
+(function main() {
+  try {
+    const selected = $(selection);
+    const views = selected.filter("archimate-diagram-model");
+
+    // No views selected
+    if (views.length === 0) {
+      // Check if we have a parent view
+      const parentView = selected
+        .parents()
+        .filter("archimate-diagram-model")
+        .first();
+
+      if (parentView.length > 0) {
+        const useParent = kewud(
+          forceRTL(
+            `شما یک اِلِمان را بجای یک نما انتخاب کرده‌اید.\n\nآیا می‌خواهید از نمای دربرگیرنده "${parentView[0].name}" استفاده کنید؟`
+          ),
+          ["بله", "خیر"]
+        );
+
+        if (useParent === "1") {
+          processView(parentView[0]);
+          return;
+        }
+      }
+
+      kewud(
+        forceRTL(
+          "خواهشمندم یک نما را برای تولید مستندات انتخاب کنید.\n\n" +
+            "برای انتخاب یک «نما»:\n" +
+            "1. نما را از پنل «مدل‌ها» انتخاب کنید.\n" +
+            "2. این اسکریپت را دوباره اجرا کنید."
+        ),
+        ["باشه"]
+      );
+      return;
+    }
+
+    // ASYNCHRONOUS EXECUTION PATTERN: IIFE (Immediately Invoked Function Expression)
+    // Since the top-level of a script is not async, we wrap the asynchronous logic in an 'async' IIFE.
+    // This creates an async context, allowing us to use 'await' to process the views sequentially.
+    (async function runViews() {
+      if (views.length > 1) {
+        const proceed = showBatchConfirmationDialog(views);
+        if (!proceed) {
+          console.log("User cancelled batch processing.");
+          return; // Exit if user cancels
+        }
+      }
+
+      for (let i = 0; i < views.length; i++) {
+        try {
+          // The 'await' here ensures that 'processView' for the current view completes entirely (including its own async operations)
+          // before the loop proceeds to the next view. This enforces a serial execution, preventing multiple views
+          // from being processed concurrently, which is desirable for both API rate limiting and user clarity.
+          await processView(views[i]);
+        } catch (err) {
+          // This catch block handles errors that might escape 'processView', though 'processView' has its own internal error handling.
+          // It serves as a final safeguard for the loop itself.
+          console.log("Error processing view: " + err);
+        }
+      }
+    })();
+  } catch (error) {
+    console.log("Error in main: " + error);
+    kewud(forceRTL("خطای غیرمنتظره: " + error), ["باشه"]);
+  }
+})();

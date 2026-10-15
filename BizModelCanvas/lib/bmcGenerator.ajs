@@ -1,0 +1,756 @@
+/**
+ * Business Model Canvas Generator
+ * --------------------------------------------------------------------------
+ *
+ * BizDiag — Intelligent Enterprise Architecture & Digital Strategy Automation
+ *
+ * Copyright © 2026 Ebrahim Pak
+ *
+ * This file is part of BizDiag.
+ *
+ * BizDiag is free software distributed under the CeCILL-B Free Software License.
+ * See the LICENSE file in the project root for the full license text.
+ *
+ * SPDX-License-Identifier: CECILL-B
+ *
+ * @author Ebrahim Pak
+ */
+
+(function() {
+    "use strict";
+
+    if (typeof globalThis !== "undefined" && typeof globalThis.bmcGenerator !== "undefined") return;
+
+    /**
+     * Business Model Canvas to ArchiMate Generator
+     * Converts BMC building blocks to ArchiMate notation as per Open Group white paper
+     *
+     * Mapping Reference:
+     * VP (Value Proposition) -> Product + Service + Value element
+     * KA (Key Activities) -> Business Function
+     * KR (Key Resources) -> stereotyped Business Object
+     * CH (Channels) -> Business Interface
+     * CR (Customer Relationships) -> Business Collaboration
+     * CS (Customer Segments) -> Business Actor
+     * KP (Key Partners) -> Business Actor (partner)
+     * C$ (Cost Structure) -> flow relationships with costs
+     * R$ (Revenue Streams) -> flow relationships with revenue
+     */
+
+    const bmcGenerator = {
+
+        /**
+         * Apply mapped BMC connections to create smart relationships in a view
+         * Matches by block type (VP, KA, etc.) since we're matching BMC blocks 
+         * to newly created ArchiMate elements
+         */
+        applyBlockConnections: function(view, mappedConnections, relevantBlocks, diagramObjects, relationships) {
+            if (!mappedConnections || mappedConnections.length === 0 || !diagramObjects) return 0;
+            
+            let appliedCount = 0;
+            
+            // Build a map of block types to their diagram objects
+            const blockTypeToElements = {};
+            for (let blockKey in diagramObjects) {
+                if (diagramObjects[blockKey] && typeof diagramObjects[blockKey].forEach === "function") {
+                    diagramObjects[blockKey].forEach(function(item) {
+                        if (!blockTypeToElements[blockKey]) {
+                            blockTypeToElements[blockKey] = [];
+                        }
+                        blockTypeToElements[blockKey].push(item);
+                    });
+                }
+            }
+            
+            console.log("      [APPLY] Built block-type map with keys: " + Object.keys(blockTypeToElements).join(", "));
+            console.log("      [APPLY] Checking " + mappedConnections.length + " connections against " + relevantBlocks.length + " relevant blocks");
+            
+            mappedConnections.forEach(function(conn, idx) {
+                // Check if this connection is relevant to the current view's blocks
+                const sourceRelevant = relevantBlocks.indexOf(conn.sourceBlock) !== -1;
+                const targetRelevant = relevantBlocks.indexOf(conn.targetBlock) !== -1;
+                
+                if (!sourceRelevant || !targetRelevant) {
+                    console.log("      [APPLY] [" + idx + "] " + conn.sourceBlock + " → " + conn.targetBlock + " (skipped - not relevant to this view)");
+                    return;  // Skip irrelevant connections
+                }
+                
+                try {
+                    // Get the first element of each block type in this view
+                    const sourceItems = blockTypeToElements[conn.sourceBlock];
+                    const targetItems = blockTypeToElements[conn.targetBlock];
+                    
+                    if (!sourceItems || sourceItems.length === 0 || !targetItems || targetItems.length === 0) {
+                        console.log("      [APPLY] [" + idx + "] " + conn.sourceBlock + " → " + conn.targetBlock + " (skipped - elements not found in view)");
+                        return;
+                    }
+                    
+                    const sourceElement = sourceItems[0].element;
+                    const sourceDiagramObj = sourceItems[0].diagramObject;
+                    const targetElement = targetItems[0].element;
+                    const targetDiagramObj = targetItems[0].diagramObject;
+                    
+                    if (!sourceElement || !targetElement || !sourceDiagramObj || !targetDiagramObj) {
+                        console.log("      [APPLY] [" + idx + "] " + conn.sourceBlock + " → " + conn.targetBlock + " (skipped - missing diagram objects)");
+                        return;
+                    }
+                    
+                    // Create the relationship
+                    const rel = model.createRelationship(conn.relationshipType, conn.label, sourceElement, targetElement);
+                    if (rel) {
+                        relationships.push(rel);
+                        const relObj = view.add(rel, sourceDiagramObj, targetDiagramObj);
+                        console.log("      [APPLY] ✓ [" + idx + "] Applied " + conn.sourceBlock + " → " + conn.targetBlock + " (" + conn.label + ")");
+                        appliedCount++;
+                    } else {
+                        console.log("      [APPLY] [" + idx + "] " + conn.sourceBlock + " → " + conn.targetBlock + " (relationship creation failed)");
+                    }
+                } catch (e) {
+                    console.log("      [APPLY] [" + idx + "] " + conn.sourceBlock + " → " + conn.targetBlock + " (error: " + e.message + ")");
+                }
+            });
+            
+            return appliedCount;
+        },
+
+        /**
+         * Map BMC block connections to semantically meaningful ArchiMate relationships
+         * Based on business model logic and white paper semantics
+         * 
+         * Each connection type maps to a specific ArchiMate relationship with correct typing:
+         * - serves/delivers/offers: serving-relationship (enterprise provides value)
+         * - collaborates/supports: association-relationship (peer partnerships)
+         * - uses/accesses/consumes: access-relationship (resource utilization)
+         * - creates/realizes/implements: realization-relationship (capability realization)
+         * - performs/assigns: assignment-relationship (activity assignment)
+         * - generates/incurs/flows: flow-relationship (value/cost/resource flows)
+         * - targets/engages: association-relationship (stakeholder engagement)
+         */
+        mapConnectionsToRelationships: function(bmcConnections, elementMaps) {
+            const archiRelationships = [];
+            
+            if (!bmcConnections || bmcConnections.length === 0) return archiRelationships;
+            
+            console.log("  [CONNECTIONS] Processing " + bmcConnections.length + " BMC connection(s)...");
+            
+            bmcConnections.forEach(function(conn, idx) {
+                const sourceBlock = conn.sourceBlock;
+                const targetBlock = conn.targetBlock;
+                let relationshipType = "association-relationship";
+                let label = "";
+                
+                // Determine ArchiMate relationship type based on BMC block semantics
+                // Reference: Open Group White Paper pages 21-28
+                
+                if (sourceBlock === "VP" && targetBlock === "CS") {
+                    // Value Proposition targets Customer Segments
+                    relationshipType = "association-relationship";
+                    label = "targets";
+                } else if (sourceBlock === "VP" && targetBlock === "CH") {
+                    // Value delivered through Channels
+                    relationshipType = "realization-relationship";
+                    label = "delivered through";
+                } else if (sourceBlock === "VP" && targetBlock === "KA") {
+                    // Value created by Key Activities
+                    relationshipType = "realization-relationship";
+                    label = "created by";
+                } else if (sourceBlock === "CR" && targetBlock === "CS") {
+                    // Customer Relationships engage Customer Segments
+                    relationshipType = "association-relationship";
+                    label = "engages";
+                } else if (sourceBlock === "CR" && targetBlock === "R$") {
+                    // Customer Relationships generate Revenue (flow of money)
+                    relationshipType = "flow-relationship";
+                    label = "generates";
+                } else if (sourceBlock === "CH" && targetBlock === "CS") {
+                    // Channels reach/provide access to Customer Segments
+                    relationshipType = "access-relationship";
+                    label = "reaches";
+                } else if (sourceBlock === "CH" && targetBlock === "KA") {
+                    // Channels supported/enabled by Key Activities
+                    relationshipType = "realization-relationship";
+                    label = "supported by";
+                } else if (sourceBlock === "KA" && targetBlock === "KR") {
+                    // Key Activities use/consume Key Resources (access)
+                    relationshipType = "access-relationship";
+                    label = "uses";
+                } else if (sourceBlock === "KP" && targetBlock === "KA") {
+                    // Key Partners support/enable Key Activities
+                    relationshipType = "association-relationship";
+                    label = "supports";
+                } else if (sourceBlock === "KA" && targetBlock === "KP") {
+                    // Key Activities collaborate with Key Partners
+                    relationshipType = "association-relationship";
+                    label = "collaborates with";
+                } else if (sourceBlock === "KA" && targetBlock === "C$") {
+                    // Key Activities incur/flow Costs (cost structure)
+                    relationshipType = "flow-relationship";
+                    label = "incurs";
+                } else if (sourceBlock === "KP" && targetBlock === "CH") {
+                    // Key Partners provide/enable Channels
+                    relationshipType = "realization-relationship";
+                    label = "provides";
+                } else if (sourceBlock === "KA" && targetBlock === "CH") {
+                    // Key Activities enable/support Channels
+                    relationshipType = "realization-relationship";
+                    label = "enables";
+                } else if (sourceBlock === "KP" && targetBlock === "VP") {
+                    // Key Partners contribute to Value Proposition
+                    relationshipType = "serving-relationship";
+                    label = "contributes to";
+                } else if (sourceBlock === "CS" && targetBlock === "R$") {
+                    // Customer Segments generate Revenue (flow of money)
+                    relationshipType = "flow-relationship";
+                    label = "generates";
+                } else {
+                    // Default to association for other patterns
+                    relationshipType = "association-relationship";
+                    label = "related to";
+                }
+                
+                archiRelationships.push({
+                    sourceBlock: sourceBlock,
+                    targetBlock: targetBlock,
+                    relationshipType: relationshipType,
+                    label: label,
+                    sourceElement: conn.sourceElement,
+                    targetElement: conn.targetElement
+                });
+                
+                console.log("    [" + idx + "] " + sourceBlock + " → " + targetBlock + " [" + relationshipType + "] (" + label + ")");
+            });
+            
+            return archiRelationships;
+        },
+
+        /**
+         * Create three semantic ArchiMate views from BMC building blocks
+         * Following Open Group white paper: "Modeling the Business Model Canvas with ArchiMate"
+         * 
+         * Uses actual BMC connections to create meaningful relationships instead of generic templates.
+         * 
+         * Three views are created:
+         * 1. Value Proposition View (VP focus) - page 21
+         * 2. Customer Interaction View (CR, CH, CS, R$) - page 22-23
+         * 3. Core Capability View (KA, KR, KP, C$) - page 23-24
+         * 
+         * Returns: {views: [{name, view, diagramObjects}], relationships: []}
+         */
+        createSemanticViews: function(blocks, enterpriseName, bmcConnections) {
+            const views = [];
+            const relationships = [];
+            
+            if (!blocks) return {views: views, relationships: relationships};
+            
+            // Map BMC connections to ArchiMate relationships
+            const mappedConnections = this.mapConnectionsToRelationships(bmcConnections, null);
+            console.log("  [CONNECTIONS] Mapped to " + mappedConnections.length + " ArchiMate relationship(s)");
+            
+            // Create value proposition view
+            console.log("  [VIEWS] Creating Value Proposition View...");
+            const vpView = this.createValuePropositionView(blocks, enterpriseName, relationships, mappedConnections);
+            if (vpView) {
+                console.log("  [VIEWS] VP View created successfully");
+                views.push(vpView);
+            } else {
+                console.log("  [VIEWS] VP View creation returned null/undefined");
+            }
+            
+            // Create customer interaction view
+            console.log("  [VIEWS] Creating Customer Interaction View...");
+            const ciView = this.createCustomerInteractionView(blocks, enterpriseName, relationships, mappedConnections);
+            if (ciView) {
+                console.log("  [VIEWS] CI View created successfully");
+                views.push(ciView);
+            } else {
+                console.log("  [VIEWS] CI View creation returned null/undefined");
+            }
+            
+            // Create core capability view
+            console.log("  [VIEWS] Creating Core Capability View...");
+            const ccView = this.createCoreCapabilityView(blocks, enterpriseName, relationships, mappedConnections);
+            if (ccView) {
+                console.log("  [VIEWS] CC View created successfully");
+                views.push(ccView);
+            } else {
+                console.log("  [VIEWS] CC View creation returned null/undefined");
+            }
+            
+            console.log("  [VIEWS] Final views array contains " + views.length + " views:");
+            views.forEach(function(v, idx) {
+                console.log("    [" + idx + "] name='" + (v.name || "UNDEFINED") + "'");
+            });
+            
+            return {views: views, relationships: relationships};
+        },
+
+        /**
+         * VALUE PROPOSITION VIEW (Page 21)
+         * Focus: VP, CS
+         * Elements: Value, Product, Service, Business Actor
+         * 
+         * Narrative:
+         * - Value elements express perceived customer value
+         * - Products aggregate services
+         * - Business actor (enterprise) realizes services
+         * - Association relationships between value, products, and customers
+         * 
+         * Smart Relationships: Uses actual BMC connections (VP→CS, VP→KA, etc.)
+         */
+        createValuePropositionView: function(blocks, enterpriseName, relationships, mappedConnections) {
+            console.log("[DEBUG-VP] Starting Value Proposition View creation...");
+            
+            const view = model.createArchimateView("Value Proposition View");
+            console.log("[DEBUG-VP] View object created: " + (view ? "success" : "failed"));
+            if (!view) {
+                console.log("[DEBUG-VP] View creation failed, returning null");
+                return null;
+            }
+            
+            let diagramObjects = {};
+            let y = 50;
+            let elementMap = {};
+            
+            try {
+                // Create enterprise business actor
+                const enterprise = model.createElement("business-actor", enterpriseName || "[Enterprise]");
+                const enterpriseObj = view.add(enterprise, 50, y, 150, 60);
+                if (!diagramObjects["enterprise"]) diagramObjects["enterprise"] = [];
+                diagramObjects["enterprise"].push({element: enterprise, diagramObject: enterpriseObj});
+                elementMap["enterprise"] = enterprise;
+                
+                y += 120;
+                
+                // Create Value elements from VP blocks
+                if (blocks.VP && blocks.VP.length > 0) {
+                    let vpX = 50;
+                    blocks.VP.forEach((vp, idx) => {
+                        // Note: Try to create value element directly, or fall back to business-service
+                        let value = null;
+                        try {
+                            value = model.createElement("value", "[VP] " + vp.name);
+                        } catch (e) {
+                            // Fallback to business service if value element not available
+                            value = model.createElement("business-service", "[VP] " + vp.name);
+                        }
+                        
+                        if (!value) {
+                            console.log("  Warning: Could not create Value element");
+                            return;
+                        }
+                        
+                        const valueObj = view.add(value, vpX + (idx * 200), y, 150, 60);
+                        console.log("  [VP] Value[" + idx + "] add result at (" + (vpX + idx*200) + "," + y + "): " + (valueObj ? "OK" : "NULL"));
+                        console.log("  [VP] Value element " + idx + " added: " + (valueObj ? "success" : "FAILED (null)"));
+                        
+                        if (!diagramObjects["VP"]) diagramObjects["VP"] = [];
+                        diagramObjects["VP"].push({element: value, diagramObject: valueObj});
+                        
+                        // Serving relationship: enterprise realizes/delivers value
+                        const rel = model.createRelationship("serving-relationship", "delivers", enterprise, value);
+                        if (rel) relationships.push(rel);
+                        const relObj = view.add(rel, enterpriseObj, valueObj);
+                    });
+                }
+                
+                y += 120;
+                
+                // Create Product elements from VP
+                if (blocks.VP && blocks.VP.length > 0) {
+                    let prodX = 50;
+                    blocks.VP.forEach((vp, idx) => {
+                        const product = model.createElement("product", "[VP] Product - " + vp.name);
+                        const productObj = view.add(product, prodX + (idx * 200), y, 150, 60);
+                        console.log("  [VP] Product[" + idx + "] add result at (" + (prodX + idx*200) + "," + y + "): " + (productObj ? "OK" : "NULL"));
+                        console.log("  [VP] Product element " + idx + " added: " + (productObj ? "success" : "FAILED (null)"));
+                        
+                        if (!diagramObjects["VP_Product"]) diagramObjects["VP_Product"] = [];
+                        diagramObjects["VP_Product"].push({element: product, diagramObject: productObj});
+                        
+                        // Serving relationship: enterprise offers/realizes products
+                        const rel = model.createRelationship("serving-relationship", "offers", enterprise, product);
+                        if (rel) relationships.push(rel);
+                        const relObj = view.add(rel, enterpriseObj, productObj);
+                    });
+                }
+                
+                y += 120;
+                
+                // Create Customer Segment business actors
+                if (blocks.CS && blocks.CS.length > 0) {
+                    let csX = 50;
+                    blocks.CS.forEach((cs, idx) => {
+                        const customer = model.createElement("business-actor", "[CS] " + cs.name);
+                        const customerObj = view.add(customer, csX + (idx * 200), y, 150, 60);
+                        
+                        if (!diagramObjects["CS"]) diagramObjects["CS"] = [];
+                        diagramObjects["CS"].push({element: customer, diagramObject: customerObj});
+                        elementMap["CS_" + idx] = customer;
+                    });
+                }
+                
+                // Apply actual BMC connections: VP → CS, VP → KA, etc.
+                if (mappedConnections && mappedConnections.length > 0) {
+                    console.log("  [VP] Applying BMC connections...");
+                    const appliedCount = bmcGenerator.applyBlockConnections(
+                        view,
+                        mappedConnections,
+                        ["VP", "CS", "KA"],  // Relevant blocks for this view
+                        diagramObjects,
+                        relationships
+                    );
+                    if (appliedCount > 0) {
+                        console.log("  [VP] ✓ Applied " + appliedCount + " connection(s) from BMC diagram");
+                    } else {
+                        console.log("  [VP] Note: No connections applied (may not be relevant to this view)");
+                    }
+                }
+                
+                console.log("  ✓ Value Proposition View created");
+                const returnObj = {
+                    name: "Value Proposition View",
+                    view: view,
+                    diagramObjects: diagramObjects,
+                    elementMap: elementMap
+                };
+                console.log("[DEBUG-VP] Returning view object with name: " + returnObj.name);
+                return returnObj;
+                
+            } catch (e) {
+                console.log("[DEBUG-VP] ERROR in VP view creation: " + e.message);
+                console.log("[DEBUG-VP] Stack: " + e);
+                return null;
+            }
+        },
+
+        /**
+         * CUSTOMER INTERACTION VIEW (Page 22-23)
+         * Focus: CR, CH, CS, R$
+         * Elements: Business Collaboration, Business Interaction, Business Interface, Business Actor
+         * Relationships: collaboration, flow (money), association
+         * 
+         * Smart Relationships: Uses actual BMC connections (CR→CS, CR→R$, CH→KA, etc.)
+         */
+        createCustomerInteractionView: function(blocks, enterpriseName, relationships, mappedConnections) {
+            console.log("Creating Customer Interaction View...");
+            
+            const view = model.createArchimateView("Customer Interaction View");
+            if (!view) return null;
+            
+            let diagramObjects = {};
+            let elementMap = {};
+            let y = 50;
+            
+            try {
+                // Create enterprise business actor
+                const enterprise = model.createElement("business-actor", enterpriseName || "[Enterprise]");
+                const enterpriseObj = view.add(enterprise, 50, y, 150, 60);
+                if (!diagramObjects["enterprise"]) diagramObjects["enterprise"] = [];
+                diagramObjects["enterprise"].push({element: enterprise, diagramObject: enterpriseObj});
+                elementMap["enterprise"] = enterprise;
+                
+                y += 120;
+                
+                // Create Customer Relationships as Business Collaborations
+                if (blocks.CR && blocks.CR.length > 0) {
+                    let crX = 50;
+                    blocks.CR.forEach((cr, idx) => {
+                        const collab = model.createElement("business-collaboration", "[CR] " + cr.name);
+                        const collabObj = view.add(collab, crX + (idx * 200), y, 150, 60);
+                        
+                        if (!diagramObjects["CR"]) diagramObjects["CR"] = [];
+                        diagramObjects["CR"].push({element: collab, diagramObject: collabObj});
+                        
+                        // Association: enterprise participates in customer relationships/collaborations
+                        const rel = model.createRelationship("association-relationship", "participates in", enterprise, collab);
+                        if (rel) relationships.push(rel);
+                        const relObj = view.add(rel, enterpriseObj, collabObj);
+                    });
+                }
+                
+                y += 120;
+                
+                // Create Channels as Business Interfaces
+                if (blocks.CH && blocks.CH.length > 0) {
+                    let chX = 50;
+                    blocks.CH.forEach((ch, idx) => {
+                        const iface = model.createElement("business-interface", "[CH] " + ch.name);
+                        const ifaceObj = view.add(iface, chX + (idx * 200), y, 150, 60);
+                        
+                        if (!diagramObjects["CH"]) diagramObjects["CH"] = [];
+                        diagramObjects["CH"].push({element: iface, diagramObject: ifaceObj});
+                        
+                        // Realization: enterprise hosts/realizes distribution channels
+                        const rel = model.createRelationship("realization-relationship", "hosts", enterprise, iface);
+                        if (rel) relationships.push(rel);
+                        const relObj = view.add(rel, enterpriseObj, ifaceObj);
+                    });
+                }
+                
+                y += 120;
+                
+                // Create Customer Segments as Business Actors
+                if (blocks.CS && blocks.CS.length > 0) {
+                    let csX = 50;
+                    blocks.CS.forEach((cs, idx) => {
+                        try {
+                            const customer = model.createElement("business-actor", "[CS] " + cs.name);
+                            const customerObj = view.add(customer, csX + (idx * 200), y, 150, 60);
+                            console.log("  [CI] CS[" + idx + "] added: " + (customerObj ? "OK" : "NULL - element created but not added to view"));
+                            
+                            if (!diagramObjects["CS"]) diagramObjects["CS"] = [];
+                            diagramObjects["CS"].push({element: customer, diagramObject: customerObj});
+                            elementMap["CS_" + idx] = customer;
+                        } catch (e) {
+                            console.log("  [CI] CS[" + idx + "] ERROR: " + e.message);
+                        }
+                    });
+                }
+                
+                y += 120;
+                
+                // Create Revenue Streams as flow relationships
+                if (blocks['R$'] && blocks['R$'].length > 0 && blocks.CS && blocks.CS.length > 0) {
+                    let rsX = 50;
+                    blocks['R$'].forEach((rs, idx) => {
+                        try {
+                            const revenue = model.createElement("business-object", "[R$] " + rs.name);
+                            const revenueObj = view.add(revenue, rsX + (idx * 200), y, 150, 60);
+                            console.log("  [CI] R$[" + idx + "] added: " + (revenueObj ? "OK" : "NULL - element created but not added to view"));
+                            
+                            if (!diagramObjects['R$']) diagramObjects['R$'] = [];
+                            diagramObjects['R$'].push({element: revenue, diagramObject: revenueObj});
+                            
+                            // Flow from customer segment to revenue (payment)
+                            if (diagramObjects["CS"] && diagramObjects["CS"].length > 0) {
+                                const customerElement = diagramObjects["CS"][0].element;  // Use the created customer element
+                                const flowRel = model.createRelationship("association-relationship", "generates revenue", customerElement, revenue);
+                                if (flowRel) relationships.push(flowRel);
+                            }
+                        } catch (e) {
+                            console.log("  [CI] R$[" + idx + "] ERROR: " + e.message);
+                        }
+                    });
+                }
+                
+                // Apply actual BMC connections: CR→CS, CR→R$, CH→KA, etc.
+                if (mappedConnections && mappedConnections.length > 0) {
+                    console.log("  [CI] Applying BMC connections...");
+                    const appliedCount = bmcGenerator.applyBlockConnections(
+                        view,
+                        mappedConnections,
+                        ["CR", "CH", "CS", "R$", "KA", "KP"],  // Relevant blocks for this view
+                        diagramObjects,
+                        relationships
+                    );
+                    if (appliedCount > 0) {
+                        console.log("  [CI] ✓ Applied " + appliedCount + " connection(s) from BMC diagram");
+                    } else {
+                        console.log("  [CI] Note: No connections applied (may not be relevant to this view)");
+                    }
+                }
+                
+                console.log("  ✓ Customer Interaction View created");
+                return {
+                    name: "Customer Interaction View",
+                    view: view,
+                    diagramObjects: diagramObjects,
+                    elementMap: elementMap
+                };
+                
+            } catch (e) {
+                console.log("  Error creating Customer Interaction View: " + e.message);
+                return null;
+            }
+        },
+
+        /**
+         * CORE CAPABILITY VIEW (Page 23-24)
+         * Focus: KA, KR, KP, C$
+         * Elements: Business Function, Business Object, Business Actor, Business Interface
+         * Relationships: assigned-to, uses, access, flow (costs)
+         * 
+         * Smart Relationships: Uses actual BMC connections (KA→KR, KA→KP, KA→C$, KP→CH, etc.)
+         */
+        createCoreCapabilityView: function(blocks, enterpriseName, relationships, mappedConnections) {
+            console.log("[DEBUG-CC] Starting Core Capability View creation...");
+            
+            const view = model.createArchimateView("Core Capability View");
+            console.log("[DEBUG-CC] View object created: " + (view ? "success" : "failed"));
+            if (!view) {
+                console.log("[DEBUG-CC] View creation failed, returning null");
+                return null;
+            }
+            
+            let diagramObjects = {};
+            let elementMap = {};
+            let y = 50;
+            
+            try {
+                // Create enterprise business actor
+                const enterprise = model.createElement("business-actor", enterpriseName || "[Enterprise]");
+                const enterpriseObj = view.add(enterprise, 50, y, 150, 60);
+                if (!diagramObjects["enterprise"]) diagramObjects["enterprise"] = [];
+                diagramObjects["enterprise"].push({element: enterprise, diagramObject: enterpriseObj});
+                elementMap["enterprise"] = enterprise;
+                
+                y += 120;
+                
+                // Create Key Activities as Business Functions
+                if (blocks.KA && blocks.KA.length > 0) {
+                    let kaX = 50;
+                    blocks.KA.forEach((ka, idx) => {
+                        const func = model.createElement("business-function", "[KA] " + ka.name);
+                        const funcObj = view.add(func, kaX + (idx * 200), y, 150, 60);
+                        
+                        if (!diagramObjects["KA"]) diagramObjects["KA"] = [];
+                        diagramObjects["KA"].push({element: func, diagramObject: funcObj});
+                        elementMap["KA_" + idx] = func;
+                        
+                        // Assigned-to relationship from enterprise to activity
+                        const rel = model.createRelationship("assignment-relationship", "performs", enterprise, func);
+                        if (rel) relationships.push(rel);
+                        const relObj = view.add(rel, enterpriseObj, funcObj);
+                    });
+                }
+                
+                y += 120;
+                
+                // Create Key Resources as Business Objects
+                if (blocks.KR && blocks.KR.length > 0) {
+                    let krX = 50;
+                    blocks.KR.forEach((kr, idx) => {
+                        const resource = model.createElement("business-object", "[KR] " + kr.name);
+                        const resourceObj = view.add(resource, krX + (idx * 200), y, 150, 60);
+                        
+                        if (!diagramObjects["KR"]) diagramObjects["KR"] = [];
+                        diagramObjects["KR"].push({element: resource, diagramObject: resourceObj});
+                        
+                        // Access relationship from activities to resources
+                        if (diagramObjects["KA"] && diagramObjects["KA"].length > 0) {
+                            const activityElement = diagramObjects["KA"][Math.min(idx, diagramObjects["KA"].length - 1)].element;
+                            const accessRel = model.createRelationship("access-relationship", "uses", activityElement, resource);
+                            if (accessRel) relationships.push(accessRel);
+                        }
+                    });
+                }
+                
+                y += 120;
+                
+                // Create Key Partners as Business Actors
+                if (blocks.KP && blocks.KP.length > 0) {
+                    let kpX = 50;
+                    blocks.KP.forEach((kp, idx) => {
+                        const partner = model.createElement("business-actor", "[KP] " + kp.name);
+                        const partnerObj = view.add(partner, kpX + (idx * 200), y, 150, 60);
+                        
+                        if (!diagramObjects["KP"]) diagramObjects["KP"] = [];
+                        diagramObjects["KP"].push({element: partner, diagramObject: partnerObj});
+                        
+                        // Access/Serving: enterprise accesses or is served by partners' capabilities
+                        const rel = model.createRelationship("serving-relationship", "served by", enterprise, partner);
+                        if (rel) relationships.push(rel);
+                        const relObj = view.add(rel, enterpriseObj, partnerObj);
+                    });
+                }
+                
+                y += 120;
+                
+                // Create Cost Structures as Business Objects
+                if (blocks['C$'] && blocks['C$'].length > 0) {
+                    let csX = 50;
+                    blocks['C$'].forEach((cs, idx) => {
+                        try {
+                            const cost = model.createElement("business-object", "[C$] " + cs.name);
+                            const costObj = view.add(cost, csX + (idx * 200), y, 150, 60);
+                            console.log("  [CC] C$[" + idx + "] added: " + (costObj ? "OK" : "NULL - element created but not added to view"));
+                            
+                            if (!diagramObjects['C$']) diagramObjects['C$'] = [];
+                            diagramObjects['C$'].push({element: cost, diagramObject: costObj});
+                            
+                            // Association relationship from activity to cost (applies cost)
+                            if (diagramObjects["KA"] && diagramObjects["KA"].length > 0) {
+                                const activityElement = diagramObjects["KA"][Math.min(idx, diagramObjects["KA"].length - 1)].element;
+                                const costRel = model.createRelationship("association-relationship", "incurs", activityElement, cost);
+                                if (costRel) relationships.push(costRel);
+                            }
+                        } catch (e) {
+                            console.log("  [CC] C$[" + idx + "] ERROR: " + e.message);
+                        }
+                    });
+                }
+                
+                // Apply actual BMC connections: KA→KR, KA→KP, KA→C$, KP→CH, etc.
+                if (mappedConnections && mappedConnections.length > 0) {
+                    console.log("  [CC] Applying BMC connections...");
+                    const appliedCount = bmcGenerator.applyBlockConnections(
+                        view,
+                        mappedConnections,
+                        ["KA", "KR", "KP", "C$", "CH"],  // Relevant blocks for this view
+                        diagramObjects,
+                        relationships
+                    );
+                    if (appliedCount > 0) {
+                        console.log("  [CC] ✓ Applied " + appliedCount + " connection(s) from BMC diagram");
+                    } else {
+                        console.log("  [CC] Note: No connections applied (may not be relevant to this view)");
+                    }
+                }
+                
+                console.log("  ✓ Core Capability View created");
+                const returnObj = {
+                    name: "Core Capability View",
+                    view: view,
+                    diagramObjects: diagramObjects,
+                    elementMap: elementMap
+                };
+                console.log("[DEBUG-CC] Returning view object with name: " + returnObj.name);
+                return returnObj;
+                
+            } catch (e) {
+                console.log("[DEBUG-CC] ERROR in CC view creation: " + e.message);
+                console.log("[DEBUG-CC] Stack: " + e);
+                return null;
+            }
+        },
+
+        /**
+         * Add a relationship to an ArchiMate view
+         * Uses the view's add() method with diagram objects as source and target
+         * view.add(relationship, sourceDiagramObj, targetDiagramObj)
+         */
+        addRelationshipToView: function(view, relationship, sourceDiagramObject, targetDiagramObject) {
+            if (!view || !relationship) {
+                console.log("      [ADD-REL] View or relationship is null");
+                return null;
+            }
+            
+            if (!sourceDiagramObject || !targetDiagramObject) {
+                console.log("      [ADD-REL] Source or target diagram object is null");
+                return null;
+            }
+            
+            try {
+                // Use the view's add() method with the appropriate signature for relationships
+                if (typeof view.add === "function") {
+                    const connection = view.add(relationship, sourceDiagramObject, targetDiagramObject);
+                    if (connection) {
+                        return connection;
+                    } else {
+                        console.log("      [ADD-REL] view.add() returned null/undefined");
+                        return null;
+                    }
+                } else {
+                    console.log("      [ADD-REL] view.add is not a function");
+                }
+            } catch (e) {
+                console.log("      [ADD-REL] Exception: " + e.message);
+            }
+            
+            return null;
+        }
+    };
+
+    if (typeof globalThis !== "undefined") globalThis.bmcGenerator = bmcGenerator;
+    if (typeof module !== "undefined" && module.exports) module.exports = bmcGenerator;
+})();

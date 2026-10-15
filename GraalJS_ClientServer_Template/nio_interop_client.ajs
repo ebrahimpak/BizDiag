@@ -1,0 +1,83 @@
+/*
+ * Copyright © 2026 Ebrahim Pak
+ *
+ * SPDX-License-Identifier: CECILL-B
+ *
+ * This file is part of BizDiag.
+ *
+ * BizDiag is distributed under the CeCILL-B Free Software License Agreement,
+ * Version 1.0. See the LICENSE file for details.
+ *
+ * The French and English versions of the license are available in
+ * LICENSE-FR and LICENSE, respectively.
+ *
+ * Author: Ebrahim Pak
+ *
+ * ---------------------------------------------------------------------------------------------------------------------
+ *
+ * nio_interop_client.js
+ *
+ * GraalJS NIO client for the BizDiag NIO client/server interoperability template.
+ *
+ */
+
+const IOException = Java.type("java.io.IOException");
+const InetSocketAddress = Java.type("java.net.InetSocketAddress");
+const SocketChannel = Java.type("java.nio.channels.SocketChannel");
+const ByteBuffer = Java.type("java.nio.ByteBuffer");
+const Base64 = Java.type("java.util.Base64");
+const JavaString = Java.type("java.lang.String");
+
+const DEFAULT_PORT = 9999;
+
+function main(args) {
+  const hostArgs = args || [];
+  const port = hostArgs.length > 0 ? parseInt(hostArgs[0], 10) : DEFAULT_PORT;
+  const encodedPayload = hostArgs.length > 1 ? hostArgs[1] : null;
+
+  if (!encodedPayload) {
+    console.error("[CLIENT FATAL] Missing encoded payload.");
+    console.error("This client must be launched by log_click.ajs via NioInteropLauncher.");
+    throw new Error("Missing encoded payload.");
+  }
+
+  let payload;
+
+  try {
+    payload = new JavaString(Base64.getDecoder().decode(encodedPayload), "UTF-8");
+    console.log("Payload received from log_click.ajs:");
+    console.log(payload);
+  } catch (e) {
+    console.error("[CLIENT FATAL] Invalid Base64 payload: " + e);
+    throw e;
+  }
+
+  let sc = null;
+
+  try {
+    const addr = new InetSocketAddress("localhost", port);
+    console.log(`Attempting connection to localhost:${port}...`);
+
+    sc = SocketChannel.open();
+    sc.connect(addr);
+    console.log("Connection successful. Sending payload.");
+
+    const data = ByteBuffer.wrap(payload.getBytes("UTF-8"));
+
+    while (data.hasRemaining()) sc.write(data);
+
+    console.log("Payload sent successfully.");
+  } catch (e) {
+    if (e instanceof IOException) {
+      console.error("Client I/O error (Is the server running?): " + e.getMessage());
+    } else {
+      console.error("An unexpected error occurred:", e);
+    }
+    throw e;
+  } finally {
+    if (sc && sc.isOpen()) sc.close();
+  }
+}
+
+const hostArgs = Polyglot.import("host.arguments") || [];
+main(hostArgs);

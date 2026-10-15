@@ -1,0 +1,120 @@
+﻿/*
+ * Copyright © 2026 Ebrahim Pak
+ *
+ * SPDX-License-Identifier: CECILL-B
+ *
+ * This file is part of BizDiag.
+ *
+ * BizDiag is distributed under the CeCILL-B Free Software License Agreement,
+ * Version 1.0. See the LICENSE file for details.
+ *
+ * The French and English versions of the license are available in
+ * LICENSE-FR and LICENSE, respectively.
+ *
+ * Author: Ebrahim Pak
+ *
+ * ---------------------------------------------------------------------------------------------------------------------
+ *
+ * log_click.ajs - Sends selected element data as Base64 to the external server.
+ * Runs inside Archi. Uses Base64 and Java Runtime for maximum reliability.
+ *
+ */
+const Paths = Java.type("java.nio.file.Paths");
+
+// --- 1. Core Java Imports ---
+var System = Java.type("java.lang.System");
+var Runtime = Java.type("java.lang.Runtime");
+var BufferedReader = Java.type("java.io.BufferedReader");
+var InputStreamReader = Java.type("java.io.InputStreamReader");
+var Base64 = Java.type("java.util.Base64"); // For reliable command-line argument passing
+var JavaString = Java.type("java.lang.String");
+
+console.show();
+console.clear();
+console.log("--- Starting Element Log Script ---");
+
+// --- 2. Get the selected element ---
+var selection = $(selection);
+var element = selection.length === 1 ? selection[0] : null;
+
+if (!element) {
+  // Using console.log as console.warn is often missing
+  console.log("WARNING: Please select exactly one element to log.");
+} else {
+  // --- 3. Prepare the Base64 Data Payload ---
+  var currentUserName = System.getProperty("user.name");
+
+  var payloadObject = {
+    elementId: element.id,
+    elementName: element.name,
+    type: element.type,
+    user: currentUserName,
+    timestamp: new Date().toString(), // For UTC (ISO format): timestamp: new Date().toISOString(),
+  };
+
+  var payload = JSON.stringify(payloadObject);
+
+  // Base64 Encode the JSON string to ensure safe transmission via command line
+  var encoder = Base64.getEncoder();
+  var encodedPayload = encoder.encodeToString(
+    new JavaString(payload).getBytes()
+  );
+
+  // The final argument is the encoded string, with no quotes/escaping
+  var finalPayloadArgument = encodedPayload;
+
+  console.log("JSON Payload (Base64) to send: " + finalPayloadArgument);
+
+  // --- 4. Define the paths and command ---
+  const basePath = Paths.get(__DIR__);
+  var graaljsExecutable =
+    "C:\\Program Files\\graalvm-community-openjdk-25.0.1+8.1\\bin\\js.exe";
+  var clientScript = basePath + "\\nio_interop_client.js"; // Path to my client file
+
+  // Construct the Java Property argument (using --vm.D for GraalVM compatibility)
+  var propertyArgument = "--vm.Dpayload.data=" + finalPayloadArgument;
+
+  // CRITICAL: The clientScript MUST come before the property argument for GraalVM
+  var commandArray = [
+    graaljsExecutable,
+    clientScript, // 1. Script to run comes first
+    propertyArgument, // 2. Flags/properties come after the script name
+  ];
+
+  console.log("Executing external client via Java Runtime...");
+
+  // --- 5. EXECUTION and Report Results via Java Runtime ---
+  var process = null;
+  try {
+    process = Runtime.getRuntime().exec(commandArray);
+    var exitCode = process.waitFor();
+
+    // Read Error Output
+    var errorReader = new BufferedReader(
+      new InputStreamReader(process.getErrorStream())
+    );
+    var stdError = "";
+    var line;
+    while ((line = errorReader.readLine()) != null) {
+      stdError += line + "\n";
+    }
+
+    // --- Report Results ---
+    if (exitCode === 0) {
+      console.log("Element logging successful. Data sent to server.");
+    } else {
+      console.error(
+        "Element logging FAILED. Client exit code: " +
+          exitCode +
+          "\nError (stderr):\n" +
+          stdError
+      );
+    }
+  } catch (e) {
+    console.error("Failed to run external Java process: " + e);
+  } finally {
+    if (process) {
+      process.destroy();
+    }
+  }
+}

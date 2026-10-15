@@ -1,0 +1,39 @@
+GraalJS NIO Logger Server
+
+Requires:
+- GraalVM JDK 25
+- Apache Maven
+
+___________________________________________________________________________________
+1) Run this in your command line:
+
+where java
+
+1) Before running the application, update the `javaExecutable` path, in `log_click.ajs` (line 65), to point to your local GraalVM JDK 25 installation, as specified by the previous step command ('where java'). No further configuration is required.
+
+2) The package is already compiled and need no recompilation; but in case of any change, from your side on the '.js' files, recompile it:
+
+mvn clean package
+
+3) From the application directory, run:
+
+mvn exec:java "-Dexec.mainClass=com.bizdiag.NioInteropLauncher" "-Dexec.classpathScope=runtime" "-Dexec.args=nio_interop_server.js"
+
+4) While the server is running, open Archi, and choose any ArchiMate element you wish, by clicking it.
+
+5) From the 'Scripts Manager' in Archi, execute 'log_click.ajs' to send the selected element's data as a payload log to the server.
+___________________________________________________________________________________
+For accessing the payload records that have been saved into the H2 database, enter these JDBC URL, and credentials:
+
+Driver Class:	org.h2.Driver
+JDBC URL:	jdbc:h2:./graaljs_archidb
+User Name:	sa
+Password:	p@ssw0rd
+___________________________________________________________________________________
+To check out the table name:
+
+SELECT TABLE_NAME
+FROM INFORMATION_SCHEMA.TABLES
+WHERE TABLE_SCHEMA = 'PUBLIC';
+___________________________________________________________________________________
+If you want to migrate from the utilized in-memory RDBMS in this application, which is H2, to a Client/Server type one, e.g., MySQL, please run the SQL commands, written in ./h2~mysql_migration/database.sql

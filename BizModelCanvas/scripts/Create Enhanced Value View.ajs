@@ -1,0 +1,500 @@
+/*
+ * Copyright © 2026 Ebrahim Pak
+ *
+ * SPDX-License-Identifier: CECILL-B
+ *
+ * This file is part of BizDiag.
+ *
+ * BizDiag is distributed under the CeCILL-B Free Software License Agreement,
+ * Version 1.0. See the LICENSE file for details.
+ *
+ * The French and English versions of the license are available in
+ * LICENSE-FR and LICENSE, respectively.
+ *
+ * Author: Ebrahim Pak
+ *
+ * ---------------------------------------------------------------------------------------------------------------------
+ * Enhanced Value Proposition View Creator
+ * 
+ * This script creates a rich Value Proposition View by:
+ * 1. Discovering value, products, services in the ArchiMate model
+ * 2. Finding customer segments and stakeholders
+ * 3. Extracting existing relationships from the model
+ * 4. Creating semantic connections based on model analysis
+ * 5. Rendering a comprehensive view following the White Paper (page 21)
+ * 
+ * Unlike the BMC converter, this looks at the FULL model to infer relationships
+ *
+ */
+
+console.show();
+console.clear();
+
+(function() {
+    "use strict";
+    
+
+    // Setup logging to temp file for GUI access
+    const System = Java.type('java.lang.System');
+    const File = Java.type('java.io.File');
+    const FileWriter = Java.type('java.io.FileWriter');
+    const PrintWriter = Java.type('java.io.PrintWriter');
+    
+    const tempDir = System.getProperty('java.io.tmpdir');
+    const logFile = new File(tempDir, 'BizModelCanvas_output.log');
+    let logWriter = null;
+    
+    function initLog() {
+        try {
+            logWriter = new PrintWriter(new FileWriter(logFile, false)); // false = overwrite
+        } catch (e) {
+            console.error("Could not initialize log file"); }
+    }
+    
+    function logOutput(msg) {
+        console.log(msg);
+        if (logWriter) {
+            try {
+                logWriter.println(msg);
+                logWriter.flush();
+            } catch (e) { }
+        }
+    }
+    
+    function closeLog() {
+        if (logWriter) {
+            try {
+                logWriter.flush();
+                logWriter.close();
+            } catch (e) { }
+        }
+    }
+    
+    initLog();
+    
+    try {
+        if (!model) {
+            console.error("Error: No ArchiMate model is open.");
+            return;
+        }
+        
+        logOutput("=" .repeat(70));
+        logOutput("CREATING ENHANCED VALUE PROPOSITION VIEW");
+        logOutput("=" .repeat(70));
+        logOutput("");
+        
+        // ======================== HELPER FUNCTIONS ========================
+        
+        function getEnterpriseActor() {
+            const allActors = $("business-actor");
+            let enterprise = null;
+            
+            // Look for "Case Study" or main enterprise name
+            allActors.each(function(actor) {
+                const name = actor.getName();
+                if (name.includes("Case Study") || name.includes("ArchiSurance")) {
+                    if (!enterprise) enterprise = actor;
+                }
+            });
+            
+            // Fallback to first actor
+            if (!enterprise && allActors.size() > 0) {
+                enterprise = allActors.first();
+            }
+            
+            return enterprise;
+        }
+        
+        function findElementsByPattern(pattern, elementType) {
+            const results = [];
+            const all = elementType ? $(elementType) : $("*");
+            
+            all.each(function(el) {
+                const name = el.getName();
+                if (typeof pattern === "string" && name.includes(pattern)) {
+                    results.push(el);
+                } else if (pattern instanceof RegExp && pattern.test(name)) {
+                    results.push(el);
+                }
+            });
+            
+            return results;
+        }
+        
+        function findRelationshipsForElements(sourceElements, targetElements, relationshipType) {
+            const results = [];
+            const sourceIds = sourceElements.map(e => e.getId ? e.getId() : e.id);
+            const targetIds = targetElements.map(e => e.getId ? e.getId() : e.id);
+            
+            const allRels = $("relationship");
+            allRels.each(function(rel) {
+                const src = rel.getSource();
+                const tgt = rel.getTarget();
+                
+                if (!src || !tgt) return;
+                
+                const srcId = src.getId ? src.getId() : src.id;
+                const tgtId = tgt.getId ? tgt.getId() : tgt.id;
+                
+                const typeOk = !relationshipType || rel.getType() === relationshipType;
+                const directionOk = (sourceIds.indexOf(srcId) !== -1 && targetIds.indexOf(tgtId) !== -1);
+                
+                if (typeOk && directionOk) {
+                    results.push(rel);
+                }
+            });
+            
+            return results;
+        }
+        
+        // ======================== STEP 1: DISCOVERY ========================
+        logOutput("STEP 1: DISCOVERING MODEL ELEMENTS");
+        logOutput("-" .repeat(70));
+        
+        const enterprise = getEnterpriseActor();
+        logOutput("✓ Enterprise: " + (enterprise ? enterprise.getName() : "Not found"));
+        
+        // Find value elements - collect any VP-tagged items
+        const allValues = [];
+        
+        $("*").each(function(el) {
+            const name = el.getName();
+            const type = el.getType ? el.getType() : "unknown";
+            
+            // Collect VP-tagged elements and true value elements
+            if ((name.includes("[VP]") || name.includes("VALUE PROPOSITION")) ||
+                type === "value" || type === "driver" || type === "goal") {
+                if (allValues.indexOf(el) === -1) {
+                    allValues.push(el);
+                }
+            }
+        });
+        
+        logOutput("✓ Value elements: " + allValues.length);
+        if (allValues.length === 1 && allValues[0].getName().includes("VALUE PROPOSITIONS")) {
+            logOutput("     WARNING: Single aggregated element detected!");
+            logOutput("    • " + allValues[0].getName());
+            logOutput("    ");
+            logOutput("    This view would be more effective with INDIVIDUAL values:");
+            logOutput("    • [VP] Fast Claims Processing");
+            logOutput("    • [VP] 24/7 Customer Support");
+            logOutput("    • [VP] Competitive Pricing");
+            logOutput("    • [VP] Transparent Communication");
+            logOutput("    ");
+            logOutput("     RECOMMENDATION: Break down '[VP] VALUE PROPOSITIONS' into");
+            logOutput("    separate value elements in Archi first, then re-run this script.");
+        } else {
+            allValues.forEach(v => logOutput("    • " + v.getName()));
+        }
+        
+        // Find products
+        const products = $("product");
+        logOutput("✓ Products: " + products.size());
+        products.each(p => logOutput("    • " + p.getName()));
+        
+        // Find services
+        const services = $("business-service");
+        logOutput("✓ Services: " + services.size());
+        services.each(s => logOutput("    • " + s.getName()));
+        
+        // Find customer segments
+        const csTagged = findElementsByPattern("[CS]", "business-actor");
+        const customerActors = findElementsByPattern("Customer", "business-actor");
+        const allCustomers = csTagged.slice();
+        customerActors.forEach(c => {
+            if (allCustomers.indexOf(c) === -1) allCustomers.push(c);
+        });
+        
+        logOutput("✓ Customer Segments: " + allCustomers.length);
+        allCustomers.forEach(c => logOutput("    • " + c.getName()));
+        
+        // ======================== STEP 2: ANALYZE RELATIONSHIPS ========================
+        logOutput("\nSTEP 2: ANALYZING RELATIONSHIPS");
+        logOutput("-" .repeat(70));
+        
+        const allRelationships = $("relationship");
+        const valueRelMap = new Map();  // Map relationship to avoid duplicates
+        
+        // Find relationships involving values and customers
+        allRelationships.each(function(rel) {
+            const src = rel.getSource();
+            const tgt = rel.getTarget();
+            if (!src || !tgt) return;
+            
+            const srcName = src.getName();
+            const tgtName = tgt.getName();
+            
+            // Track any relationship touching values or customers
+            if ((srcName.includes("[VP]") || tgtName.includes("[VP]") ||
+                 srcName.includes("[CS]") || tgtName.includes("[CS]")) ||
+                allValues.indexOf(src) !== -1 || allValues.indexOf(tgt) !== -1 ||
+                allCustomers.indexOf(src) !== -1 || allCustomers.indexOf(tgt) !== -1) {
+                
+                const key = src.getName() + "-" + rel.getType() + "-" + tgt.getName();
+                if (!valueRelMap.has(key)) {
+                    valueRelMap.set(key, rel);
+                    logOutput("  • [" + rel.getType() + "] " + srcName + " → " + tgtName);
+                }
+            }
+        });
+        
+        if (valueRelMap.size === 0) {
+            logOutput("  (No value/customer relationships found in model)");
+        }
+        
+        // ======================== STEP 3: CREATE VIEW ========================
+        logOutput("\nSTEP 3: CREATING VALUE PROPOSITION VIEW");
+        logOutput("-" .repeat(70));
+        
+        const viewName = "Value Proposition View (Enhanced)";
+        
+        // Create a proper ArchiMate view
+        const view = model.createArchimateView(viewName);
+        if (!view) {
+            console.error("Error: Could not create view");
+            return;
+        }
+        
+        // Verify view has the add method
+        if (typeof view.add !== 'function') {
+            console.error("Error: View does not have add method");
+            return;
+        }
+        
+        logOutput("✓ View created: " + view.getName());
+        logOutput("  (Using ArchiMate diagram view)");
+        
+        // ======================== STEP 4: ADD ELEMENTS TO VIEW ========================
+        logOutput("\nSTEP 4: POPULATING VIEW");
+        logOutput("-" .repeat(70));
+        
+        const viewElements = new Map();  // Track added elements by ID -> { element, diagramObject }
+        const diagramObjectMap = new Map();  // Map element ID -> diagram object
+        let addedCount = 0;
+        let xPos = 50;
+        let yPos = 50;
+        
+        // Helper function to add element with position - with detailed error reporting
+        function addElementToView(el, label) {
+            try {
+                if (!el) {
+                    logOutput("  ⚠️ Null element passed for " + label);
+                    return false;
+                }
+                
+                // Verify element has required methods
+                if (typeof el.getId !== 'function' || typeof el.getName !== 'function') {
+                    logOutput("  ⚠️ Element " + label + " missing required methods");
+                    return false;
+                }
+                
+                const elId = el.getId();
+                const elName = el.getName();
+                
+                // Check if already added
+                if (viewElements.has(elId)) {
+                    return true;  // Already in view
+                }
+                
+                // Use the correct JArchi API: view.add(element, x, y, width, height)
+                const obj = view.add(el, xPos, yPos, 150, 60);
+                
+                if (obj) {
+                    viewElements.set(elId, { element: el, diagramObject: obj });
+                    diagramObjectMap.set(elId, obj);
+                    logOutput("  ✓ Added " + label + ": " + elName);
+                    yPos += 90;
+                    addedCount++;
+                    return obj;
+                } else {
+                    if (addedCount === 0) {
+                        logOutput("  ⚠️ Could not add " + label + ": " + elName + " (type may not be supported in ArchiMate diagram)");
+                    }
+                    return false;
+                }
+            } catch (err) {
+                if (addedCount === 0) {
+                    logOutput("  ⚠️ Error adding " + label + ": " + err); }
+                return false;
+            }
+        }
+        
+        // Add enterprise first
+        if (enterprise) {
+            logOutput("  Attempting to add enterprise: " + enterprise.getName());
+            logOutput("    Type: " + (enterprise.getType ? enterprise.getType() : "unknown"));
+            logOutput("    Class: " + (enterprise.class ? enterprise.class.getName() : "unknown"));
+            addElementToView(enterprise, "enterprise");
+            yPos = 50;
+            xPos += 250;
+        } else {
+            logOutput("  No enterprise element found");
+        }
+        
+        // Collect VP-tagged elements (these are the real value propositions)
+        const vpOnlyElements = [];
+        const vpElementsActual = [];  // Elements that can actually be added
+        
+        $("*").each(function(el) {
+            const name = el.getName();
+            const type = el.getType ? el.getType() : "unknown";
+            
+            if (name.includes("[VP]")) {
+                vpOnlyElements.push(el);
+                
+                // Only track elements of types that ArchiMate views support
+                if (type === "business-object" || type === "value" || type === "goal" || 
+                    type === "driver" || type === "business-actor" || type === "business-interface" ||
+                    type === "business-service" || type === "product") {
+                    vpElementsActual.push(el);
+                }
+            }
+        });
+        
+        // Add values - only VP-tagged ones that are valid types
+        let valuesAdded = 0;
+        vpOnlyElements.forEach(function(val) {
+            if (valuesAdded < 5) {
+                if (addElementToView(val, "value")) {
+                    valuesAdded++;
+                }
+            }
+        });
+        
+        if (vpOnlyElements.length > 0 && valuesAdded === 0) {
+            logOutput("  ⚠️ Could not add any [VP]-tagged values (type not supported in view?)");
+            logOutput("     Found " + vpOnlyElements.length + " VP elements but none could be added");
+            logOutput("     Element types found: " + vpOnlyElements.map(e => e.getType ? e.getType() : "unknown").join(", "));
+        } else if (valuesAdded > 0) {
+            logOutput("  ✓ Added " + valuesAdded + " [VP]-tagged value(s)");
+        }
+        
+        // Add products
+        yPos = 50;
+        xPos += 250;
+        let productsAdded = 0;
+        let productsFound = 0;
+        products.each(function(prod) {
+            productsFound++;
+            if (addElementToView(prod, "product")) {
+                productsAdded++;
+            }
+        });
+        if (productsAdded > 0) {
+            logOutput("  ✓ Added " + productsAdded + " product(s)");
+        } else if (productsFound > 0 && productsAdded === 0) {
+            logOutput("  ⚠️ Found " + productsFound + " products but could not add them");
+        }
+        
+        // Add services
+        yPos = 50;
+        xPos += 250;
+        let servicesAdded = 0;
+        let servicesFound = 0;
+        services.each(function(svc) {
+            servicesFound++;
+            if (addElementToView(svc, "service")) {
+                servicesAdded++;
+            }
+        });
+        if (servicesAdded > 0) {
+            logOutput("  ✓ Added " + servicesAdded + " service(s)");
+        } else if (servicesFound > 0 && servicesAdded === 0) {
+            logOutput("  ⚠️ Found " + servicesFound + " services but could not add them");
+        }
+        
+        // Add customer segments - limit to avoid clutter
+        yPos = 50;
+        xPos += 250;
+        let customersAdded = 0;
+        let customersFound = allCustomers.length;
+        allCustomers.forEach(function(cust) {
+            if (customersAdded < 3) {
+                if (addElementToView(cust, "customer")) {
+                    customersAdded++;
+                }
+            }
+        });
+        if (customersAdded > 0) {
+            logOutput("  ✓ Added " + customersAdded + " customer segment(s)");
+        } else if (customersFound > 0 && customersAdded === 0) {
+            logOutput("  ⚠️ Found " + customersFound + " customer segments but could not add them");
+        }
+        
+        // ======================== STEP 5: ADD RELATIONSHIPS ========================
+        logOutput("\nSTEP 5: ADDING RELATIONSHIPS");
+        logOutput("-" .repeat(70));
+        
+        let relAdded = 0;
+        
+        // Add relationships between elements that are in the view
+        allRelationships.each(function(rel) {
+            const src = rel.getSource();
+            const tgt = rel.getTarget();
+            
+            if (!src || !tgt) return;
+            
+            const srcId = src.getId();
+            const tgtId = tgt.getId();
+            
+            const srcAdded = diagramObjectMap.has(srcId);
+            const tgtAdded = diagramObjectMap.has(tgtId);
+            
+            if (srcAdded && tgtAdded) {
+                try {
+                    // Use correct API: view.add(relationship, sourceDiagramObject, targetDiagramObject)
+                    const srcObj = diagramObjectMap.get(srcId);
+                    const tgtObj = diagramObjectMap.get(tgtId);
+                    const relObj = view.add(rel, srcObj, tgtObj);
+                    
+                    if (relObj) {
+                        if (relAdded < 2) logOutput("  ✓ [" + rel.getType() + "] " + src.getName() + " → " + tgt.getName());
+                        relAdded++;
+                    }
+                } catch (err) {
+                    // Skip silently
+                }
+            }
+        });
+        
+        if (relAdded > 2) {
+            logOutput("  ✓ Added " + relAdded + " relationship(s)");
+        } else if (relAdded === 0) {
+            logOutput("  (No relationships between visible elements)");
+        }
+        
+        // ======================== STEP 6: SUMMARY ========================
+        logOutput("\nSTEP 6: VIEW SUMMARY");
+        logOutput("-" .repeat(70));
+        
+        logOutput("✓ ArchiMate diagram view created and populated successfully");
+        logOutput("");
+        logOutput("Elements added to view: " + addedCount);
+        logOutput("Relationships added: " + relAdded);
+        logOutput("");
+        logOutput("View Name: " + view.getName());
+        logOutput("View Type: ArchiMate Diagram");
+        logOutput("");
+        logOutput("⚠️  NOTE: To reduce clutter, the view shows:");
+        logOutput("  - Enterprise: 1");
+        logOutput("  - [VP]-tagged value propositions: up to 5 (out of " + vpOnlyElements.length + " total)");
+        logOutput("  - Products: " + products.size());
+        logOutput("  - Services: " + services.size());
+        logOutput("  - Customer segments: up to 3 (out of " + allCustomers.length + " total)");
+        
+        //logOutput("=" .repeat(70));
+        logOutput("ENHANCED VALUE PROPOSITION VIEW CREATED");
+        //logOutput("=" .repeat(70));
+        
+    } catch (err) {
+        console.error("Error: " + err.message);
+        if (err.stack) console.error(err.stack); }
+})();
+
+
+
+
+
+
+
+

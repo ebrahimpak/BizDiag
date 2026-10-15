@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+title: "BizDiag — Intelligent Enterprise Architecture & Digital Strategy Automation"
+message: "If you use BizDiag in your research, white paper, professional work, teaching, publications, or other derivative work, please cite it using the information below."
+type: software
+authors:
+  - family-names: Pak
+    given-names: Ebrahim
+    orcid: ""
+version: "1.0.0"
+date-released: "2026"
+license: CECILL-B
+repository-code: "https://github.com/YOUR-USERNAME/BizDiag"
+abstract: >
+  BizDiag is an open-source software suite for intelligent enterprise
+  architecture and digital strategy automation. It combines ArchiMate,
+  jArchi scripting, Java, artificial intelligence, and automated
+  documentation to support enterprise architecture analysis,
+  digital transformation, and strategic decision-making.
+keywords:
+  - Enterprise Architecture
+  - ArchiMate
+  - Digital Strategy
+  - Digital Transformation
+  - jArchi
+  - Artificial Intelligence
+  - EA Automation
+  - Business Analysis
+  - Strategic Analysis
+  - BizDiag

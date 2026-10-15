@@ -1,0 +1,9 @@
+The project is already compiled, however, in case of any changes made to the '.js' and '.java' codes, from your side,
+please recompile it:
+
+mvn clean compile -U
+
+___________________________________________________________________________________
+For running the server:
+
+mvn exec:java -D"exec.mainClass"="com.archi"

@@ -1,0 +1,379 @@
+/*
+ * Copyright © 2026 Ebrahim Pak
+ *
+ * SPDX-License-Identifier: CECILL-B
+ *
+ * This file is part of BizDiag.
+ *
+ * BizDiag is distributed under the CeCILL-B Free Software License Agreement,
+ * Version 1.0. See the LICENSE file for details.
+ *
+ * The French and English versions of the license are available in
+ * LICENSE-FR and LICENSE, respectively.
+ *
+ * Author: Ebrahim Pak
+ *
+ * ---------------------------------------------------------------------------------------------------------------------
+ * Detect Duplicate and Near-Duplicate Value Propositions
+ * 
+ * Identifies:
+ * 1. VPs with identical names and properties
+ * 2. VPs with same name but different types (explaining color differences)
+ * 3. Which VPs are true duplicates vs legitimately different
+ *
+ */
+
+console.show();
+console.clear();
+
+(function() {
+    "use strict";
+    
+
+    // Setup logging to temp file for GUI access
+    const System = Java.type('java.lang.System');
+    const File = Java.type('java.io.File');
+    const FileWriter = Java.type('java.io.FileWriter');
+    const PrintWriter = Java.type('java.io.PrintWriter');
+    
+    const tempDir = System.getProperty('java.io.tmpdir');
+    const logFile = new File(tempDir, 'BizModelCanvas_output.log');
+    let logWriter = null;
+    
+    function initLog() {
+        try {
+            logWriter = new PrintWriter(new FileWriter(logFile, false)); // false = overwrite
+        } catch (e) {
+            console.error("Could not initialize log file"); }
+    }
+    
+    function logOutput(msg) {
+        console.log(msg);
+        if (logWriter) {
+            try {
+                logWriter.println(msg);
+                logWriter.flush();
+            } catch (e) { }
+        }
+    }
+    
+    function closeLog() {
+        if (logWriter) {
+            try {
+                logWriter.flush();
+                logWriter.close();
+            } catch (e) { }
+        }
+    }
+    
+    initLog();
+    
+    try {
+        if (!model) {
+            console.error("Error: No ArchiMate model is open.");
+            return;
+        }
+        
+        logOutput("=" .repeat(80));
+        logOutput("VALUE PROPOSITION DUPLICATION ANALYSIS");
+        logOutput("=" .repeat(80));
+        logOutput("");
+        
+        // ======================== COLLECT ALL VPs ========================
+        logOutput("STEP 1: COLLECTING ALL VALUE PROPOSITIONS");
+        logOutput("-" .repeat(80));
+        
+        const vpElements = [];
+        const vpByName = new Map(); // For grouping by name
+        
+        $("*").each(function(el) {
+            const name = el.getName();
+            if (name.includes("[VP]") || name.includes("VALUE PROPOSITION")) {
+                vpElements.push(el);
+                
+                // Group by name
+                if (!vpByName.has(name)) {
+                    vpByName.set(name, []);
+                }
+                vpByName.get(name).push(el);
+            }
+        });
+        
+        logOutput("Found " + vpElements.length + " VP element(s)\n");
+        
+        // ======================== ANALYZE EACH VP ========================
+        logOutput("STEP 2: DETAILED PROPERTY ANALYSIS");
+        logOutput("-" .repeat(80));
+        
+        const vpDetails = [];
+        
+        vpElements.forEach(function(vp, idx) {
+            const details = {
+                index: idx + 1,
+                name: vp.getName(),
+                id: vp.getId(),
+                type: vp.getType ? vp.getType() : "unknown",
+                documentation: vp.getDocumentation ? vp.getDocumentation() : "",
+                specialization: vp.getSpecialization ? vp.getSpecialization() : "",
+                properties: {}
+            };
+            
+            // Try to get all properties
+            if (vp.getProperties) {
+                const props = vp.getProperties();
+                if (props) {
+                    props.each(function(prop) {
+                        details.properties[prop.getKey()] = prop.getValue();
+                    });
+                }
+            }
+            
+            vpDetails.push(details);
+            
+            logOutput((idx + 1) + ". " + details.name);
+            logOutput("   ID: " + details.id);
+            logOutput("   Type: " + details.type + " ← THIS DETERMINES COLOR");
+            logOutput("   Documentation: " + (details.documentation ? details.documentation : "(none)"));
+            
+            const propKeys = Object.keys(details.properties);
+            if (propKeys.length > 0) {
+                logOutput("   Properties:");
+                propKeys.forEach(function(key) {
+                    logOutput("      " + key + ": " + details.properties[key]);
+                });
+            } else {
+                logOutput("   Properties: (none)");
+            }
+            
+            logOutput("");
+        });
+        
+        // ======================== DETECT DUPLICATES ========================
+        logOutput("STEP 3: DUPLICATION DETECTION");
+        logOutput("-" .repeat(80));
+        
+        const duplicateGroups = [];
+        const processedIds = new Set();
+        
+        vpDetails.forEach(function(vp1, i) {
+            if (processedIds.has(vp1.id)) return;
+            
+            const duplicates = [vp1];
+            processedIds.add(vp1.id);
+            
+            // Compare with all others
+            vpDetails.forEach(function(vp2, j) {
+                if (i >= j || processedIds.has(vp2.id)) return;
+                
+                const nameMatch = vp1.name === vp2.name;
+                const typeMatch = vp1.type === vp2.type;
+                const docMatch = vp1.documentation === vp2.documentation;
+                const propsMatch = JSON.stringify(vp1.properties) === JSON.stringify(vp2.properties);
+                
+                if (nameMatch && typeMatch && docMatch && propsMatch) {
+                    duplicates.push(vp2);
+                    processedIds.add(vp2.id);
+                }
+            });
+            
+            if (duplicates.length > 1) {
+                duplicateGroups.push(duplicates);
+            }
+        });
+        
+        if (duplicateGroups.length > 0) {
+            logOutput("❌ FOUND " + duplicateGroups.length + " DUPLICATE GROUP(S):\n");
+            
+            duplicateGroups.forEach(function(group, gIdx) {
+                logOutput("Duplicate Group " + (gIdx + 1) + ": " + group[0].name);
+                logOutput("   (All " + group.length + " instances are IDENTICAL)\n");
+                
+                group.forEach(function(vp, vIdx) {
+                    logOutput("   [" + vIdx + "] ID: " + vp.id);
+                    logOutput("       Type: " + vp.type);
+                });
+                
+                logOutput("   ⚠️  ACTION: Delete " + (group.length - 1) + " duplicate(s), keep 1\n");
+            });
+        } else {
+            logOutput("✓ No complete duplicates found\n");
+        }
+        
+        // ======================== DETECT SAME-NAME DIFFERENT-TYPE ========================
+        logOutput("STEP 4: SAME-NAME-DIFFERENT-TYPE ANALYSIS (Color Differences)");
+        logOutput("-" .repeat(80));
+        
+        const sameNameDiffType = [];
+        
+        vpByName.forEach(function(elements, name) {
+            if (elements.length > 1) {
+                const types = new Set();
+                const typeMap = new Map();
+                
+                elements.forEach(function(el) {
+                    const type = el.getType ? el.getType() : "unknown";
+                    types.add(type);
+                    
+                    if (!typeMap.has(type)) {
+                        typeMap.set(type, []);
+                    }
+                    typeMap.get(type).push(el);
+                });
+                
+                if (types.size > 1) {
+                    sameNameDiffType.push({
+                        name: name,
+                        elements: elements,
+                        types: Array.from(types),
+                        typeMap: typeMap
+                    });
+                }
+            }
+        });
+        
+        if (sameNameDiffType.length > 0) {
+            logOutput("⚠️ FOUND " + sameNameDiffType.length + " NAME(S) WITH DIFFERENT TYPES:\n");
+            
+            sameNameDiffType.forEach(function(group) {
+                logOutput("Name: " + group.name);
+                logOutput("   Types found: " + group.types.join(", "));
+                logOutput("   ");
+                
+                group.types.forEach(function(type) {
+                    const els = group.typeMap.get(type);
+                    logOutput("   • Type '" + type + "' (" + els.length + " instance(s)):");
+                    els.forEach(function(el) {
+                        logOutput("      ID: " + el.getId());
+                    });
+                });
+                
+                logOutput("   ⚠️  WHY DIFFERENT COLORS?");
+                logOutput("      Different types render in different colors in Archi.");
+                logOutput("      Examples:");
+                logOutput("        - 'value' (Motivation) = typically YELLOW");
+                logOutput("        - 'meaning' or other concept = typically VIOLET/PURPLE");
+                logOutput("        - 'business-service' = typically LIGHT BLUE");
+                logOutput("");
+                logOutput("   DECISION NEEDED:");
+                logOutput("      → Are these legitimately different element types?");
+                logOutput("      → Or should they all be the SAME type?");
+                logOutput("");
+            });
+        } else {
+            logOutput("✓ All same-named VPs have the same type\n");
+        }
+        
+        // ======================== RELATIONSHIP COMPARISON ========================
+        logOutput("STEP 5: RELATIONSHIP COMPARISON");
+        logOutput("-" .repeat(80));
+        logOutput("(Do duplicate VPs have the same relationships?)\n");
+        
+        if (duplicateGroups.length > 0) {
+            duplicateGroups.forEach(function(group) {
+                logOutput("Group: " + group[0].name + "\n");
+                
+                group.forEach(function(vp, vIdx) {
+                    const outgoing = [];
+                    const incoming = [];
+                    
+                    $("relationship").each(function(rel) {
+                        const src = rel.getSource();
+                        const tgt = rel.getTarget();
+                        
+                        if (src && src.getId() === vp.id) {
+                            outgoing.push("[" + rel.getType() + "] → " + tgt.getName());
+                        }
+                        if (tgt && tgt.getId() === vp.id) {
+                            incoming.push(src.getName() + " → [" + rel.getType() + "]");
+                        }
+                    });
+                    
+                    logOutput("   Instance [" + vIdx + "] (ID: " + vp.id + ")");
+                    if (incoming.length > 0) {
+                        logOutput("      Incoming: " + incoming.join(", "));
+                    } else {
+                        logOutput("      Incoming: (none)");
+                    }
+                    if (outgoing.length > 0) {
+                        logOutput("      Outgoing: " + outgoing.join(", "));
+                    } else {
+                        logOutput("      Outgoing: (none)");
+                    }
+                });
+                
+                logOutput("");
+            });
+        }
+        
+        // ======================== REMEDIATION PLAN ========================
+        logOutput("STEP 6: REMEDIATION PLAN");
+        logOutput("-" .repeat(80));
+        logOutput("");
+        
+        const actionItems = [];
+        
+        if (duplicateGroups.length > 0) {
+            logOutput("❌ TRUE DUPLICATES (same name, type, properties):");
+            duplicateGroups.forEach(function(group) {
+                logOutput("   • " + group[0].name + " (" + group.length + " copies)");
+                logOutput("     → Delete " + (group.length - 1) + " copy(ies). Keep 1.");
+                logOutput("     → Verify remaining copy has correct relationships.");
+                actionItems.push("Delete " + (group.length - 1) + " duplicate(s) of '" + group[0].name + "'");
+            });
+            logOutput("");
+        }
+        
+        if (sameNameDiffType.length > 0) {
+            logOutput("⚠️ SAME NAME, DIFFERENT TYPES (Yellow vs Violet):");
+            sameNameDiffType.forEach(function(group) {
+                logOutput("   • " + group.name);
+                logOutput("     Types: " + group.types.join(", "));
+                logOutput("     → Decide: Are these meant to be the same concept in different forms?");
+                logOutput("       If so, convert all to the SAME type (usually 'value')");
+                logOutput("       If not, rename them to be clearly different:");
+                logOutput("         [VP] " + group.name + " (Service)");
+                logOutput("         [VP] " + group.name + " (Concept)");
+                actionItems.push("Reconcile different types for '" + group.name + "'");
+            });
+            logOutput("");
+        }
+        
+        // ======================== SUMMARY ========================
+        logOutput("STEP 7: SUMMARY & NEXT STEPS");
+        logOutput("-" .repeat(80));
+        logOutput("");
+        
+        logOutput("📊 FINDINGS:");
+        logOutput("   • Total VPs: " + vpElements.length);
+        logOutput("   • True duplicates: " + (duplicateGroups.length > 0 ? 
+                    duplicateGroups.reduce((sum, g) => sum + g.length, 0) : 0) + 
+                    " (in " + duplicateGroups.length + " group(s))");
+        logOutput("   • Same name, different types: " + sameNameDiffType.length);
+        logOutput("");
+        
+        if (actionItems.length === 0) {
+            logOutput("✓ No structural issues found!");
+            logOutput("  (VPs are properly differentiated or intentionally similar)");
+        } else {
+            logOutput("❌ ACTION ITEMS (" + actionItems.length + "):");
+            actionItems.forEach(function(item, idx) {
+                logOutput("   " + (idx + 1) + ". " + item);
+            });
+        }
+        
+        logOutput("\n" + "=" .repeat(80));
+        logOutput("END OF ANALYSIS");
+        logOutput("=" .repeat(80));
+        
+    } catch (err) {
+        console.error("Error: " + err.message);
+        console.error(err); }
+})();
+
+
+
+
+
+
+
+

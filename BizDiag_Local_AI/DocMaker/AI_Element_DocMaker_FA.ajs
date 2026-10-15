@@ -1,0 +1,536 @@
+/*
+ * Copyright © 2026 Ebrahim Pak
+ *
+ * SPDX-License-Identifier: CECILL-B
+ *
+ * This file is part of BizDiag.
+ *
+ * BizDiag is distributed under the CeCILL-B Free Software License Agreement,
+ * Version 1.0. See the LICENSE file for details.
+ *
+ * The French and English versions of the license are available in
+ * LICENSE-FR and LICENSE, respectively.
+ *
+ * Author: Ebrahim Pak
+ *
+ * ---------------------------------------------------------------------------------------------------------------------
+ *
+ * This script generates AI Analysis for the selected element in Archi, in Persian. The generated documentation will be
+ * stored in the Properties tab of the selected element, a json documentation file in the documentation folder, and also
+ * displayed in a native dialog box.
+ *
+ *
+ * Requirements:
+ *   * jArchi
+ *   * AI_REST_JSON.js
+ *   * Ollama_Olalla.ajs
+ *   * Ollama
+ *   * locally-installed AI Model
+ *   * Export To Markdown.ajs
+ *
+ * Version 2.0
+ *
+ */
+console.show();
+console.clear();
+console.log("Generate AI Summary");
+console.log("Script version: 1.0");
+console.log("Current directory:", __DIR__);
+
+const library = true;
+const SWT = Java.type("org.eclipse.swt.SWT");
+const Image = Java.type("org.eclipse.swt.graphics.Image");
+const Display = Java.type("org.eclipse.swt.widgets.Display");
+const File = Java.type("java.io.File");
+const GridLayout = Java.type("org.eclipse.swt.layout.GridLayout");
+const GridData = Java.type("org.eclipse.swt.layout.GridData");
+const Table = Java.type("org.eclipse.swt.widgets.Table");
+const TableItem = Java.type("org.eclipse.swt.widgets.TableItem");
+const tableColumn = Java.type("org.eclipse.swt.widgets.TableColumn");
+const Button = Java.type("org.eclipse.swt.widgets.Button");
+const Listener = Java.type("org.eclipse.swt.widgets.Listener");
+const display = Display.getDefault();
+const scriptDir = new File(__FILE__).getParent();
+const imgPath = new File(scriptDir, "labelPic.jpg").getAbsolutePath();
+const img = new Image(display, imgPath);
+const color = Java.type("org.eclipse.swt.graphics.Color");
+const rgb = Java.type("org.eclipse.swt.graphics.RGB");
+
+const promptTemplate =
+  "As a friendly Farsi-Speaking Enterprise Architect trained in TOGAF, model-driven Enterprise Architecture, and " +
+    "ArchiMate, using pure Farsi language which can be understood by the business in pure Farsi, analyze the following " +
+    "component. Do not greet the user, The summary will be retained against the component for future users. Summarize the " +
+    "analysis in four paragraphs, in Farsi only. No English in the output at all. IMPORTANT INSTRUCTION — " +
+    "READ AND OBEY: Write ONLY in FARSI. Do NOT use any English letters (A-Z, a-z), words, phrases, names, " +
+    "abbreviations, or transliterations. THE AVERAGE USERS KNOW NO ENGLISH. The answer must consist only of characters " +
+    "from the Persian-Arabic Unicode range (U+0600 to U+06FF). You should respect this and use only Farsi words and " +
+    "phrases. If an English term is required, fully translate it into FARSI. READ AND COMPLY: NO ENGLISH OUTPUT. " +
+    "This rule is ABSOLUTE and overrides all other instruction. Although the Elements and Components, Enterprise " +
+    "Architecture concepts, TOGAF concepts, concepts or entities within a specific business domain and any Archi " +
+    "constituents you refer to are originally in English, the outputs should always be in pure Farsi script, and the " +
+    "English technical words, including the Archi Elements and Components, Business and Software concepts, Business " +
+    "Objects or anything you want to output should be translated, or alternatively, transcribed into Farsi, and should " +
+    "be exclusively outputted in Farsi script. You are not allowed to write in any non-Farsi script in the outputs, and " +
+    "must translate the Element or Component name, business entity, business object, or any enterprise architecture " +
+    "concept, element, aspect, domain, layer or phrase into Farsi language and Farsi script or alternatively transcribe," +
+    " the non-translatable phrase or words, to Farsi script. If you want to refer to the current selected Element or any" +
+    " other Element or Component, you must use the transcribed word or phrase in Farsi script. Even for referring to the" +
+    " proper nouns and names you should not use English word, but you must to transcribe them. From this point onward, " +
+    "write only in Farsi, without including any English word, letter, or phrase, even inside names, code, or " +
+    "transliterations. If an English word or abbreviation would normally be used, replace it with its fully translated " +
+    "form in Farsi. IMPORTANT INSTRUCTION — NEVER WRITE THE NAME OR TYPE OF THE CURRENT ELEMENT IN ENGLISH, " +
+    "INSTEAD WRITE: این اِلِمان. If you cannot produce or output without English, reply only with [ERROR: English " +
+    "required]. Do not break this rule under any circumstance. Provide a detailed and professionally written analysis " +
+    "suitable for enterprise architects, business analysts, solution architects, digital transformation consultants, " +
+    "and executive decision makers. Do not merely describe the element. Analyze its architectural significance within the" +
+    " broader enterprise context, including its business purpose, dependencies, relationships, potential impact, and " +
+    "strategic value. Identify opportunities for optimization, automation, integration, digital transformation, " +
+    "artificial intelligence adoption, process improvement, and operational efficiency where relevant. Discuss potential" +
+    " risks, constraints, assumptions, governance considerations, and implementation challenges associated with the " +
+    "element. Where appropriate, suggest measurable performance indicators (KPIs), success criteria, and methods for " +
+    "evaluating the effectiveness of the element. Consider both current-state and future-state perspectives, and " +
+    "describe how the element may evolve as part of a long-term enterprise architecture roadmap. If information is " +
+    "incomplete, make reasonable architecture-oriented assumptions and clearly indicate them as assumptions rather than " +
+    "facts. Use clear section headings and provide actionable recommendations whenever possible. Focus on practical " +
+    "enterprise value, organizational impact, business outcomes, and technology alignment rather than purely theoretical descriptions." +
+    "WARNING: If you cannot respond without English, reply exactly with: [ERROR: English required].Example of correct style:" +
+    " این یک نمونه پاسخ به زبان فارسی است که هیچ واژه انگلیسی ندارد.";
+const md = require("./Ollama_Olalla.ajs");
+const ai = require("./AI_REST_JSON.js");
+
+const paragiha = $(selection);
+
+shell.setTextDirection(SWT.RIGHT_TO_LEFT);
+
+/* function kewud(message, options) creates a dialog with 4 buttons:
+"Replace Documentation" & "Append to Documentation" &
+"Create Assessment" & "Cancel" (automatically added)
+
+Return Values Explained:
+When dialog.open() returns:
+0 for first button >> ("Replace Documentation")
+1 for second button >> ("Append to Documentation")
+2 for third button >> ("Create Assessment")
+3 for "Cancel" button
+
+The function then transforms these:
+return result == options.length ? null : (result + 1).toString();
+
+So:
+0 becomes "1" >> (Replace Documentation)
+1 becomes "2" >> (Append Documentation)
+2 becomes "3" >> (Create Assessment)
+3 (Cancel) becomes null
+
+Why 0 isn't handled: Because the code checks for specific values:
+if (updateDocumentation == "3") {
+    // Create Assessment
+} 
+else if (updateDocumentation == "2") {
+    // Append Documentation
+}
+else if (updateDocumentation == "1") {
+    // Replace Documentation
+}
+
+0 isn't possible because the function adds 1 to all results. If Cancel is clicked (result = 3),
+it returns null, which doesn't match any conditions and effectively does nothing. */
+function kewud(message, options) {
+  const tmpShell = new org.eclipse.swt.widgets.Shell(
+    shell,
+    org.eclipse.swt.SWT.DIALOG_TRIM |
+      org.eclipse.swt.SWT.APPLICATION_MODAL |
+      org.eclipse.swt.SWT.RIGHT_TO_LEFT
+  );
+
+  var dialog = new org.eclipse.jface.dialogs.MessageDialog(
+    tmpShell, // parent global shell
+    "تجزیه‌وتحلیل اِلمان انتخاب‌شده", // dialog title
+    img, //SWT’s Image constructor treats relative paths relative to the JVM working directory, so we put it next to the script
+    message, // message to display
+    org.eclipse.jface.dialogs.MessageDialog.QUESTION, // dialog type (QUESTION == 3)
+    options.concat(["لغو"]), // buttons array
+    0 // default button index
+  );
+
+  var result = dialog.open();
+  return result == options.length ? null : (result + 1).toString();
+}
+
+const dasView = $(selection).filter("archimate-diagram-model");
+console.log("Selected view:", dasView);
+
+console.log("Generating markdown content...");
+let markdownContent = md(dasView, false, false, false);
+console.log(
+  "Markdown content length:",
+  markdownContent ? markdownContent.length : 0
+);
+
+function forceRTL(text) {
+  // Split into paragraphs safely
+  let paragraphs = text.split(/\r?\n/);
+  // Wrap each one with RTL markers
+  let rtlParas = paragraphs.map((p) => "\u202B" + p + "\u202C");
+  // Join back with newlines
+  return rtlParas.join("\n");
+}
+
+/**
+ * Creates and shows a custom dialog to confirm batch processing, showing a list of items.
+ * @param {object[]} components - The array of selected components.
+ * @returns {boolean} - True if the user clicks "Continue", false otherwise.
+ */
+function showBatchConfirmationDialog(components) {
+  // This variable will hold the dialog's result. It's 'false' by default.
+  let proceed = false;
+
+  // Create the main dialog window (Shell). It's modal, so it blocks interaction with the main app.
+  const dialogShell = new org.eclipse.swt.widgets.Shell(
+    shell,
+    SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RIGHT_TO_LEFT
+  );
+  dialogShell.setText("تأیید پردازش گروهی"); // Set the window title.
+  // Use a GridLayout with 1 column to arrange widgets vertically.
+  dialogShell.setLayout(new GridLayout(1, false));
+
+  // Create a text label to display the main instruction message.
+  const label = new org.eclipse.swt.widgets.Label(dialogShell, SWT.WRAP);
+  label.setText(
+    `\u202Bشما ${components.length} اِلِمان را انتخاب کرده‌اید. مستندات، برای هر کدام، پی‌درپی، ایجاد خواهد شد. آیا مایل به ادامه هستید؟\u202C`
+  );
+  // Create a Table widget with checkboxes, borders, and scrollbars.
+  // The SWT.CHECK style is what automatically adds a checkbox to each row.
+  let labelData = new GridData(SWT.FILL, SWT.CENTER, true, false);
+  labelData.verticalIndent = 10;
+  labelData.horizontalIndent = 10;
+  label.setLayoutData(labelData);
+
+  const table = new Table(
+    dialogShell,
+    SWT.BORDER |
+      SWT.V_SCROLL |
+      SWT.H_SCROLL |
+      SWT.FULL_SELECTION |
+      SWT.MULTI |
+      SWT.CHECK
+  );
+  // Configure the table's layout data to fill available space and set a preferred height.
+  let tableData = new GridData(SWT.FILL, SWT.FILL, true, true);
+  tableData.heightHint = 150;
+  tableData.horizontalIndent = 0;
+  table.setLayoutData(tableData);
+  table.setHeaderVisible(true);
+  table.setLinesVisible(true);
+
+  // Create three columns: Index, Element Name, Status
+  const col1 = new tableColumn(table, SWT.NONE);
+  col1.setText("دارای مستندات");
+  col1.setWidth(50);
+
+  const col2 = new tableColumn(table, SWT.NONE);
+  col2.setText("نام اِلمان");
+  col2.setWidth(350);
+
+  const col3 = new tableColumn(table, SWT.NONE);
+  col3.setText("مستندات فعلی");
+  col3.setWidth(150);
+
+  const verylightblue = new color(display, new rgb(214, 255, 255));
+
+  // Loop through the selected components and create a TableItem for each one, so as to populate the table.
+  for (let i = 0; i < components.length; i++) {
+    // A TableItem represents a single row in the table.
+    const item = new TableItem(table, SWT.NONE);
+    if (i % 2 === 0) {
+      item.setBackground(verylightblue);
+    }
+    //item.setText(0, `${i + 1}`); // column 0: index
+    if (components[i].documentation != 0) {
+      item.setChecked(true);
+    } // Set the checkbox for this row to be checked by default.
+    item.setText(1, components[i].name);
+    item.setText(2, `${components[i].documentation}`);
+  }
+  col1.setAlignment(SWT.CENTER);
+  col2.setAlignment(SWT.CENTER);
+  col3.setAlignment(SWT.CENTER);
+  col1.pack();
+  col2.pack();
+  col3.setWidth(500);
+
+  // Create a Composite widget to group the buttons together on the right side.
+  const buttonComposite = new org.eclipse.swt.widgets.Composite(
+    dialogShell,
+    SWT.NONE
+  );
+  // Align the composite to the right.
+  buttonComposite.setLayoutData(
+    new GridData(SWT.RIGHT, SWT.CENTER, false, false)
+  );
+  // Use a GridLayout with 2 columns for the buttons.
+  buttonComposite.setLayout(new GridLayout(2, false));
+
+  // Create the "Continue" button.
+  const continueButton = new Button(buttonComposite, SWT.PUSH);
+  continueButton.setText("بله، ادامه بده");
+  // Set this as the default button (activated when Enter is pressed).
+  dialogShell.setDefaultButton(continueButton);
+
+  // Create the "Cancel" button.
+  const cancelButton = new Button(buttonComposite, SWT.PUSH);
+  cancelButton.setText("لغو");
+
+  // Create a single, reusable event listener for both buttons.
+  const listener = new Listener({
+    handleEvent: function (e) {
+      // Check if the "Continue" button was the one that was clicked.
+      if (e.widget == continueButton) {
+        proceed = true; // If so, set our result variable to true.
+      }
+      // In either case (Continue or Cancel), close the dialog.
+      dialogShell.close();
+    },
+  });
+
+  // Attach the listener to the 'Selection' event of both buttons.
+  continueButton.addListener(SWT.Selection, listener);
+  cancelButton.addListener(SWT.Selection, listener);
+
+  // Automatically resize the dialog to fit its contents.
+  dialogShell.pack();
+  // Open the dialog to make it visible and active.
+  dialogShell.open();
+
+  // This is the UI event loop. It keeps the dialog open and responsive.
+  // It continuously reads and dispatches UI events (like clicks) until the shell is disposed (closed).
+  while (!dialogShell.isDisposed()) {
+    if (!display.readAndDispatch()) {
+      display.sleep();
+    }
+  }
+
+  // Once the dialog is closed, return the result.
+  return proceed;
+}
+
+async function processComponents(components) {
+  for (let idx = 0; idx < components.length; idx++) {
+    const parag = components[idx];
+    console.log(`Generating Summary for component:${parag.name}`);
+    console.log("Selected component type:", parag.type);
+    console.log(
+      "Selected component documentation:",
+      parag.documentation
+    );
+
+    // First get the user's choice
+    console.log("Showing initial dialog for user choice...");
+    var updateDocumentation = kewud(
+      `\n\u202Bتجزیه‌وتحلیل برای اِلِمانِ:\n\u202C:${parag.name}`,
+      ["جایگزینی مستندات", "الحاق به مستندات", "ایجاد اِلِمان ارزیابی"]
+    );
+
+    console.log("User selected option:", updateDocumentation);
+
+    if (!updateDocumentation) {
+      console.log("User cancelled - skipping this component");
+      continue;
+    }
+
+    // Then generate the analysis with the appropriate isReplacement flag.
+    console.log(
+      "Generating analysis with isReplacement =",
+      updateDocumentation === "1"
+    );
+    /* Await the async AI call so that summary is a resolved string. The await keyword pauses
+       the for loop at this point, waits for the AI to respond and for the Promise to resolve
+       with the Summary text, and only then continues to the next part of the loop. Because
+       await is used here, the processComponents function signature must be async. */
+    let summary = await generateAnalysis(
+      parag,
+      markdownContent,
+      updateDocumentation === "1", // true if Replace Documentation was chosen.
+      components.length > 1 ? `${idx + 1}/${components.length}` : null
+    );
+
+    console.log("Analysis generated, length:", summary ? summary.length : 0);
+
+    // Show the generated summary
+    kewud(
+      `\n\u202Bتجزیه‌وتحلیل برای اِلِمانِ:\n\u202C:${parag.name}\n\r${summary}`,
+      ["Ok"]
+    );
+
+    if (updateDocumentation == "3") {
+      // Create Assessment
+      let theAnalysis = model.createElement(
+        "assessment",
+        `تجزیه‌وتحلیل برای اِلِمانِ ${parag.name}`
+      );
+
+      theAnalysis.documentation = forceRTL(summary);
+
+      //const paydag = $(selection).parent();   :This would have picked only non-nested elements.
+      const paydag = $(selection)
+        .parents()
+        .filter("archimate-diagram-model")
+        .first();
+      //This picks non-nested & free elements.
+      const viewView = [paydag].flat()[0];
+
+      /* overload signature: add(element, x, y, width, height). This method Add a new element to the view.
+        Alternative overload signatures: add(relationship, sourceDiagramObj, targetDiagramObj), add(diagramObject, x, y) */
+      let analysisDiagramObj = viewView.add(theAnalysis, 200, 150, 180, 50);
+
+      // Set font properties for the diagram object
+      analysisDiagramObj.fontName = "Tahoma";
+      analysisDiagramObj.fontSize = "11"; // font size in points
+      analysisDiagramObj.fontColor = "#000080"; // RGB color in hex
+      analysisDiagramObj.textAlignment = 2; // 2 = center alignment
+      analysisDiagramObj.textPosition = 0; // 0 = center position
+
+      let associationR = model.createRelationship(
+        "association-relationship",
+        "",
+        parag.concept ? parag.concept : parag,
+        theAnalysis
+      );
+
+      console.log(`The constructed relationship is: ${associationR}`);
+
+      if (!analysisDiagramObj) {
+        console.log(
+          "\u202B" + "متأسفانه اِلِمان را در دیاگرام نمی‌یابم." + "\u202C"
+        );
+      } else {
+        // Add the relationship to the view using diagram objects only
+        viewView.add(
+          associationR,
+          parag, // source diagram object
+          analysisDiagramObj // target diagram object
+        );
+      }
+    } // end create-assessment branch
+    else if (updateDocumentation == "2") {
+      //Append Documentation
+      console.log("Appending documentation");
+      parag.documentation += forceRTL(summary);
+      console.log("Documentation appended successfully");
+    } else if (updateDocumentation == "1") {
+      // Replace Documentation
+      console.log("Replacing documentation");
+      parag.documentation = forceRTL(summary);
+      console.log("Documentation replaced successfully");
+    }
+  } // end for
+} // end processComponents
+
+// Main execution using an async IIFE for top-level await
+(async function main() {
+  try {
+    // If no components are selected, do nothing.
+    if (paragiha.length === 0) {
+      kewud(
+        "\u202Bخواهشمندم یک یا چند اِلِمان را برای تجزیه‌وتحلیل انتخاب کنید.\u202C",
+        ["باشه"]
+      );
+      return;
+    }
+
+    // Check if multiple components are selected and show the custom confirmation dialog.
+    if (paragiha.length > 1) {
+      const proceed = showBatchConfirmationDialog(paragiha);
+
+      if (!proceed) {
+        console.log("User cancelled batch processing.");
+        return; // Exit if user cancels
+      }
+    }
+
+    // Await the completion of the entire process
+    await processComponents(paragiha);
+    console.log("All selected components have been processed.");
+  } catch (error) {
+    console.log(
+      `An unexpected error occurred in the main execution block: " + ${error.stack}`
+    );
+    kewud(`\u202Bیک خطای غیرمنتظره رخ داد:\n\u202C${error.message}`, [
+      "باشه",
+    ]);
+  }
+})();
+
+/* The following function builds a structured prompt string containing component details. Function Parameters:
+    parag: The ArchiMate element being analyzed   /   theContext: The markdown content of the current view
+    It starts with component name, then adds component type, adds specialization if it exists (using ternary operator),
+    and finally adds documentation if it exists and is not empty (using ternary operator)
+    Example Output:
+    If we have a component named "Process Data" with type "application-process", the componentPrompt might look like:
+    Component Name: "Process Data", Component Type: "application-process", Property: "status" = "active"
+    This is then combined with the promptTemplate and sent to the AI service for analysis.
+    */
+function generateAnalysis(
+    parag,
+    theContext,
+    isReplacement = false,
+    progressText = null
+) {
+  let componentPrompt = `Component Name: \"${
+      parag.name
+  }\", Component Type: \"${parag.type}\"${
+      parag.specialization != null
+          ? ', Component Specialization: "' + parag.specialization + '"'
+          : ""
+  }${
+      parag.documentation != "" && parag.documentation != null
+          ? ', Current Documentation: "' + parag.documentation + '"'
+          : ""
+  }`;
+  parag.prop().forEach(function (prop) {
+    // Iterates through all properties of the component and add them to the prompt
+
+    componentPrompt += ` Property: "${prop}" = "${parag.prop(prop)}",`;
+  });
+
+  // --- Create and show a "Please Wait" dialog ---
+  // A modal dialog shell that blocks other UI interaction. LEFT_TO_RIGHT ensures correct English layout.
+  const waitShell = new org.eclipse.swt.widgets.Shell(
+      shell,
+      SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.LEFT_TO_RIGHT
+  );
+  waitShell.setText("⧗ خواهشمندم بردبار باشید ⧖"); // Set the dialog window title.
+  // A grid layout with 1 column.
+  const gridLayout = new org.eclipse.swt.layout.GridLayout(1, false);
+  gridLayout.marginWidth = 25; // Add horizontal padding inside the dialog.
+  gridLayout.marginHeight = 25; // Add vertical padding inside the dialog.
+  waitShell.setLayout(gridLayout); // Apply the layout to the shell.
+
+  // Create a label to display the wait message and icon.
+  const waitLabel = new org.eclipse.swt.widgets.Label(waitShell, SWT.NONE);
+  let waitText =
+      " \u202Bدر حال تولید تجزیه‌وتحلیل اِلِمان انتخابی با هوش مصنوعی...⏳\u202C";
+  if (progressText) {
+    waitText = ` ${progressText} \u202B: \u202C ${waitText}`;
+  }
+  waitLabel.setText(waitText); // Set text with Unicode hourglass.
+
+  waitShell.pack(); // Resize the shell to be just big enough for its contents.
+  waitShell.open(); // Open the shell to make it visible.
+  while (display.readAndDispatch()) {} // Process UI events to ensure the dialog is drawn immediately.
+  // --- End of "Please Wait" dialog ---
+
+  try {
+    const result = ai(
+        `${promptTemplate}, analyse ${componentPrompt} in the context of:\n ${theContext}`,
+        parag,
+        isReplacement
+    ); // Sends the complete prompt to the AI service with proper isReplacement flag
+    return result;
+  } finally {
+    // Ensure the wait dialog is closed even if an error occurs
+    if (waitShell && !waitShell.isDisposed()) {
+      waitShell.close();
+    }
+  }
+}

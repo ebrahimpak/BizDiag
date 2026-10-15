@@ -1,0 +1,113 @@
+﻿/**
+ * Loc Click
+ * This script is the only component of GraalJS_NIOLoggerServer application that truly lives within Archi/jArchi
+ * environment. Except log_click.ajs, both client and server live outside Archi/jArchi.
+ *
+ * First you have to run the 'nio_interop_server.js':
+ * mvn exec:java "-Dexec.mainClass=com.bizdiag.NioInteropLauncher" "-Dexec.classpathScope=runtime" "-Dexec.args=nio_interop_server.js"
+ * Now, your server is serving your client and dumper. Then, you have to click your element of choice in Archi, and then
+ * choose any element you want, and then execute this script in jArchi by clicking the 'Run Script' button, in jArchi's
+ * 'Scripts Manager' menu. Your element is now dumped!
+ *
+ * **NOTE:** Before running the application, update the `javaExecutable` path in `log_click.ajs` to point to your local
+ * Java 25 / GraalVM 25 installation. No other configuration is required.
+ * --------------------------------------------------------------------------
+ *
+ * BizDiag — Intelligent Enterprise Architecture & Digital Strategy Automation
+ *
+ * Copyright © 2026 Ebrahim Pak
+ *
+ * This file is part of BizDiag.
+ *
+ * BizDiag is free software distributed under the CeCILL-B Free Software License.
+ * See the LICENSE file in the project root for the full license text.
+ *
+ * SPDX-License-Identifier: CECILL-B
+ *
+ * @author Ebrahim Pak
+ *
+ */
+
+const Paths = Java.type("java.nio.file.Paths");
+const System = Java.type("java.lang.System");
+const Runtime = Java.type("java.lang.Runtime");
+const BufferedReader = Java.type("java.io.BufferedReader");
+const InputStreamReader = Java.type("java.io.InputStreamReader");
+const Base64 = Java.type("java.util.Base64");
+const JavaString = Java.type("java.lang.String");
+
+console.show();
+console.clear();
+console.log("--- Starting Element Log Script ---");
+
+var selection = $(selection);
+var element = selection.length === 1 ? selection[0] : null;
+
+if (!element) {
+  console.log("WARNING: Please select exactly one element to log.");
+} else {
+  const user = System.getProperty("user.name");
+
+  const payloadObject = {
+    elementId: element.id,
+    elementName: element.name,
+    type: element.type,
+    user: user,
+    timestamp: new Date().toString()
+  };
+
+  const payload = JSON.stringify(payloadObject);
+  const encodedPayload = Base64.getEncoder().encodeToString(new JavaString(payload).getBytes());
+
+  console.log("JSON Payload (Base64) to send: " + encodedPayload);
+
+  const projectPath = "C:\\Users\\Abraham\\Desktop\\BizDiag\\GraalJS_NIOLoggerServer";
+  const javaExecutable = "C:\\Program Files\\graalvm-community-openjdk-25.0.1+8.1\\bin\\java.exe";
+  const launcherJar = projectPath + "\\target\\nio-interop-server-1.0.0.jar";
+  const libPath = projectPath + "\\target\\lib\\*";
+  const clientScript = projectPath + "\\nio_interop_client.js";
+
+  console.log("Client script: " + clientScript);
+  console.log("Client script exists: " + Paths.get(clientScript).toFile().exists());
+  console.log("Client script modified: " + Paths.get(clientScript).toFile().lastModified());
+
+  const commandArray = [
+    javaExecutable,
+    "--enable-native-access=ALL-UNNAMED",
+    "-cp",
+    launcherJar + ";" + libPath,
+    "com.bizdiag.NioInteropLauncher",
+    clientScript,
+    "9999",
+    encodedPayload
+  ];
+
+  console.log("Executing external Java/GraalJS client...");
+
+  let process = null;
+
+  try {
+    process = Runtime.getRuntime().exec(commandArray);
+
+    const outputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+    const errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+
+    let line;
+    while ((line = outputReader.readLine()) !== null) console.log("[CLIENT] " + line);
+
+    const exitCode = process.waitFor();
+
+    let stdError = "";
+    while ((line = errorReader.readLine()) !== null) stdError += line + "\n";
+
+    if (exitCode === 0) {
+      console.log("Element logging completed successfully.");
+    } else {
+      console.error("Element logging FAILED. Client exit code: " + exitCode + "\nError (stderr):\n" + stdError);
+    }
+  } catch (e) {
+    console.error("Failed to run external Java/GraalJS client: " + e);
+  } finally {
+    if (process) process.destroy();
+  }
+}

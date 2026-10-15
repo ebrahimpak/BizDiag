@@ -1,0 +1,5 @@
+mvn "-DmainClass=ArchiJDBC.H2ConsoleLauncher" exec:java
+
+mvn "-DmainClass=ArchiJDBC.H2JdbcProcessor_EN" exec:java
+
+mvn "-DmainClass=ArchiJDBC.H2JdbcProcessor_FA" exec:java

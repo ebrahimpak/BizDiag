@@ -1,0 +1,400 @@
+/*
+ * Copyright © 2026 Ebrahim Pak
+ *
+ * SPDX-License-Identifier: CECILL-B
+ *
+ * This file is part of BizDiag.
+ *
+ * BizDiag is distributed under the CeCILL-B Free Software License Agreement,
+ * Version 1.0. See the LICENSE file for details.
+ *
+ * The French and English versions of the license are available in
+ * LICENSE-FR and LICENSE, respectively.
+ *
+ * Author: Ebrahim Pak
+ *
+ * ---------------------------------------------------------------------------------------------------------------------
+ * Deep Model Intelligence: Value Inference Engine
+ * 
+ * This script performs cross-layer analysis to infer value propositions that may not be
+ * explicitly stated. It traces from:
+ * 
+ *   Business Functions → Business Services → Applications → Technology Services
+ * 
+ * Then infers: "How do these technical capabilities deliver customer value?"
+ * 
+ * Example:
+ *   Technology Service: "Claims Processing System"
+ *     ↑ Realizes
+ *   Application Component: "Claims Portal"
+ *     ↑ Realizes
+ *   Business Service: "Submit Claim Online"
+ *     ↑ Supports
+ *   Business Function: "Handle Claims"
+ *     ↑ Creates
+ *   VALUE: [VP] "Fast Claims Settlement" for [CS] "Customers"
+ * 
+ * This script discovers these implicit relationships and creates a "Value Chain Analysis"
+ *
+ */
+
+console.show();
+console.clear();
+
+(function() {
+    "use strict";
+    
+
+    // Setup logging to temp file for GUI access
+    const System = Java.type('java.lang.System');
+    const File = Java.type('java.io.File');
+    const FileWriter = Java.type('java.io.FileWriter');
+    const PrintWriter = Java.type('java.io.PrintWriter');
+    
+    const tempDir = System.getProperty('java.io.tmpdir');
+    const logFile = new File(tempDir, 'BizModelCanvas_output.log');
+    let logWriter = null;
+    
+    function initLog() {
+        try {
+            logWriter = new PrintWriter(new FileWriter(logFile, false)); // false = overwrite
+        } catch (e) {
+            console.error("Could not initialize log file"); }
+    }
+    
+    function logOutput(msg) {
+        console.log(msg);
+        if (logWriter) {
+            try {
+                logWriter.println(msg);
+                logWriter.flush();
+            } catch (e) { }
+        }
+    }
+    
+    function closeLog() {
+        if (logWriter) {
+            try {
+                logWriter.flush();
+                logWriter.close();
+            } catch (e) { }
+        }
+    }
+    
+    initLog();
+    
+    try {
+        if (!model) {
+            console.error("Error: No ArchiMate model is open.");
+            return;
+        }
+        
+        logOutput("=" .repeat(80));
+        logOutput("DEEP VALUE ANALYSIS: CROSS-LAYER INFERENCE ENGINE");
+        logOutput("=" .repeat(80));
+        logOutput("");
+        
+        logOutput("This script performs multi-layer tracing to find IMPLICIT value relationships");
+        logOutput("by following realization chains from Technology → Application → Business layers.");
+        logOutput("");
+        
+        // ======================== UTILITIES ========================
+        
+        function findRelationshipsOfType(element, relationType, direction) {
+            const results = [];
+            const allRels = $("relationship");
+            
+            allRels.each(function(rel) {
+                const src = rel.getSource();
+                const tgt = rel.getTarget();
+                
+                if (!src || !tgt) return;
+                
+                const typesMatch = !relationType || rel.getType() === relationType;
+                
+                if (direction === "outgoing" && src === element && typesMatch) {
+                    results.push({rel: rel, target: tgt});
+                } else if (direction === "incoming" && tgt === element && typesMatch) {
+                    results.push({rel: rel, source: src});
+                } else if (!direction && typesMatch) {
+                    if (src === element) results.push({rel: rel, other: tgt, dir: "out"});
+                    if (tgt === element) results.push({rel: rel, other: src, dir: "in"});
+                }
+            });
+            
+            return results;
+        }
+        
+        function traceRealizationChain(element, maxDepth, visitedIds, chainSoFar) {
+            if (!chainSoFar) chainSoFar = [];
+            if (!visitedIds) visitedIds = new Set();
+            if (!maxDepth) maxDepth = 5;
+            if (maxDepth <= 0) return chainSoFar;
+            
+            const elementId = element.getId ? element.getId() : element.id;
+            if (visitedIds.has(elementId)) return chainSoFar;
+            
+            visitedIds.add(elementId);
+            chainSoFar.push({
+                element: element,
+                name: element.getName(),
+                type: element.getType && element.getType()
+            });
+            
+            // Find realization relationships (outgoing)
+            const realizedByRels = findRelationshipsOfType(element, "realization-relationship", "outgoing");
+            if (realizedByRels.length > 0 && maxDepth > 1) {
+                realizedByRels.forEach(function(r) {
+                    traceRealizationChain(r.target, maxDepth - 1, visitedIds, chainSoFar);
+                });
+            }
+            
+            // Find serving relationships (outgoing)
+            const servingRels = findRelationshipsOfType(element, "serving-relationship", "outgoing");
+            if (servingRels.length > 0 && maxDepth > 1) {
+                servingRels.forEach(function(s) {
+                    traceRealizationChain(s.target, maxDepth - 1, visitedIds, chainSoFar);
+                });
+            }
+            
+            return chainSoFar;
+        }
+        
+        // ======================== STEP 1: IDENTIFY KEY BUSINESS FUNCTIONS ========================
+        logOutput("STEP 1: DISCOVERING BUSINESS FUNCTIONS & SERVICES");
+        logOutput("-" .repeat(80));
+        
+        const businessFunctions = $("business-function");
+        logOutput("Business Functions found: " + businessFunctions.size());
+        
+        const businessServices = $("business-service");
+        logOutput("Business Services found: " + businessServices.size());
+        
+        const valueMap = new Map();  // Map: ValueName → {value, businessFunctions, businessServices, customers}
+        
+        // ======================== STEP 2: TRACE VALUE DELIVERY CHAINS ========================
+        logOutput("\n" + "=" .repeat(80));
+        logOutput("STEP 2: TRACING VALUE DELIVERY CHAINS");
+        logOutput("=" .repeat(80));
+        
+        const values = $("motivation-element, value");
+        values.each(function(val) {
+            const valName = val.getName();
+            logOutput("\n[VALUE] " + valName);
+            
+            // Find who delivers this value (incoming serving relationships)
+            const deliverers = findRelationshipsOfType(val, "serving-relationship", "incoming");
+            logOutput("  Delivered by (" + deliverers.length + "):");
+            
+            if (deliverers.length > 0) {
+                deliverers.forEach(function(d, idx) {
+                    const deliverer = d.source;
+                    logOutput("    [" + idx + "] " + deliverer.getName() + " [" + (deliverer.getType ? deliverer.getType() : "?") + "]");
+                    
+                    // Now trace what realizes this value source
+                    const chain = traceRealizationChain(deliverer, 4);
+                    chain.slice(1).forEach(function(link) {
+                        logOutput("      → " + link.name + " [" + link.type + "]");
+                    });
+                });
+            } else {
+                logOutput("    (No explicit deliverers)");
+            }
+            
+            // Find who perceives this value (incoming association relationships)
+            const perceivers = findRelationshipsOfType(val, "association", "incoming");
+            logOutput("  Perceived by (" + perceivers.length + "):");
+            
+            if (perceivers.length > 0) {
+                perceivers.forEach(function(p) {
+                    const perceiver = p.source;
+                    logOutput("    • " + perceiver.getName() + " [" + (perceiver.getType ? perceiver.getType() : "?") + "]");
+                });
+            } else {
+                // Try to find customer segments indirectly
+                const customers = $("business-actor");
+                const implicitCustomers = [];
+                customers.each(function(cust) {
+                    const custName = cust.getName();
+                    if (custName.includes("[CS]") || custName.includes("Customer") || custName.includes("Segment")) {
+                        implicitCustomers.push(cust);
+                    }
+                });
+                
+                if (implicitCustomers.length > 0) {
+                    logOutput("    (No explicit associations, but potential customers exist):");
+                    implicitCustomers.forEach(function(c) {
+                        logOutput("      ◇ " + c.getName());
+                    });
+                }
+            }
+        });
+        
+        // ======================== STEP 3: ANALYZE BUSINESS FUNCTION COVERAGE ========================
+        logOutput("\n" + "=" .repeat(80));
+        logOutput("STEP 3: BUSINESS FUNCTION → VALUE ANALYSIS");
+        logOutput("=" .repeat(80));
+        
+        businessFunctions.each(function(bf) {
+            const funcName = bf.getName();
+            logOutput("\n[FUNCTION] " + funcName);
+            
+            // Find what services this function offers
+            const services = findRelationshipsOfType(bf, "serving-relationship", "outgoing");
+            logOutput("  Offers Services (" + services.length + "):");
+            
+            if (services.length > 0) {
+                services.forEach(function(s) {
+                    logOutput("    → " + s.target.getName());
+                });
+            } else {
+                logOutput("    (No explicit services)");
+            }
+            
+            // Find what this function realizes or is composed of
+            const realizing = findRelationshipsOfType(bf, "realization-relationship", "incoming");
+            logOutput("  Realized by (" + realizing.length + "):");
+            
+            if (realizing.length > 0) {
+                realizing.forEach(function(r) {
+                    logOutput("    ← " + r.source.getName() + " [" + (r.source.getType ? r.source.getType() : "?") + "]");
+                });
+            }
+            
+            // Try to infer value contribution
+            logOutput("  Potential Value Contributions:");
+            
+            if (funcName.includes("Processing")) {
+                logOutput("    ◆ INFERRED: Could provide [VP] Fast/Efficient " + funcName);
+            }
+            if (funcName.includes("Support") || funcName.includes("Service")) {
+                logOutput("    ◆ INFERRED: Could provide [VP] Responsive " + funcName);
+            }
+            if (funcName.includes("Security") || funcName.includes("Compliance")) {
+                logOutput("    ◆ INFERRED: Could provide [VP] Trusted/Safe " + funcName);
+            }
+            if (funcName.includes("Integration") || funcName.includes("Channel")) {
+                logOutput("    ◆ INFERRED: Could provide [VP] Seamless " + funcName);
+            }
+        });
+        
+        // ======================== STEP 4: IDENTIFY GAPS ========================
+        logOutput("\n" + "=" .repeat(80));
+        logOutput("STEP 4: GAP ANALYSIS");
+        logOutput("=" .repeat(80));
+        
+        logOutput("\n✓ COMPLETE VALUE CHAINS (Element → Service → Value → Customer):");
+        let completeCount = 0;
+        values.each(function(val) {
+            const deliverers = findRelationshipsOfType(val, "serving-relationship", "incoming");
+            const perceivers = findRelationshipsOfType(val, "association", "incoming");
+            
+            if (deliverers.length > 0 && perceivers.length > 0) {
+                completeCount++;
+                logOutput("  ✓ " + val.getName() + " (complete chain)");
+            }
+        });
+        
+        if (completeCount === 0) {
+            logOutput("  (None found)");
+        }
+        
+        logOutput("\n⚠ INCOMPLETE VALUE CHAINS (Missing links):");
+        let incompleteCount = 0;
+        values.each(function(val) {
+            const deliverers = findRelationshipsOfType(val, "serving-relationship", "incoming");
+            const perceivers = findRelationshipsOfType(val, "association", "incoming");
+            
+            if ((deliverers.length === 0 || perceivers.length === 0)) {
+                incompleteCount++;
+                logOutput("  ⚠ " + val.getName());
+                if (deliverers.length === 0) logOutput("      → Missing deliverer link");
+                if (perceivers.length === 0) logOutput("      → Missing customer perception link");
+            }
+        });
+        
+        if (incompleteCount === 0) {
+            logOutput("  (None found)");
+        }
+        
+        logOutput("\n⚠ ORPHANED BUSINESS FUNCTIONS (Not linked to value):");
+        let orphanCount = 0;
+        businessFunctions.each(function(bf) {
+            // Check if this function is ever referenced in value delivery
+            const allRels = $("relationship");
+            let isLinkedToValue = false;
+            
+            allRels.each(function(rel) {
+                const src = rel.getSource();
+                const tgt = rel.getTarget();
+                
+                if (src === bf || tgt === bf) {
+                    if (rel.getType && (rel.getType().includes("serving") || rel.getType().includes("realization"))) {
+                        isLinkedToValue = true;
+                    }
+                }
+            });
+            
+            if (!isLinkedToValue) {
+                orphanCount++;
+                logOutput("  ⚠ " + bf.getName());
+            }
+        });
+        
+        if (orphanCount === 0) {
+            logOutput("  (None found)");
+        }
+        
+        // ======================== STEP 5: RECOMMENDATIONS ========================
+        logOutput("\n" + "=" .repeat(80));
+        logOutput("STEP 5: RECOMMENDATIONS FOR MODEL ENHANCEMENT");
+        logOutput("=" .repeat(80));
+        
+        logOutput("\n📋 TO CREATE COMPLETE VALUE PROPOSITION ANALYSIS:");
+        logOutput("  1. Ensure each [VP] Value has:");
+        logOutput("     • Incoming serving-relationship from Enterprise/Business Actor");
+        logOutput("     • Incoming association-relationship from [CS] Customer Segments");
+        logOutput("");
+        logOutput("  2. Ensure Business Functions link to Values:");
+        logOutput("     • Function → Service [serving-relationship]");
+        logOutput("     • Service → Value [serving-relationship] or");
+        logOutput("     • Function → Value [serving-relationship] (direct)");
+        logOutput("");
+        logOutput("  3. Ensure Customer Segments are defined:");
+        logOutput("     • Create [CS] Business Actors");
+        logOutput("     • Link to Values they perceive");
+        logOutput("");
+        logOutput("  4. Trace Technology Realization:");
+        logOutput("     • Technology Services realize Application Components");
+        logOutput("     • Application Components realize Business Services");
+        logOutput("     • Business Services support Business Functions");
+        logOutput("     • Business Functions deliver Values");
+        logOutput("");
+        
+        logOutput("📊 CURRENT MODEL METRICS:");
+        logOutput("  • Values defined: " + values.size());
+        logOutput("  • Complete value chains: " + completeCount);
+        logOutput("  • Incomplete chains: " + incompleteCount);
+        logOutput("  • Orphaned functions: " + orphanCount);
+        logOutput("  • Business Services: " + businessServices.size());
+        logOutput("  • Business Functions: " + businessFunctions.size());
+        
+        logOutput("\n" + "=" .repeat(80));
+        logOutput("ANALYSIS COMPLETE");
+        logOutput("=" .repeat(80));
+        
+    } catch (err) {
+        console.error("Error: " + err);
+        console.error(err.stack);
+    } finally {
+        closeLog();
+    }
+})();
+
+
+
+
+
+
+
+

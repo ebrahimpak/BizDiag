@@ -1,0 +1,13 @@
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# Visual Studio Code
+.vscode/
+
+# Logs
+*.log
+
+# H2 diagnostic and lock files
+*.trace.db
+*.lock.db

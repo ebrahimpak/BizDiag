@@ -1,0 +1,112 @@
+/*
+ * Copyright © 2026 Ebrahim Pak
+ *
+ * SPDX-License-Identifier: CECILL-B
+ *
+ * This file is part of BizDiag.
+ *
+ * BizDiag is distributed under the CeCILL-B Free Software License Agreement,
+ * Version 1.0. See the LICENSE file for details.
+ *
+ * The French and English versions of the license are available in
+ * LICENSE-FR and LICENSE, respectively.
+ *
+ * Author: Ebrahim Pak
+ *
+ * ---------------------------------------------------------------------------------------------------------------------
+ *
+ * This script exports the generated documentation from JSON to Markdown. Both .json and .md files will be stored in a
+ * namesake folder in the './documentation' folder.
+ * 
+ * Version: 1.0
+ *
+ */
+
+console.log("Loading Export Documentation to Markdown");
+
+// Imports
+const Files = Java.type("java.nio.file.Files");
+const Paths = Java.type("java.nio.file.Paths");
+const StandardCharsets = Java.type("java.nio.charset.StandardCharsets");
+const FileChannel = Java.type("java.nio.channels.FileChannel");
+const StandardOpenOption = Java.type("java.nio.file.StandardOpenOption");
+
+function exportDocumentationToMarkdown(viewName) {
+    try {
+        // Setup paths
+        const basePath = Paths.get(__DIR__);
+        const docsPath = basePath.resolve("documentation");
+        const viewPath = docsPath.resolve(viewName.replace(/[<>:"/\\|?*]/g, "_"));
+        const jsonPath = viewPath.resolve("ai_documentation.json");
+        const mdPath = viewPath.resolve("documentation.md");
+
+        // Check if JSON file exists
+        if (!Files.exists(jsonPath)) {
+            console.log("No documentation found for view: " + viewName);
+            return;
+        }
+
+        // Read JSON file with proper UTF-8 handling
+        let entries = [];
+        try {
+            // Read file with UTF-8 BOM handling
+            const bytes = Files.readAllBytes(jsonPath);
+            const content = new java.lang.String(bytes, StandardCharsets.UTF_8);
+            // Remove BOM if present
+            const jsonContent = content.startsWith('\uFEFF') ? content.substring(1) : content;
+            entries = JSON.parse(jsonContent);
+            
+            if (!Array.isArray(entries)) {
+                console.log("Invalid JSON format in file");
+                return;
+            }
+        } catch (error) {
+            console.log("Error parsing JSON: " + error);
+            return;
+        }
+
+        // Sort entries by timestamp (newest first)
+        entries.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+        // Generate markdown content with RTL support
+        const lines = [
+            `<div dir="ltr">`,
+            "",
+            `# ${viewName}'s documentation`,
+            "",
+            "## Generated Documentation ",
+            "",
+            `*The Last Update has done on: ${new Date().toLocaleString()}*`,
+            "",
+            "---",
+            ""
+        ];
+
+        // Add each entry
+        entries.forEach(entry => {
+            const timestamp = new Date(entry.timestamp).toLocaleString();
+            lines.push(`### ${entry.elementName} (${entry.elementType})`);
+            lines.push("");
+            lines.push(`*Element ID: ${entry.elementId}*`);
+            lines.push(`*The Last Update: ${timestamp}*`);
+            lines.push("");
+            lines.push(entry.content.replace(/\\n/g, '\n')); // Handle escaped newlines
+            lines.push("");
+            lines.push("---");
+            lines.push("");
+        });
+
+        // Add closing RTL div
+        lines.push("</div>");
+
+        // Write markdown file
+        const content = lines.join("\n");
+        Files.write(mdPath, content.getBytes(StandardCharsets.UTF_8));
+        console.log("Documentation exported successfully to: " + mdPath);
+        
+    } catch (error) {
+        console.log("Error exporting documentation: " + error);
+    }
+}
+
+module.exports = exportDocumentationToMarkdown;

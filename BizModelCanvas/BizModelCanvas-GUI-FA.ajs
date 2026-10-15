@@ -1,0 +1,455 @@
+/*
+ * Copyright © 2026 Ebrahim Pak
+ *
+ * SPDX-License-Identifier: CECILL-B
+ *
+ * This file is part of BizDiag.
+ *
+ * BizDiag is distributed under the CeCILL-B Free Software License Agreement,
+ * Version 1.0. See the LICENSE file for details.
+ *
+ * The French and English versions of the license are available in
+ * LICENSE-FR and LICENSE, respectively.
+ *
+ * Author: Ebrahim Pak
+ *
+ * ---------------------------------------------------------------------------------------------------------------------
+ *
+ * BizModelCanvas collection is a toolkit for analyzing value propositions, producing enhanced views, and converting
+ * Business Model Canvas layouts into ArchiMate views. It is built to run inside Archi using the jArchi (GraalJS)
+ * environment. This script is the Persian GUI launchers which serves as the GUI for accessing and executing a set of
+ * helper/analysis scripts in the scripts/folder.
+ */
+
+console.show();
+console.clear();
+console.log("بارگزاری نسخۀ فارسی رابط کاربری گرافیکی بوم مدل کسب‌وکار ...");
+
+try {
+    // Find the BizModelCanvas directory
+    let bizDir = null;
+    
+    // Try to log the model file path (used later by the robust discovery routine)
+    try {
+        if (model && model.getArchimateModel()) {
+            const modelFile = model.getArchimateModel().getFile();
+            if (modelFile) {
+                const modelPath = modelFile.getAbsolutePath();
+                console.log("فایل مدل آرکیمیت: " + modelPath);
+            }
+        }
+    } catch (e) {
+        console.log("خطا در خواندن مسیر فایل آرکیمیت: " + e);
+    }
+    
+    if (!bizDir) {
+        try {
+            const File = Java.type('java.io.File');
+            const System = Java.type('java.lang.System');
+
+            function findParentWithFolder(startFile, folderName, maxDepth) {
+                if (!startFile) return null;
+                let cur = startFile;
+                for (let i = 0; i < maxDepth && cur != null; i++) {
+                    try {
+                        const candidate = new File(cur, folderName);
+                        if (candidate.exists() && candidate.isDirectory()) return candidate.getAbsolutePath();
+                    } catch (e) {}
+                    cur = cur.getParentFile();
+                }
+                return null;
+            }
+
+            // 1) Prefer __DIR__ if scripts live next to the GUI
+            if (typeof __DIR__ !== "undefined" && __DIR__) {
+                const dirFile = new File(__DIR__);
+                if (dirFile.exists() && dirFile.isDirectory()) {
+                    const scriptsSibling = new File(dirFile, 'scripts');
+                    if (scriptsSibling.exists() && scriptsSibling.isDirectory()) {
+                        bizDir = dirFile.getAbsolutePath();
+                        console.log(`استفاده از ${__DIR__} بعنوان دایرکتوری بوم مدل کسب‌وکار: ${bizDir}`);
+                    } else {
+                        const found = findParentWithFolder(dirFile, 'BizModelCanvas', 6);
+                        if (found) { bizDir = found; console.log('پوشه BizModelCanvas یافت شد (جستجو از __DIR__ به سمت بالا): ' + bizDir); }
+                    }
+                }
+            }
+
+            // 2) Try from model location
+            if (!bizDir && model && model.getArchimateModel && model.getArchimateModel()) {
+                try {
+                    const modelFile = model.getArchimateModel().getFile();
+                    if (modelFile) {
+                        const modelParent = new File(modelFile.getAbsolutePath()).getParentFile();
+                        const found = findParentWithFolder(modelParent, 'BizModelCanvas', 6) || findParentWithFolder(modelParent, 'scripts', 6);
+                        if (found) { bizDir = found; console.log('پوشه BizModelCanvas یافت شد (جستجو از مسیر مدل به سمت بالا): ' + bizDir); }
+                    }
+                } catch (e) {}
+            }
+
+            // 3) Try current working directory
+            if (!bizDir) {
+                try {
+                    const cwd = new File('.').getAbsoluteFile();
+                    const found = findParentWithFolder(cwd, 'BizModelCanvas', 6) || findParentWithFolder(cwd, 'scripts', 6);
+                    if (found) { bizDir = found; console.log('پوشه BizModelCanvas یافت شد (جستجو از دایرکتوری جاری به سمت بالا): ' + bizDir); }
+                } catch (e) {}
+            }
+
+            // 4) Try user home
+            if (!bizDir) {
+                try {
+                    const home = System.getProperty('user.home');
+                    const homeFile = new File(home);
+                    const found = findParentWithFolder(homeFile, 'BizModelCanvas', 4) || findParentWithFolder(homeFile, 'scripts', 4);
+                    if (found) { bizDir = found; console.log('پوشه BizModelCanvas در پوشه کاربر یافت شد: ' + bizDir); }
+                } catch (e) {}
+            }
+
+            // 5) Last resort: use __DIR__ even if scripts folder not detected
+            if (!bizDir && typeof __DIR__ !== "undefined" && __DIR__) {
+                try { const dirFile = new File(__DIR__); if (dirFile.exists() && dirFile.isDirectory()) { bizDir = dirFile.getAbsolutePath(); console.log('بازگشت به __DIR__: ' + bizDir); } } catch (e) {}
+            }
+
+            if (!bizDir) console.log('هشدار: امکان یافتن خودکار پوشه BizModelCanvas وجود نداشت. یک مسیر جایگزین تنظیم کنید یا پوشه scripts/ را در کنار اسکریپت GUI قرار دهید.');
+
+            } catch (e) {
+            console.log("خطا در یافتن BizModelCanvas: " + e);
+        }
+    }
+    
+    // ======================== SWT SETUP ========================
+    
+    const SWT = Java.type('org.eclipse.swt.SWT');
+    const Display = Java.type('org.eclipse.swt.widgets.Display');
+    const Shell = Java.type('org.eclipse.swt.widgets.Shell');
+    const Composite = Java.type('org.eclipse.swt.widgets.Composite');
+    const TabFolder = Java.type('org.eclipse.swt.widgets.TabFolder');
+    const TabItem = Java.type('org.eclipse.swt.widgets.TabItem');
+    const Button = Java.type('org.eclipse.swt.widgets.Button');
+    const Label = Java.type('org.eclipse.swt.widgets.Label');
+    const Text = Java.type('org.eclipse.swt.widgets.Text');
+    const GridLayout = Java.type('org.eclipse.swt.layout.GridLayout');
+    const GridData = Java.type('org.eclipse.swt.layout.GridData');
+    
+    let display = Display.getCurrent() || Display.getDefault();
+    let shell = null;
+    let consoleTextMap = {}; // Map of tab ID to text widget
+    let statusLabel = null;
+    let currentScript = null;
+    let currentTab = null;
+    let isExecuting = false;
+    
+    // ======================== SCRIPTS ========================
+    
+    const scripts = {
+        'analyze-vp': 'scripts/Analyze Model for Value Proposition.ajs',
+        'cleanup-vp': 'scripts/Cleanup Value Propositions.ajs',
+        'detect-duplicate': 'scripts/Detect Duplicate Value Propositions.ajs',
+        'diagnose-vp': 'scripts/Diagnose Value Proposition Structure.ajs',
+        'enhanced-view': 'scripts/Create Enhanced Value View.ajs',
+        'convert-bmc': 'scripts/convertBMCtoArchiMate.ajs',
+        'debug-view': 'scripts/Debug View and Model.ajs',
+        'deep-intel': 'scripts/Deep Model Intelligence.ajs',
+        'test-rel': 'scripts/Test Relationship Types.ajs',
+        'draw-bmc': 'scripts/Draw BMC Graphic.ajs'
+    };
+    
+    const scriptLabels = {
+        'analyze-vp': 'تجزیه‌وتحلیل مدل برای گزارۀ ارزش',
+        'cleanup-vp': 'پاکسازی گزاره‌های ارزش',
+        'detect-duplicate': 'تشخیص گزاره‌های ارزش تکراری',
+        'diagnose-vp': 'تشخیص ساختار گزارۀ ارزش',
+        'enhanced-view': 'ایجاد نمای ارزش بهبود‌یافته',
+        'convert-bmc': 'تبدیل نمای بوم کسب‌وکار به نمای آرکیمیت',
+        'debug-view': 'اشکال‌زدایی نما و مدل',
+        'deep-intel': 'هوشمندسازی عمیق مدل',
+        'test-rel': 'آزمایش انواع روابط',
+        'draw-bmc': 'رسم بوم کسب‌وکار'
+    };
+    
+    const scriptsByTab = {
+        'analysis': ['analyze-vp', 'cleanup-vp', 'detect-duplicate', 'diagnose-vp'],
+        'views': ['enhanced-view', 'convert-bmc'],
+        'utilities': ['debug-view', 'deep-intel', 'test-rel'],
+        'bmc': ['draw-bmc']
+    };
+    
+    // ======================== GUI FUNCTIONS ========================
+    
+    function createShell() {
+        shell = new Shell(display, SWT.SHELL_TRIM);
+        shell.setText('بوم مدل کسب‌وکار - تجزیه‌وتحلیل و اصلاح بوم کسب‌وکار');
+        shell.setSize(1000, 700);
+        shell.setLayout(new GridLayout(1, false));
+        
+        // Tab folder
+        const tabFolder = new TabFolder(shell, SWT.NONE);
+        tabFolder.setLayoutData(new GridData(GridData.FILL_BOTH));
+        
+        createTab(tabFolder, 'تجزیه‌وتحلیل', 'analysis');
+        createTab(tabFolder, 'ساخت نمای تازه', 'views');
+        createTab(tabFolder, 'ابزارها و آزمون', 'utilities');
+        createTab(tabFolder, 'ایجاد بوم کسب‌وکار', 'bmc');
+        
+        currentTab = 'analysis'; // Set default tab
+        
+        // Bottom area: logo (left) + status bar (fills remaining space)
+        const bottomComp = new Composite(shell, SWT.NONE);
+        bottomComp.setLayout(new GridLayout(2, false));
+        bottomComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+        // Try to load the FA logo from ./img/labelPic_FA.png (relative to bizDir, __DIR__, or cwd)
+        try {
+            const File = Java.type('java.io.File');
+            const Image = Java.type('org.eclipse.swt.graphics.Image');
+
+            let imgDir = null;
+            if (bizDir) imgDir = new File(bizDir, 'img');
+            else if (typeof __DIR__ !== 'undefined' && __DIR__) imgDir = new File(__DIR__, 'img');
+            else imgDir = new File('.', 'img');
+
+            if (imgDir && imgDir.exists() && imgDir.isDirectory()) {
+                const imgFile = new File(imgDir, 'labelPic_FA.png');
+                if (imgFile.exists() && imgFile.isFile()) {
+                    const logoLabel = new Label(bottomComp, SWT.NONE);
+                    const img = new Image(display, imgFile.getAbsolutePath());
+                    logoLabel.setImage(img);
+                    // Dispose image when shell is disposed to avoid resource leak
+                    shell.addDisposeListener(new (Java.type('org.eclipse.swt.events.DisposeListener'))({
+                        widgetDisposed: function(e) {
+                            try { img.dispose(); } catch (ex) {}
+                        }
+                    }));
+                } else {
+                    new Label(bottomComp, SWT.NONE);
+                }
+            } else {
+                new Label(bottomComp, SWT.NONE);
+            }
+        } catch (e) {
+            try { new Label(bottomComp, SWT.NONE); } catch (ee) {}
+        }
+
+        // Status label fills the rest of the bottom row
+        statusLabel = new Label(bottomComp, SWT.BORDER);
+        statusLabel.setText('آماده');
+        const sd = new GridData(GridData.FILL_HORIZONTAL);
+        sd.grabExcessHorizontalSpace = true;
+        statusLabel.setLayoutData(sd);
+        
+        shell.addShellListener(new (Java.type('org.eclipse.swt.events.ShellListener'))({
+            shellClosed: function(e) {},
+            shellActivated: function() {},
+            shellDeactivated: function() {},
+            shellIconified: function() {},
+            shellDeiconified: function() {}
+        }));
+    }
+    
+    function createTab(tabFolder, tabName, tabId) {
+        const tabItem = new TabItem(tabFolder, SWT.NONE);
+        tabItem.setText(tabName);
+        
+        const comp = new Composite(tabFolder, SWT.NONE);
+        comp.setLayout(new GridLayout(2, false));
+        tabItem.setControl(comp);
+        
+        // Right: buttons (for Persian RTL)
+        const rightComp = new Composite(comp, SWT.NONE);
+        rightComp.setLayout(new GridLayout(1, false));
+        const rightData = new GridData(GridData.FILL_VERTICAL);
+        rightData.widthHint = 250;
+        rightComp.setLayoutData(rightData);
+        
+        const scriptIds = scriptsByTab[tabId] || [];
+        scriptIds.forEach(id => {
+            const btn = new Button(rightComp, SWT.PUSH);
+            btn.setText(scriptLabels[id] || id);
+            btn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+            
+            btn.addSelectionListener(new (Java.type('org.eclipse.swt.events.SelectionListener'))({
+                widgetSelected: function() {
+                    currentScript = id;
+                    currentTab = tabId;
+                    statusLabel.setText('انتخاب شد: ' + (scriptLabels[id] || id));
+                },
+                widgetDefaultSelected: function() {}
+            }));
+        });
+        
+        // Left: output and buttons (main area for Persian)
+        const leftComp = new Composite(comp, SWT.NONE);
+        leftComp.setLayout(new GridLayout(1, false));
+        leftComp.setLayoutData(new GridData(GridData.FILL_BOTH));
+        
+        const label = new Label(leftComp, SWT.NONE);
+        label.setText('خروجی:');
+        
+        // Create a NEW text widget for this tab
+        const consoleText = new Text(leftComp, SWT.MULTI | SWT.READ_ONLY | SWT.V_SCROLL | SWT.H_SCROLL | SWT.BORDER);
+        consoleText.setLayoutData(new GridData(GridData.FILL_BOTH));
+        consoleTextMap[tabId] = consoleText;
+        
+        // Buttons
+        const btnComp = new Composite(leftComp, SWT.NONE);
+        btnComp.setLayout(new GridLayout(2, true));
+        btnComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        
+        const executeBtn = new Button(btnComp, SWT.PUSH);
+        executeBtn.setText('اجرای اسکریپت');
+        executeBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        executeBtn.addSelectionListener(new (Java.type('org.eclipse.swt.events.SelectionListener'))({
+            widgetSelected: function() {
+                if (!currentScript) {
+                    statusLabel.setText('خواهشمندم یک اسکریپت را انتخاب کنید');
+                    return;
+                }
+                currentTab = tabId;
+                executeScript();
+            },
+            widgetDefaultSelected: function() {}
+        }));
+        
+        const clearBtn = new Button(btnComp, SWT.PUSH);
+        clearBtn.setText('پاک کردن');
+        clearBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        clearBtn.addSelectionListener(new (Java.type('org.eclipse.swt.events.SelectionListener'))({
+            widgetSelected: function() {
+                try { consoleText.setText(''); } catch (e) {}
+            },
+            widgetDefaultSelected: function() {}
+        }));
+    }
+    
+    function executeScript() {
+        if (!model) {
+            statusLabel.setText('خطا: هیچ مدلی باز نیست');
+            appendConsole('خطا: هیچ مدل آرکیمیتی باز نیست');
+            return;
+        }
+        
+        const scriptFile = scripts[currentScript];
+        if (!scriptFile) {
+            statusLabel.setText('خطا: اسکریپت یافت نشد');
+            return;
+        }
+        
+        // Build the script path using java.io.File to handle separators correctly on Windows/Unix
+        const scriptPath = new java.io.File(bizDir, scriptFile).getAbsolutePath();
+        isExecuting = true;
+        statusLabel.setText('درحال اجرا: ' + scriptLabels[currentScript]);
+        appendConsole('');
+        appendConsole('درحال اجرا: ' + scriptLabels[currentScript]);
+        
+        try {
+            // Check if file exists
+            const file = new java.io.File(scriptPath);
+            if (!file.exists()) {
+                statusLabel.setText('خطا: فایل یافت نشد: ' + scriptPath);
+                appendConsole('خطا: فایل اسکریپت یافت نشد: ' + scriptPath);
+                isExecuting = false;
+                return;
+            }
+            
+            // Hook console.log BEFORE loading script
+            const capturedLines = [];
+            const originalConsoleLog = console.log;
+            
+            // Override console.log to capture output
+            console.log = function() {
+                const msg = Array.from(arguments).join(' ');
+                capturedLines.push(msg);
+                // Also write to original console for Scripts Manager
+                originalConsoleLog.apply(console, arguments);
+            };
+            
+            try {
+                load(scriptPath);
+            } finally {
+                // Restore console.log
+                console.log = originalConsoleLog;
+            }
+
+            // Dump captured console.log lines into the GUI console
+            try {
+                if (capturedLines && capturedLines.length > 0) {
+                    for (let i = 0; i < capturedLines.length; i++) {
+                        appendConsole(capturedLines[i]);
+                    }
+                }
+            } catch (e) { /* ignore */ }
+            
+            // Read captured output from temp log file
+            const System = Java.type('java.lang.System');
+            const BufferedReader = Java.type('java.io.BufferedReader');
+            const FileReader = Java.type('java.io.FileReader');
+            const File = Java.type('java.io.File');
+            
+            const tempDir = System.getProperty('java.io.tmpdir');
+            const logFile = new File(tempDir, 'BizModelCanvas_output.log');
+            
+            if (logFile.exists()) {
+                appendConsole('دیباگ: فایل لاگ در این مسیر پیدا نشد: ' + logFile.getAbsolutePath());
+                try {
+                    const reader = new BufferedReader(new FileReader(logFile));
+                    let line;
+                    let lineCount = 0;
+                    while ((line = reader.readLine()) != null) {
+                        if (line.trim().length > 0) {
+                            appendConsole(line);
+                            lineCount++;
+                        }
+                    }
+                    reader.close();
+                    appendConsole('DEBUG: Read ' + lineCount + ' lines from log file');
+                } catch (e) {
+                    appendConsole('خطا در خواندن فایل: ' + e);
+                }
+            } else {
+                appendConsole('دیباگ: فایل لاگ در این مسیر پیدا نشد: ' + logFile.getAbsolutePath());
+            }
+            
+            isExecuting = false;
+            statusLabel.setText('تکمیل شد: ' + scriptLabels[currentScript]);
+            appendConsole('اجرای اسکریپت با موفقیت تکمیل شد');
+            
+        } catch (e) {
+            isExecuting = false;
+            const err = e.toString ? e.toString() : String(e);
+            statusLabel.setText('خطا: ' + err);
+            appendConsole('خطا: ' + err);
+        }
+    }
+    
+    function appendConsole(msg) {
+        try {
+            const consoleText = consoleTextMap[currentTab];
+            if (consoleText) {
+                consoleText.append(msg + '\n');
+            }
+        } catch (e) {}
+    }
+    
+    // ======================== MAIN ========================
+    
+    createShell();
+    shell.open();
+    
+    console.log("رابط کاربری با موفقیت باز شد");
+    
+    while (!shell.isDisposed()) {
+        try {
+            if (!display.readAndDispatch()) {
+                display.sleep();
+            }
+        } catch (e) {
+            console.log("خطا در حلقۀ اصلی: " + e);
+        }
+    }
+    
+} catch (e) {
+    const errorMsg = e.toString ? e.toString() : String(e);
+    console.error("GUI Error: " + errorMsg);
+    if (e.printStackTrace) e.printStackTrace();
+}

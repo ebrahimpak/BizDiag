@@ -1,0 +1,349 @@
+/*
+ * Analyze ArchiMate Model for Value Proposition Relationships
+ * 
+ * This script:
+ * 1. Inspects the full model for value-related elements
+ * 2. Identifies customer segments, products, services
+ * 3. Discovers existing relationships between entities
+ * 4. Creates enhanced Value Proposition View with semantic relationships
+ *
+ * --------------------------------------------------------------------------
+ *
+ * BizDiag — Intelligent Enterprise Architecture & Digital Strategy Automation
+ *
+ * Copyright © 2026 Ebrahim Pak
+ *
+ * This file is part of BizDiag.
+ *
+ * BizDiag is free software distributed under the CeCILL-B Free Software License.
+ * See the LICENSE file in the project root for the full license text.
+ *
+ * SPDX-License-Identifier: CECILL-B
+ *
+ * @author Ebrahim Pak
+ */
+
+console.show();
+console.clear();
+
+(function() {
+    "use strict";
+    
+    // Setup logging to temp file for GUI access
+    const System = Java.type('java.lang.System');
+    const File = Java.type('java.io.File');
+    const FileWriter = Java.type('java.io.FileWriter');
+    const PrintWriter = Java.type('java.io.PrintWriter');
+    
+    const tempDir = System.getProperty('java.io.tmpdir');
+    const logFile = new File(tempDir, 'BizModelCanvas_output.log');
+    let logWriter = null;
+    
+    function initLog() {
+        try {
+            logWriter = new PrintWriter(new FileWriter(logFile, false)); // false = overwrite
+        } catch (e) {
+            console.error("Could not initialize log file"); }
+    }
+    
+    function logOutput(msg) {
+        console.log(msg);
+        if (logWriter) {
+            try {
+                logWriter.println(msg);
+                logWriter.flush();
+            } catch (e) { }
+        }
+    }
+    
+    function closeLog() {
+        if (logWriter) {
+            try {
+                logWriter.flush();
+                logWriter.close();
+            } catch (e) { }
+        }
+    }
+    
+    initLog();
+    
+    try {
+        if (!model) {
+            console.error("Error: No ArchiMate model is open.");
+            return;
+        }
+        
+        logOutput("=" .repeat(60));
+        logOutput("ARCHIMATE MODEL ANALYSIS FOR VALUE PROPOSITION");
+        logOutput("=" .repeat(60));
+        logOutput("");
+        
+        // ======================== SECTION 1: Find Enterprise Entity ========================
+        logOutput("SECTION 1: ENTERPRISE IDENTIFICATION");
+        logOutput("-" .repeat(60));
+        
+        const allActors = $("business-actor");
+        logOutput("Total Business Actors in model: " + allActors.size());
+        
+        let enterprise = null;
+        const topLevelActors = [];
+        
+        allActors.each(function(actor) {
+            const name = actor.getName();
+            logOutput("  • " + name);
+            
+            // Try to find the enterprise (usually has "Case Study" or similar name, or no parent)
+            if (name.includes("Case Study") || name.includes("ArchiSurance") || name.includes("Enterprise")) {
+                if (!enterprise) {
+                    enterprise = actor;
+                }
+            }
+            topLevelActors.push(actor);
+        });
+        
+        if (enterprise) {
+            logOutput("\n✓ Enterprise identified: " + enterprise.getName());
+        } else if (topLevelActors.length > 0) {
+            enterprise = topLevelActors[0];
+            logOutput("\n✓ Using first actor as enterprise: " + enterprise.getName());
+        } else {
+            logOutput("\n✗ No business actors found in model");
+            return;
+        }
+        
+        // ======================== SECTION 2: Find Value-Related Elements ========================
+        logOutput("\n\nSECTION 2: VALUE-RELATED ELEMENTS");
+        logOutput("-" .repeat(60));
+        
+        // Look for Value elements (motivation layer)
+        const valueElements = $("motivation-element, value");
+        const valueList = [];
+        let vpProductCount = 0;
+        
+        if (valueElements.size() > 0) {
+            logOutput("Found " + valueElements.size() + " value element(s):");
+            valueElements.each(function(val) {
+                const name = val.getName();
+                logOutput("  • " + name);
+                valueList.push(val);
+                if (name.includes("[VP]")) {
+                    vpProductCount++;
+                }
+            });
+        } else {
+            logOutput("No explicit Motivation/Value elements found - checking for VP-named objects");
+        }
+        
+        // Look for VP-tagged business objects and services
+        const allElements = $("*");
+        const vpRelated = [];
+        
+        allElements.each(function(el) {
+            const name = el.getName();
+            if (name.includes("[VP]") || name.includes("VALUE PROPOSITION")) {
+                vpRelated.push(el);
+            }
+        });
+        
+        logOutput("\nElements tagged with [VP]: " + vpRelated.length);
+        vpRelated.forEach(function(el) {
+            logOutput("  • [" + el.getType() + "] " + el.getName());
+        });
+        
+        // ======================== SECTION 3: Find Products and Services ========================
+        logOutput("\n\nSECTION 3: PRODUCTS AND SERVICES");
+        logOutput("-" .repeat(60));
+        
+        // Look for Product elements
+        const products = $("product");
+        logOutput("Product elements: " + products.size());
+        products.each(function(prod) {
+            logOutput("  • " + prod.getName());
+        });
+        
+        // Look for Business Services
+        const services = $("business-service");
+        logOutput("Business Services: " + services.size());
+        services.each(function(svc) {
+            logOutput("  • " + svc.getName());
+        });
+
+        // ======================== SECTION 4: Find Customer Segments ========================
+        logOutput("\n\nSECTION 4: CUSTOMER SEGMENTS");
+        logOutput("-" .repeat(60));
+        
+        const allActorsAgain = $("business-actor");
+        const customerSegments = [];
+        
+        allActorsAgain.each(function(actor) {
+            const name = actor.getName();
+            if (name.includes("[CS]") || name.includes("Customer") || 
+                name.includes("Segment") || name.includes("User") ||
+                name.includes("Client")) {
+                customerSegments.push(actor);
+                logOutput("  • " + name);
+            }
+        });
+        
+        if (customerSegments.length === 0) {
+            logOutput("  (No customer segments found)");
+        }
+        
+        // ======================== SECTION 5: Discover Relationships ========================
+        logOutput("\n\nSECTION 5: EXISTING RELATIONSHIPS");
+        logOutput("-" .repeat(60));
+        
+        const allRelationships = $("relationship");
+        logOutput("Total relationships in model: " + allRelationships.size());
+        
+        // Categorize relationships by type and source/target
+        const relMap = {};
+        const valueRelationships = [];
+        const customerRelationships = [];
+        
+        allRelationships.each(function(rel) {
+            const source = rel.getSource();
+            const target = rel.getTarget();
+            const type = rel.getType();
+            
+            const sourceName = source ? source.getName() : "?";
+            const targetName = target ? target.getName() : "?";
+            
+            // Track value-related relationships
+            if (sourceName.includes("[VP]") || targetName.includes("[VP]") ||
+                sourceName.includes("VALUE PROPOSITION") || targetName.includes("VALUE PROPOSITION")) {
+                valueRelationships.push({
+                    source: sourceName,
+                    target: targetName,
+                    type: type,
+                    rel: rel
+                });
+            }
+            
+            // Track customer-related relationships
+            if (sourceName.includes("[CS]") || targetName.includes("[CS]") ||
+                sourceName.includes("Customer") || targetName.includes("Customer")) {
+                customerRelationships.push({
+                    source: sourceName,
+                    target: targetName,
+                    type: type,
+                    rel: rel
+                });
+            }
+        });
+        
+        logOutput("\nValue-related relationships: " + valueRelationships.length);
+        valueRelationships.forEach(function(vr) {
+            logOutput("  • [" + vr.type + "] " + vr.source + " → " + vr.target);
+        });
+        
+        logOutput("\nCustomer-related relationships: " + customerRelationships.length);
+        customerRelationships.forEach(function(cr) {
+            logOutput("  • [" + cr.type + "] " + cr.source + " → " + cr.target);
+        });
+        
+        // ======================== SECTION 6: Map Enterprise to Values ========================
+        logOutput("\n\nSECTION 6: ENTERPRISE RELATIONSHIPS");
+        logOutput("-" .repeat(60));
+        
+        // Find all relationships involving the enterprise
+        const enterpriseRelationships = {
+            outgoing: [],
+            incoming: []
+        };
+        
+        allRelationships.each(function(rel) {
+            const source = rel.getSource();
+            const target = rel.getTarget();
+            
+            if (source && source.getId && source.getId() === enterprise.getId()) {
+                enterpriseRelationships.outgoing.push({
+                    target: target ? target.getName() : "?",
+                    type: rel.getType(),
+                    rel: rel
+                });
+            }
+            
+            if (target && target.getId && target.getId() === enterprise.getId()) {
+                enterpriseRelationships.incoming.push({
+                    source: source ? source.getName() : "?",
+                    type: rel.getType(),
+                    rel: rel
+                });
+            }
+        });
+        
+        logOutput("Relationships FROM enterprise (" + enterprise.getName() + "):");
+        if (enterpriseRelationships.outgoing.length === 0) {
+            logOutput("  (none)");
+        } else {
+            enterpriseRelationships.outgoing.forEach(function(er) {
+                logOutput("  • [" + er.type + "] → " + er.target);
+            });
+        }
+        
+        logOutput("\nRelationships TO enterprise:");
+        if (enterpriseRelationships.incoming.length === 0) {
+            logOutput("  (none)");
+        } else {
+            enterpriseRelationships.incoming.forEach(function(er) {
+                logOutput("  • [" + er.type + "] " + er.source + " →");
+            });
+        }
+        
+        // ======================== SECTION 7: Recommendations ========================
+        logOutput("\n\nSECTION 7: VALUE PROPOSITION VIEW STATUS");
+        logOutput("-" .repeat(60));
+        
+        logOutput("\nCurrent Model Summary:");
+        logOutput("  • Enterprise: " + (enterprise ? enterprise.getName() : "Not found"));
+        logOutput("  • Value elements: " + valueList.length);
+        logOutput("  • VP-tagged items: " + vpRelated.length);
+        logOutput("  • Products: " + products.size());
+        logOutput("  • Services: " + services.size());
+        logOutput("  • Customer segments: " + customerSegments.length);
+        logOutput("  • Total relationships: " + allRelationships.size());
+        logOutput("  • Value-related relationships: " + valueRelationships.length);
+        
+        logOutput("\nRecommendations for Enhanced Value Proposition View:");
+        if (valueRelationships.length === 0) {
+            logOutput("  ⚠ No value-related relationships found.");
+            logOutput("    → Consider: Enterprise should have serving/realization rels to values");
+            logOutput("    → Consider: Values should have association rels to customer segments");
+            logOutput("    → Consider: Enterprise should offer products/services to customers");
+        } else {
+            logOutput("  ✓ Found " + valueRelationships.length + " value relationships - view can be enriched");
+        }
+        
+        if (customerSegments.length === 0) {
+            logOutput("  ⚠ No customer segments defined.");
+            logOutput("    → Consider: Create [CS] Business Actors for each customer type");
+        } else {
+            logOutput("  ✓ Found " + customerSegments.length + " customer segments");
+        }
+        
+        if (products.size() === 0 && services.size() === 0) {
+            logOutput("  ⚠ No products or services defined.");
+            logOutput("    → Consider: Create Product elements for offerings");
+            logOutput("    → Consider: Create Business Services for capabilities offered");
+        } else {
+            logOutput("  ✓ Found products/services to display");
+        }
+        
+        logOutput("\n" + "=" .repeat(60));
+        logOutput("ANALYSIS COMPLETE");
+        logOutput("=" .repeat(60));
+        
+    } catch (err) {
+        console.error("Error: " + err);
+        console.error(err.stack);
+    } finally {
+        closeLog();
+    }
+})();
+
+
+
+
+
+

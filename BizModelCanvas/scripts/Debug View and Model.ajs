@@ -1,0 +1,160 @@
+/*
+ * Copyright © 2026 Ebrahim Pak
+ *
+ * SPDX-License-Identifier: CECILL-B
+ *
+ * This file is part of BizDiag.
+ *
+ * BizDiag is distributed under the CeCILL-B Free Software License Agreement,
+ * Version 1.0. See the LICENSE file for details.
+ *
+ * The French and English versions of the license are available in
+ * LICENSE-FR and LICENSE, respectively.
+ *
+ * Author: Ebrahim Pak
+ *
+ * ---------------------------------------------------------------------------------------------------------------------
+ * Debug script to understand the actual jArchi API available
+ *
+ */
+
+console.show();
+console.clear();
+
+(function() {
+    "use strict";
+    
+
+    // Setup logging to temp file for GUI access
+    const System = Java.type('java.lang.System');
+    const File = Java.type('java.io.File');
+    const FileWriter = Java.type('java.io.FileWriter');
+    const PrintWriter = Java.type('java.io.PrintWriter');
+    
+    const tempDir = System.getProperty('java.io.tmpdir');
+    const logFile = new File(tempDir, 'BizModelCanvas_output.log');
+    let logWriter = null;
+    
+    function initLog() {
+        try {
+            logWriter = new PrintWriter(new FileWriter(logFile, false)); // false = overwrite
+        } catch (e) {
+            console.error("Could not initialize log file"); }
+    }
+    
+    function logOutput(msg) {
+        console.log(msg);
+        if (logWriter) {
+            try {
+                logWriter.println(msg);
+                logWriter.flush();
+            } catch (e) { }
+        }
+    }
+    
+    function closeLog() {
+        if (logWriter) {
+            try {
+                logWriter.flush();
+                logWriter.close();
+            } catch (e) { }
+        }
+    }
+    
+    initLog();
+    
+    try {
+        logOutput("jArchi Model and View API Inspection");
+        logOutput("====================================\n");
+        
+        if (!model) {
+            console.error("No model open");
+            return;
+        }
+        
+        logOutput("MODEL:");
+        logOutput("------");
+        logOutput("model.name: " + (model.name || "N/A"));
+        logOutput("model.getName(): " + (typeof model.getName === "function" ? model.getName() : "N/A"));
+        
+        // List model methods
+        logOutput("\nModel methods:");
+        for (let prop in model) {
+            if (typeof model[prop] === "function" && !prop.startsWith("__")) {
+                logOutput("  - model." + prop + "()");
+            }
+        }
+        
+        // Try to get views
+        logOutput("\nGetting views:");
+        try {
+            const allElements = $("*");
+            logOutput("  $('*').size() = " + allElements.size());
+            
+            const allViews = $(selection).filter("archimate-diagram-model");
+            logOutput("  $(selection).filter('archimate-diagram-model').size() = " + allViews.size());
+            
+            if (allViews.size() > 0) {
+                const firstView = allViews.first();
+                logOutput("\nFirst selected VIEW:");
+                logOutput("------");
+                logOutput("  getName(): " + firstView.getName());
+                
+                logOutput("\n  View methods:");
+                for (let prop in firstView) {
+                    if (typeof firstView[prop] === "function" && !prop.startsWith("__")) {
+                        logOutput("    - " + prop + "()");
+                    }
+                }
+                
+                // Try to add a test element
+                logOutput("\nTesting view.add():");
+                const testElement = model.createElement("business-actor", "TEST");
+                if (testElement) {
+                    logOutput("  Created test element: " + testElement.getName());
+                    try {
+                        const result = firstView.add(testElement, 0, 0, 100, 50);
+                        logOutput("  view.add() returned: " + (result ? "object" : "null"));
+                        if (result) {
+                            logOutput("    Result type: " + (result.constructor ? result.constructor.name : "unknown"));
+                        }
+                    } catch (e) {
+                        logOutput("  view.add() failed: " + e.message); }
+                } else {
+                    logOutput("  Could not create test element");
+                }
+            }
+        } catch (e) {
+            logOutput("Error getting views: " + e.message); }
+        
+        // Try to get model contents
+        logOutput("\n\nMODEL CONTENTS:");
+        logOutput("---------------");
+        try {
+            // Try different ways to get elements
+            const elements = $("element");
+            logOutput("$('element').size() = " + elements.size());
+            
+            const actors = $("business-actor");
+            logOutput("$('business-actor').size() = " + actors.size());
+            
+            const relationships = $("relationship");
+            logOutput("$('relationship').size() = " + relationships.size());
+        } catch (e) {
+            logOutput("Error: " + e.message);
+        }
+        
+    } catch (err) {
+        console.error("Fatal error: " + err);
+    } finally {
+        closeLog();
+    }
+})();
+
+
+
+
+
+
+
+

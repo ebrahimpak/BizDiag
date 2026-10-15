@@ -1,0 +1,7 @@
+For running the server:
+
+& "$env:JAVA_HOME\bin\js" --vm.classpath=h2-2.4.240.jar .\GraalJSRESTServer.js
+
+_______________________________________________________________________________
+
+JDBC URL: jdbc:h2:file:C:/Users/Abraham/Desktop/jArchi GraalJS Script Pack/GraalJS_RESTLogger/archi_logs_file

@@ -1,0 +1,323 @@
+/*
+ * Copyright © 2026 Ebrahim Pak
+ *
+ * SPDX-License-Identifier: CECILL-B
+ *
+ * This file is part of BizDiag.
+ *
+ * BizDiag is distributed under the CeCILL-B Free Software License Agreement,
+ * Version 1.0. See the LICENSE file for details.
+ *
+ * The French and English versions of the license are available in
+ * LICENSE-FR and LICENSE, respectively.
+ *
+ * Author: Ebrahim Pak
+ *
+ * ---------------------------------------------------------------------------------------------------------------------
+ * Generate Business Model Canvas from ArchiMate Model
+ * 
+ * This script:
+ * 1. Analyzes the current ArchiMate model
+ * 2. Extracts business, service, and value information
+ * 3. Generates a BMC with ASCII visualization
+ * 4. Maps ArchiMate elements to BMC components
+ *
+ */
+
+console.show();
+console.clear();
+
+(function() {
+    "use strict";
+    
+    // Setup logging to temp file for GUI access
+    const System = Java.type('java.lang.System');
+    const File = Java.type('java.io.File');
+    const FileWriter = Java.type('java.io.FileWriter');
+    const PrintWriter = Java.type('java.io.PrintWriter');
+    
+    const tempDir = System.getProperty('java.io.tmpdir');
+    const logFile = new File(tempDir, 'BizModelCanvas_output.log');
+    let logWriter = null;
+    
+    function initLog() {
+        try {
+            logWriter = new PrintWriter(new FileWriter(logFile, false)); // false = overwrite
+        } catch (e) {
+            console.error("Could not initialize log file");
+        }
+    }
+    
+    function logOutput(msg) {
+        console.log(msg);
+        if (logWriter) {
+            try {
+                logWriter.println(msg);
+                logWriter.flush();
+            } catch (e) { }
+        }
+    }
+    
+    function closeLog() {
+        if (logWriter) {
+            try {
+                logWriter.flush();
+                logWriter.close();
+            } catch (e) { }
+        }
+    }
+    
+    initLog();
+    
+    try {
+        if (!model) {
+            console.error("Error: No ArchiMate model is open.");
+            return;
+        }
+        
+        logOutput("=" .repeat(80));
+        logOutput("BUSINESS MODEL CANVAS GENERATION FROM ARCHIMATE MODEL");
+        logOutput("=" .repeat(80));
+        logOutput("");
+        
+        // ======================== STEP 1: EXTRACT BMC DATA ========================
+        logOutput("STEP 1: Extracting Business Model Data");
+        logOutput("-" .repeat(80));
+        
+        const bmc = {
+            keyPartners: [],
+            keyActivities: [],
+            keyResources: [],
+            valuePropositions: [],
+            customerRelationships: [],
+            channels: [],
+            customerSegments: [],
+            costStructure: [],
+            revenueStreams: []
+        };
+        
+        // Extract Key Partners (External Business Actors)
+        logOutput("\n[KEY PARTNERS] Identifying external actors and partners...");
+        const allActors = $("business-actor");
+        const partners = [];
+        allActors.each(function(actor) {
+            const name = actor.getName();
+            // Consider external if name suggests it (Bank, Customer's Bank, etc.)
+            if (name.includes("Bank") || name.includes("External") || name.includes("Partner") || name.includes("Intermediary")) {
+                partners.push(name);
+                logOutput("  ✓ " + name);
+            }
+        });
+        bmc.keyPartners = partners.length > 0 ? partners : ["External partners/stakeholders"];
+        
+        // Extract Key Activities (Business Functions)
+        logOutput("\n[KEY ACTIVITIES] Identifying business functions and processes...");
+        const businessFunctions = $("business-function");
+        const activities = [];
+        businessFunctions.each(function(func) {
+            const name = func.getName();
+            activities.push(name);
+            logOutput("  ✓ " + name);
+        });
+        bmc.keyActivities = activities.length > 0 ? activities : ["Core business operations"];
+        
+        // Extract Key Resources (Business Objects, Infrastructure)
+        logOutput("\n[KEY RESOURCES] Identifying organizational resources...");
+        const businessObjects = $("business-object");
+        const resources = [];
+        businessObjects.each(function(obj) {
+            const name = obj.getName();
+            resources.push(name);
+            logOutput("  ✓ " + name);
+        });
+        
+        // Also include locations/infrastructure
+        const locations = $("location");
+        locations.each(function(loc) {
+            const name = loc.getName();
+            resources.push(name);
+            logOutput("  ✓ " + name + " (location)");
+        });
+        bmc.keyResources = resources.length > 0 ? resources : ["People, processes, systems"];
+        
+        // Extract Value Propositions
+        logOutput("\n[VALUE PROPOSITIONS] Identifying value offerings...");
+        const values = $("value");
+        const vps = [];
+        values.each(function(val) {
+            const name = val.getName();
+            vps.push(name);
+            logOutput("  ✓ " + name);
+        });
+        
+        // Fallback: use business services
+        if (vps.length === 0) {
+            const businessServices = $("business-service");
+            businessServices.each(function(service) {
+                const name = service.getName();
+                vps.push(name);
+                logOutput("  ✓ " + name + " (service)");
+            });
+        }
+        bmc.valuePropositions = vps.length > 0 ? vps : ["Value delivery to customers"];
+        
+        // Extract Customer Segments
+        logOutput("\n[CUSTOMER SEGMENTS] Identifying customer types...");
+        const customerSegments = [];
+        allActors.each(function(actor) {
+            const name = actor.getName();
+            // Consider customer if name suggests it
+            if (name.includes("Customer") || name.includes("Client") || name.includes("Insurant") || name.includes("User")) {
+                customerSegments.push(name);
+                logOutput("  ✓ " + name);
+            }
+        });
+        bmc.customerSegments = customerSegments.length > 0 ? customerSegments : ["End customers", "Intermediaries"];
+        
+        // Extract Channels
+        logOutput("\n[CHANNELS] Identifying delivery channels...");
+        const channels = [];
+        const businessInterfaces = $("business-interface");
+        businessInterfaces.each(function(iface) {
+            const name = iface.getName();
+            channels.push(name);
+            logOutput("  ✓ " + name);
+        });
+        bmc.channels = channels.length > 0 ? channels : ["Direct sales", "Partnerships", "Digital"];
+        
+        // Extract Customer Relationships
+        logOutput("\n[CUSTOMER RELATIONSHIPS] Identifying engagement patterns...");
+        const relationships = [];
+        const allRels = $("relationship");
+        let relCount = 0;
+        allRels.each(function(rel) {
+            const type = rel.getType ? rel.getType() : "unknown";
+            if (type.includes("serving") || type.includes("interaction")) {
+                relCount++;
+                if (relCount <= 3) { // Limit to 3 examples
+                    relationships.push(type.replace("-relationship", "").replace("-", " "));
+                }
+            }
+        });
+        bmc.customerRelationships = relationships.length > 0 ? relationships : ["Support", "Engagement"];
+        logOutput("  ✓ Identified " + relCount + " interaction patterns");
+        
+        // Cost Structure (based on infrastructure/components)
+        logOutput("\n[COST STRUCTURE] Estimating operational costs...");
+        const appComponents = $("application-component");
+        const costs = ["People and skills"];
+        appComponents.each(function(comp) {
+            const name = comp.getName();
+            if (name.includes("Server") || name.includes("Database") || name.includes("System")) {
+                costs.push(name);
+            }
+        });
+        if (costs.length === 1) {
+            costs.push("Technology infrastructure");
+            costs.push("Operations and maintenance");
+        }
+        bmc.costStructure = costs;
+        logOutput("  ✓ " + costs.join(", "));
+        
+        // Revenue Streams (based on services)
+        logOutput("\n[REVENUE STREAMS] Identifying income sources...");
+        const revenues = [];
+        bmc.valuePropositions.forEach(function(vp) {
+            revenues.push("Revenue from " + vp);
+        });
+        if (revenues.length === 0) {
+            revenues.push("Service fees");
+            revenues.push("Transaction fees");
+        }
+        bmc.revenueStreams = revenues;
+        logOutput("  ✓ " + bmc.revenueStreams.join(", "));
+        
+        // ======================== STEP 2: GENERATE ASCII BMC ========================
+        logOutput("\n" + "=" .repeat(80));
+        logOutput("STEP 2: Business Model Canvas");
+        logOutput("=" .repeat(80));
+        logOutput("");
+        
+        function formatBox(title, items, width, height) {
+            const lines = [];
+            lines.push("┌" + "─" .repeat(width - 2) + "┐");
+            lines.push("│ " + title.substr(0, width - 4).padEnd(width - 3) + "│");
+            lines.push("├" + "─" .repeat(width - 2) + "┤");
+            
+            let itemIndex = 0;
+            for (let i = 0; i < height - 3; i++) {
+                let content = "";
+                if (itemIndex < items.length) {
+                    const item = items[itemIndex].substr(0, width - 5);
+                    content = "• " + item;
+                    itemIndex++;
+                }
+                lines.push("│ " + content.padEnd(width - 3) + "│");
+            }
+            
+            lines.push("└" + "─" .repeat(width - 2) + "┘");
+            return lines;
+        }
+        
+        // Build the BMC visualization
+        const w = 22; // Width of each section
+        const h = 8;  // Height of sections
+        
+        // Row 1: Key Partners | Key Activities | Value Propositions | Customer Relationships | Customer Segments
+        const row1_kp = formatBox("KEY PARTNERS", bmc.keyPartners, w, h);
+        const row1_ka = formatBox("KEY ACTIVITIES", bmc.keyActivities, w, h);
+        const row1_vp = formatBox("VALUE PROPOSITIONS", bmc.valuePropositions, w + 5, h);
+        const row1_cr = formatBox("RELATIONSHIPS", bmc.customerRelationships, w, h);
+        const row1_cs = formatBox("CUSTOMER SEGMENTS", bmc.customerSegments, w, h);
+        
+        // Row 2: Key Resources | Channels
+        const row2_kr = formatBox("KEY RESOURCES", bmc.keyResources, w * 2 + 3, h);
+        const row2_ch = formatBox("CHANNELS", bmc.channels, w * 2 + 3, h);
+        
+        // Row 3: Cost Structure | Revenue Streams
+        const row3_cost = formatBox("COST STRUCTURE", bmc.costStructure, w * 2 + 3, h);
+        const row3_rev = formatBox("REVENUE STREAMS", bmc.revenueStreams, w * 2 + 3, h);
+        
+        // Print top row
+        for (let i = 0; i < h; i++) {
+            logOutput(row1_kp[i] + " " + row1_ka[i] + " " + row1_vp[i] + " " + row1_cr[i] + " " + row1_cs[i]);
+        }
+        
+        logOutput("");
+        
+        // Print middle rows
+        for (let i = 0; i < h; i++) {
+            logOutput(row2_kr[i] + " " + row2_ch[i]);
+        }
+        
+        logOutput("");
+        
+        // Print bottom rows
+        for (let i = 0; i < h; i++) {
+            logOutput(row3_cost[i] + " " + row3_rev[i]);
+        }
+        
+        logOutput("");
+        logOutput("=" .repeat(80));
+        logOutput("BMC GENERATION COMPLETE");
+        logOutput("=" .repeat(80));
+        logOutput("");
+        logOutput("Summary Statistics:");
+        logOutput("  • Key Partners identified: " + bmc.keyPartners.length);
+        logOutput("  • Key Activities identified: " + bmc.keyActivities.length);
+        logOutput("  • Key Resources identified: " + bmc.keyResources.length);
+        logOutput("  • Value Propositions identified: " + bmc.valuePropositions.length);
+        logOutput("  • Customer Segments identified: " + bmc.customerSegments.length);
+        logOutput("  • Channels identified: " + bmc.channels.length);
+        logOutput("  • Revenue Streams identified: " + bmc.revenueStreams.length);
+        logOutput("");
+        logOutput("Note: This BMC is auto-generated from the ArchiMate model.");
+        logOutput("Review and refine the mappings as needed for accuracy.");
+        
+    } catch (err) {
+        console.error("Error: " + err);
+        console.error(err.stack);
+    } finally {
+        closeLog();
+    }
+})();

@@ -1,0 +1,660 @@
+﻿/*
+ * Copyright © 2026 Ebrahim Pak
+ *
+ * SPDX-License-Identifier: CECILL-B
+ *
+ * This file is part of BizDiag.
+ *
+ * BizDiag is distributed under the CeCILL-B Free Software License Agreement,
+ * Version 1.0. See the LICENSE file for details.
+ *
+ * The French and English versions of the license are available in
+ * LICENSE-FR and LICENSE, respectively.
+ *
+ * Author: Ebrahim Pak
+ *
+ * ---------------------------------------------------------------------------------------------------------------------
+ *
+ * JArchi Model Dumper
+ * This script attempts to export the entire active Archimate Model using the most basic,
+ * fundamental JArchi global collections ($.elements and $.relationships).
+ * * NOTE: All helper functions like $.model.alert() have been removed due to compatibility errors.
+ * Output is solely reliant on console logging.
+ *
+ * Enterprise Architecture Notes:
+ *
+ * 1. Model Integration Patterns:
+ * - This script implements a "Model as Data" pattern where architecture models
+ *   become serializable assets for system integration
+ * - Uses "Canonical Data Model" pattern: JSON as a neutral format between
+ *   ArchiMate tool and external systems
+ * - Demonstrates "Gateway" pattern: script acts as an Anti-Corruption Layer
+ *   between ArchiMate's domain model and external systems
+ *
+ * 2. Architecture Principles:
+ * - Separation of Concerns: isolates model extraction from persistence
+ * - Loose Coupling: JSON format decouples ArchiMate internals from consumers
+ * - Single Responsibility: each function handles one aspect (extract/transform/store)
+ *
+ * 3. MetaModel Concepts:
+ * - ArchiMate's metamodel uses typed elements and relationships
+ * - Elements represent business/app/tech layer components
+ * - Relationships create a semantic graph structure
+ * - Properties enable extension without metamodel changes
+ *
+ * 4. Graph Theory Application:
+ * - Architecture models form a directed graph G=(V,E)
+ * - Elements are vertices V, relationships are edges E
+ * - JSON preserves graph traversability via sourceId/targetId
+ * - O(|V|+|E|) complexity for full model traversal
+ *
+ * Programming notes:
+ * - Defensive programming: this script probes the runtime and uses the simplest,
+ *   most widely-supported APIs to increase portability across GraalJS/JArchi setups.
+ * - Interop: GraalJS integrates Java and JS; Java.from(), Java.type(), and Java objects
+ *   appear in JS. Be explicit when converting between Java and JS types to avoid surprises.
+ * - Failure modes: I/O, missing model, or restricted host API calls are common; always
+ *   fail gracefully and log diagnostic information for later debugging.
+ * - Serialization: JSON.stringify is used for portability. Prefer stable, explicit shapes
+ *   for long-lived dumps; changing shape breaks consumers.
+ * - Complexity note: toArray() and collect() trade genericity for robustness — they prefer
+ *   safe conversions over assumptions about host APIs.
+ * 
+ * © 2025 Ebrahim Pak
+ */
+console.clear();
+console.show();
+
+// --- CONFIGURATION (Uses a safe path in User Home) ---
+// CS note: prefer configurable paths and avoid hard-coded absolute paths so code is
+// portable across machines and environments (important for reproducible tooling).
+
+const Paths = Java.type("java.nio.file.Paths");
+const javaSystem = Java.type("java.lang.System");
+
+// Set the output path to a guaranteed writable directory (e.g., C:\Users\User\ArchiSyncDump)
+const homeDir = javaSystem.getProperty("user.home");
+const OUTPUT_FILE_NAME = "archi_model_dump.json";
+const DUMP_DIR_NAME = "ArchiSyncDump";
+// Attempt to save next to the script file. Fall back to user home if detection fails.
+const File = Java.type("java.io.File");
+function getScriptDirectory() {
+  try {
+    if (typeof __dirname === "string") return __dirname;
+  } catch (e) {}
+  try {
+    if (typeof __filename === "string") {
+      const p = new File(__filename).getParent();
+      if (p) return p;
+    }
+  } catch (e) {}
+  try {
+    const userDir = javaSystem.getProperty("user.dir");
+    if (userDir) return userDir;
+  } catch (e) {}
+  return homeDir;
+}
+
+const SCRIPT_DIR = getScriptDirectory();
+// Define the full absolute path in the script directory (sibling)
+const DUMP_DIR_PATH = Paths.get(SCRIPT_DIR, DUMP_DIR_NAME);
+const OUTPUT_FILE_PATH = Paths.get(DUMP_DIR_PATH.toString(), OUTPUT_FILE_NAME)
+  .toAbsolutePath()
+  .toString();
+
+console.log(`INFO: Saving dump to folder: ${DUMP_DIR_PATH.toAbsolutePath()}`);
+
+// --- JAVA I/O AND UTILITIES ---
+// EA Pattern: "Technical Capability" realization through Java NIO
+// Uses modern Java NIO for better scalability compared to java.io
+// Demonstrates "Platform Service" pattern: OS file system abstraction
+const Files = Java.type("java.nio.file.Files");
+const Charset = Java.type("java.nio.charset.Charset");
+const StandardOpenOption = Java.type("java.nio.file.StandardOpenOption");
+
+// --- 1. Data Extraction (using global JArchi collections) ---
+// Software engineering: separate concerns — extraction, transformation, and persistence
+// are distinct phases here. This improves testability and reasoning about failures.
+
+/*
+ * EA & Architecture Modeling Core Function
+ * - Implements "Repository" pattern for model access
+ * - Uses "Visitor" pattern to traverse model elements
+ * - Demonstrates "Metadata Management" through property extraction
+ *
+ * Graph Theory:
+ * Time Complexity: O(|V| + |E|) where:
+ * |V| = number of elements (vertices)
+ * |E| = number of relationships (edges)
+ * Space Complexity: O(|V| + |E|) for complete model representation
+ */
+function getModelData(model) {
+  // CRITICAL FIX: Use the most basic global collections provided by JArchi
+  // to bypass restricted methods on the $.model object.
+  // EA Pattern: "Model Query" implementation using fundamental selectors
+
+  // ---VIEW EXTRACTION ---
+  let i = 0;
+  const viewArray = [];
+  $("view").each(function(view) {
+    i++;
+    //console.log(`View[${i}]: ${view.name}`);
+    viewArray.push(view);
+  });
+  console.log(`DEBUG: Extracted ${viewArray.length} views from $("view")`);
+
+
+  const allElements = $("element");
+  const allRelationships = $("relationship");
+
+  // --- DIAGNOSTIC PROBES ---
+  // Run a set of safe, best-effort probes to discover what APIs are available
+  // and how they behave in this GraalJS/JArchi environment. This helps diagnose
+  // why both elements and relationships are reporting length 0.
+  function probeEnvironment() {
+    try {
+      console.log(
+        "PROBE: typeof $ -> " +
+          typeof $ +
+          ", typeof $.model -> " +
+          typeof $.model
+      );
+    } catch (e) {
+      console.log("PROBE: Could not access $ or $.model: " + e);
+    }
+
+    try {
+      console.log(
+        "PROBE: Java.from available -> " +
+          (typeof Java !== "undefined" && !!Java.from)
+      );
+    } catch (e) {
+      console.log("PROBE: Java object not available: " + e);
+    }
+
+    // Helper for evaluating candidate retrieval expressions safely
+    function safeTry(expr) {
+      try {
+        var val = eval(expr);
+        var arr = toArray(val);
+        console.log(
+          `PROBE: ${expr} -> typeof ${typeof val}, length ${arr.length}`
+        );
+      } catch (err) {
+        console.log(`PROBE: ${expr} -> ERROR: ${err}`);
+      }
+    }
+
+    // Candidate expressions to try - these cover common JArchi retrieval APIs
+    var candidates = [
+      '$("element")',
+      '$("element").find()',
+      '$("relationship")',
+      '$("relationship").find()',
+      "$.elements",
+      "$.elements && $.elements.find && $.elements.find()",
+      "$.relationships",
+      "$.relationships && $.relationships.find && $.relationships.find()",
+      "$.model",
+      "$.model && $.model.getAllElements && $.model.getAllElements()",
+      "$.model && $.model.getElements && $.model.getElements()",
+      "$.model && $.model.findObjects && $.model.findObjects()",
+    ];
+
+    candidates.forEach(function (c) {
+      safeTry(c);
+    });
+
+    // Enumerate enumerable properties on $ and $.model (if accessible)
+    try {
+      if ($) {
+        var props = [];
+        for (var k in $) props.push(k);
+        console.log("PROBE: $ enumerable props -> " + props.join(", "));
+      }
+    } catch (e) {
+      console.log("PROBE: Cannot enumerate $ -> " + e);
+    }
+
+    try {
+      if ($ && $.model) {
+        var mprops = [];
+        for (var k in $.model) mprops.push(k);
+        console.log("PROBE: $.model enumerable props -> " + mprops.join(", "));
+      }
+    } catch (e) {
+      console.log("PROBE: Cannot enumerate $.model -> " + e);
+    }
+  }
+
+  // Run the diagnostic probes immediately to capture console output
+  probeEnvironment();
+
+  /*
+   * Adapter Pattern Implementation
+   * - Converts between different collection representations
+   * - Demonstrates "Integration Pattern: Protocol Bridging"
+   * - Handles cross-platform type impedance mismatch
+   *
+   * CS Concept: Type Coercion and Collection Abstraction
+   * Time Complexity: O(n) for n items
+   * Space Complexity: O(n) for new array allocation
+   */
+  function toArray(value) {
+    if (!value) return [];
+    if (Array.isArray(value)) return value;
+    try {
+      // Java.from works for Java arrays and many Java collections in GraalJS
+      if (typeof Java !== "undefined" && Java.from) {
+        return Java.from(value);
+      }
+    } catch (e) {
+      // fallthrough
+    }
+    // Fallback: try to read by numeric indices
+    if (typeof value.length === "number") {
+      const out = [];
+      for (let i = 0; i < value.length; i++) out.push(value[i]);
+      return out;
+    }
+    // As a last resort, wrap single item
+    return [value];
+  }
+
+  // .find() typically returns an array/collection of matched items
+  // Helper to collect items from a selection object. Some JArchi selection
+  // objects expose .find() which may return an empty collection while the
+  // selection itself is array-like (has numeric indices and length). Prefer
+  // .find() only if it returns items, otherwise fall back to the collection.
+  function collect(selection, name) {
+    if (!selection) return [];
+    try {
+      if (typeof selection.find === "function") {
+        const found = selection.find();
+        const arrFound = toArray(found);
+        if (arrFound.length > 0) {
+          console.log(
+            `DEBUG: ${name}.find() returned ${arrFound.length} items`
+          );
+          return arrFound;
+        } else {
+          console.log(
+            `DEBUG: ${name}.find() returned 0 items; falling back to selection itself`
+          );
+        }
+      }
+    } catch (e) {
+      console.log(`DEBUG: ${name}.find() threw: ${e}`);
+    }
+
+    try {
+      const arr = toArray(selection);
+      if (arr.length > 0) {
+        console.log(`DEBUG: ${name} (direct) returned ${arr.length} items`);
+        return arr;
+      }
+    } catch (e) {
+      console.log(`DEBUG: toArray(${name}) error: ${e}`);
+    }
+    return [];
+  }
+
+  const elems = collect(allElements, '$("element")');
+  const rels = collect(allRelationships, '$("relationship")');
+
+  // Combine elements, relationships, and views into a single flat list of concepts
+  const allConcepts = elems.concat(rels).concat(viewArray);
+
+  console.log(
+    `Raw retrieval -> elements: ${elems.length}, relationships: ${rels.length}, views: ${viewArray.length}`
+  );
+  
+  // Debug: show the types of the first few items in viewArray
+  if (viewArray.length > 0) {
+    console.log(`DEBUG: First view object keys: ${Object.keys(viewArray[0]).join(", ").substring(0, 200)}`);
+    console.log(`DEBUG: First view has isArchimateDiagramModel? ${typeof viewArray[0].isArchimateDiagramModel}`);
+  }
+
+  const extractedData = [];
+
+  /*
+   * EA Model Processing Core
+   * - Implements "Metadata Extraction" pattern
+   * - Uses "Duck Typing" for model element detection
+   * - Shows "Robust Architecture" pattern: graceful degradation
+   *
+   * ArchiMate Concepts:
+   * - Elements: Business, Application, Technology layer components
+   * - Relationships: Create connected architecture views
+   * - Properties: Extended metadata beyond core metamodel
+   */
+  allConcepts.forEach((obj) => {
+    // Defensive checks: ensure we have an object that looks like an Archi concept
+    if (!obj) return;
+    // Some environments may not expose the isArchimateConcept flag; allow element/relationship checks
+    const looksLikeConcept =
+      typeof obj.isArchimateConcept === "function"
+        ? obj.isArchimateConcept()
+        : obj.isArchimateElement && obj.isArchimateRelationship
+        ? true
+        : true;
+    if (!looksLikeConcept) return;
+
+    // NOTE: properties field removed as user confirmed it is redundant.
+    // The field was always empty in practice and is not needed in the JSON or database.
+
+    // Determine whether this object is a view, relationship, or element.
+    // Some runtime environments don't expose isArchimateView/isArchimateElement/isArchimateRelationship
+    // so we detect by the presence of type-specific accessors.
+    let sourceId = null;
+    let targetId = null;
+    var isView = false;
+    var isRel = false;
+
+    // Get the type string for comparison
+    var objType = null;
+    try {
+      objType = typeof obj.getType === "function" ? obj.getType() : (obj.type || null);
+    } catch (e) {}
+
+    // Check if it's a view first - try multiple detection methods
+    try {
+      if (typeof obj.isArchimateDiagramModel === "function") {
+        isView = obj.isArchimateDiagramModel();
+      } else if (!!obj.isArchimateDiagramModel) {
+        isView = true;
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    // Fallback: check type string for diagram/view markers
+    if (!isView && objType) {
+      isView = objType.includes("diagram") || objType.includes("view");
+    }
+
+    // Debug: log if object might be a view based on structure
+    if (isView) {
+      console.log(`DEBUG: Detected isView=true for object with name: ${obj.getName ? obj.getName() : obj.name}`);
+    }
+
+    // If not a view, check if it's a relationship
+    if (!isView) {
+      try {
+        if (typeof obj.isArchimateRelationship === "function") {
+          isRel = obj.isArchimateRelationship();
+        } else if (!!obj.isArchimateRelationship) {
+          isRel = true;
+        } else if (
+          typeof obj.getSource === "function" ||
+          typeof obj.getTarget === "function"
+        ) {
+          isRel = true;
+        } else if (obj.source || obj.target || obj.sourceId || obj.targetId) {
+          isRel = true;
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    const isElement =
+      typeof obj.isArchimateElement === "function"
+        ? obj.isArchimateElement()
+        : !isRel && !isView;
+
+    // If it's a relationship, extract its endpoints using several access patterns
+    if (isRel) {
+      try {
+        var s = null,
+          t = null;
+        try {
+          s =
+            typeof obj.getSource === "function"
+              ? obj.getSource()
+              : obj.source || null;
+        } catch (e) {
+          s = obj.source || null;
+        }
+        try {
+          t =
+            typeof obj.getTarget === "function"
+              ? obj.getTarget()
+              : obj.target || null;
+        } catch (e) {
+          t = obj.target || null;
+        }
+        try {
+          if (s) {
+            if (typeof s.getId === "function") sourceId = s.getId();
+            else if (s.id) sourceId = s.id;
+            else if (typeof s.getIdentifier === "function")
+              sourceId = s.getIdentifier();
+          }
+        } catch (e) {}
+        try {
+          if (t) {
+            if (typeof t.getId === "function") targetId = t.getId();
+            else if (t.id) targetId = t.id;
+            else if (typeof t.getIdentifier === "function")
+              targetId = t.getIdentifier();
+          }
+        } catch (e) {}
+      } catch (e) {
+        // ignore
+      }
+      // Last-resort fallbacks
+      if (!sourceId && obj.sourceId) sourceId = obj.sourceId;
+      if (!targetId && obj.targetId) targetId = obj.targetId;
+    }
+
+    // Determine model name for this object: prefer the object's containing model if exposed
+    var modelNameVal = null;
+    try {
+      if (typeof obj.getModel === "function") {
+        var objModel = obj.getModel();
+        if (objModel) {
+          if (typeof objModel.getName === "function")
+            modelNameVal = objModel.getName();
+          else if (objModel.name) modelNameVal = objModel.name;
+          else if (typeof objModel.getModelName === "function")
+            modelNameVal = objModel.getModelName();
+        }
+      }
+    } catch (e) {}
+
+    // Fallback to provided model parameter (global $.model) if still missing
+    if (!modelNameVal && model) {
+      try {
+        if (typeof model.getName === "function") modelNameVal = model.getName();
+        else if (model.name) modelNameVal = model.name;
+        else if (typeof model.getModelName === "function")
+          modelNameVal = model.getModelName();
+      } catch (e) {}
+    }
+
+    // For views, ensure we capture the view name with multiple accessors
+    var viewName = null;
+    if (isView) {
+      try {
+        if (typeof obj.getName === "function") viewName = obj.getName();
+        else if (obj.name) viewName = obj.name;
+        else if (typeof obj.getTitle === "function") viewName = obj.getTitle();
+        else if (obj.title) viewName = obj.title;
+      } catch (e) {}
+    }
+
+    // Extract properties using JArchi's prop() method
+    // In JArchi, prop() returns array of property name strings
+    // prop(name) returns the value for that property name
+    var properties = [];
+    
+    try {
+      if (typeof obj.prop === "function") {
+        try {
+          // prop() with no args returns array of property names  
+          var propNames = obj.prop();
+          console.log("PROPERTIES" + propNames);
+          
+          if (propNames && Array.isArray(propNames) && propNames.length > 0) {
+            // For each property name, get its value
+            propNames.forEach(function(propName) {
+              try {
+                if (propName && typeof propName === "string") {
+                  var propValue = obj.prop(propName);
+                  if (propValue !== null && propValue !== undefined) {
+                    properties.push({ 
+                      key: String(propName), 
+                      value: String(propValue) 
+                    });
+                  }
+                }
+              } catch (e) {
+                // Skip individual property access errors
+              }
+            });
+          }
+        } catch (e) {
+          // If prop() fails, silently continue
+        }
+      }
+    } catch (e) {
+      // Silently ignore any errors
+    }
+
+    extractedData.push({
+      id: obj.getId ? obj.getId() : null,
+      name: isView && viewName ? viewName : (obj.getName ? obj.getName() : null),
+      type: obj.getType ? obj.getType() : null,
+      isElement: isElement,
+      isView: isView,
+      documentation: obj.getDocumentation ? obj.getDocumentation() : null,
+      sourceId: sourceId,
+      targetId: targetId,
+      modelName: modelNameVal,
+      properties: properties.length > 0 ? properties : [],
+    });
+  });
+
+  console.log(
+    `[Success] Extracted ${extractedData.length} total concepts (elements, relationships, and views).`
+  );
+  return extractedData;
+}
+
+// --- 2. File Writing ---
+
+/*
+ * Enterprise Integration Implementation
+ * - "File Gateway" pattern: bridges ArchiMate and external systems
+ * - "Canonical Data Format" pattern: JSON as neutral exchange format
+ * - "Idempotent Writer" pattern: safe for multiple executions
+ *
+ * Data Management Principles:
+ * - Preserves model integrity through atomic writes
+ * - Implements "Data as an Asset" pattern
+ * - Supports "Architecture Knowledge Management"
+ */
+function writeJsonDump(data) {
+  try {
+    // 1. CRITICAL: Create the target directory if it doesn't exist
+    Files.createDirectories(DUMP_DIR_PATH);
+
+    // 2. Write the JSON
+    const jsonString = JSON.stringify(data, null, 2);
+    const outputPath = Paths.get(OUTPUT_FILE_PATH);
+
+    // Write string using Java NIO
+    Files.writeString(
+      outputPath,
+      jsonString,
+      Charset.forName("UTF-8"),
+      StandardOpenOption.CREATE,
+      StandardOpenOption.TRUNCATE_EXISTING
+    );
+
+    console.log(
+      `[SUCCESS] Model dump written to: ${outputPath.toAbsolutePath()}`
+    );
+    return outputPath.toAbsolutePath().toString();
+  } catch (e) {
+    console.error("FATAL I/O Error: Could not write model dump file:");
+    console.error(`Error details: ${e.toString()}`);
+    // Cannot use alert, relying on console log
+    return null;
+  }
+}
+
+// --- 3. Main Execution ---
+
+/*
+ * Enterprise Architecture Main Flow
+ * - Implements "Process Integration" pattern
+ * - Shows "Error Handling" pattern for EA tools
+ * - Demonstrates "Model Validation" pattern
+ *
+ * Architecture Principle:
+ * - "Single Source of Truth": one model, many views
+ * - "Knowledge Management": preserving architecture data
+ * - "Tool Integration": bridging enterprise tools
+ */
+(function main() {
+  // Resolve active model. Prefer the currently selected model, but fall back
+  // to the first available model (repository) if none is actively selected.
+  var model = null;
+  try {
+    if (typeof $ !== "undefined" && $.model) model = $.model;
+  } catch (e) {}
+
+  // Fallback: use first model in $.models if available (helps when no model is selected)
+  if (!model) {
+    try {
+      if (typeof $ !== "undefined" && $.models) {
+        var modelsList = $.models;
+        if (typeof Java !== "undefined" && Java.from)
+          modelsList = Java.from(modelsList);
+        if (modelsList && modelsList.length > 0) {
+          model = modelsList[0];
+          try {
+            var mn = model.getName
+              ? model.getName()
+              : model.name
+              ? model.name
+              : "(unknown)";
+            console.log(
+              "INFO: No model selected; falling back to first model: " + mn
+            );
+          } catch (e) {}
+        }
+      }
+    } catch (e) {}
+  }
+
+  if (!model) {
+    console.error(
+      "No active Archimate Model found. Please open a model and try again."
+    );
+    return;
+  }
+
+  const data = getModelData(model);
+
+  // Check: Stop execution if data extraction failed, even if the model exists
+  if (data.length === 0) {
+    console.log(
+      "STOPPED: Extracted 0 concepts. This suggests your specific JArchi/GraalVM environment is blocking all known model retrieval methods."
+    );
+    // Cannot use alert, relying on console log
+    return;
+  }
+
+  const filePath = writeJsonDump(data);
+
+  if (filePath) {
+    // Notify the user where the file is for the next step
+    console.log(
+      "Dump Complete",
+      `The complete model data has been exported to:\n\n${filePath}\n\nThis file is now ready for external Java (H2JdbcProcessor) application.`
+    );
+  }
+})();

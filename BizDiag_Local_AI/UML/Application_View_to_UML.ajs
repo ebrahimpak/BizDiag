@@ -1,0 +1,1473 @@
+﻿/*
+ * Copyright © 2026 Ebrahim Pak
+ *
+ * SPDX-License-Identifier: CECILL-B
+ *
+ * This file is part of BizDiag.
+ *
+ * BizDiag is distributed under the CeCILL-B Free Software License Agreement,
+ * Version 1.0. See the LICENSE file for details.
+ *
+ * The French and English versions of the license are available in
+ * LICENSE-FR and LICENSE, respectively.
+ *
+ * Author: Ebrahim Pak
+ *
+ * =============================================================================
+ * Application_View_to_UML.ajs
+ * Version 3.0
+ * =============================================================================
+ *
+ * Purpose
+ * -------
+ * Generates a UML-inspired component view from the selected  ArchiMate Application View. The output remains an
+ * ArchiMate View  and is intended to provide a UML Component Diagram-style representation of application components and
+ * their relationships.
+ *
+ * Version History
+ * ---------------
+ * V1.0: In version 1.0 it used the script used to operate in dual mode:
+ *        1) Heuristic-only mode: uses static type mappings to create UML-like labels and stereotypes.
+ *        2) AI-enhanced mode: calls a local Ollama-compatible REST endpoint through sendToAI.js to semantically analyze
+ *           selected elements and enrich their documentation and stereotypes.
+ *
+ * V2.0: Unlike the previously non-AI version, the script, in version 2.0, uses Ollama (via sendToAI.js) for semantic
+ *       analysis of each element to generate smarter UML-like stereotypes and enriched alternative ArchiMate views. The
+ *       script is now fully integrated with Ollama and can gracefully degrade to heuristic-only mode if the Ollama
+ *       service is unavailable. It also includes improved logging, and error handling.
+ *
+ * V3.0: The script now implements a 'derivative-style UML representation' approach, which classifies ArchiMate concepts
+ *       by their semantic family (component, interface, service, behavior, data, event) rather than performing a direct
+ *       1:1 type conversion. This allows for more accurate UML-like visualization while preserving ArchiMate semantics.
+ *       The script also includes enhanced visual styling based on semantic families and relationship roles. A thorough
+ *       research on the related concepts have been carried out on the white papers, dealing with the issue at hand,
+ *       leading to these semantic and visual improvements, in the latest version.
+ *
+ * Intended Use
+ * ------------
+ * Typically run after selecting a source ArchiMate view such as:
+ *   - Phase C - Information Systems Architecture
+ *   - A business/application layer diagram
+ *   - A view containing application components, data objects, and business
+ *     objects connected by relationships
+ *
+ * The script reads the selected view, extracts supported concepts and relations, creates a new view named
+ * "<Source View> (UML)", and places the extracted elements into a grid layout. It also adds relationships between
+ * matching elements in the new view when possible.
+ *
+ * Supported Concept Types
+ * -----------------------
+ * The script recognizes and includes the following ArchiMate concept families:
+ *
+ *   - application-component
+ *   - application-collaboration
+ *   - application-interface
+ *   - application-service
+ *   - application-function
+ *   - application-process
+ *   - application-interaction
+ *   - application-event
+ *   - application-object
+ *   - data-object
+ *   - business-object
+ *   - business-process
+ *
+ * Supported relationship types are mapped into UML-style connections, including:
+ *   composition, aggregation, association, realization, generalization, serving, access, flow, triggering, assignment,
+ *   and influence.
+ *
+ * Architecture and Workflow
+ * -------------------------
+ * 1) Select a source view from the current Archi selection.
+ * 2) Extract all visual objects from that view.
+ * 3) Keep only recognized application/business/data concepts.
+ * 4) Create a new UML-style Archi view in the model.
+ * 5) For each concept:
+ *      - optionally call the local Ollama endpoint for semantic enrichment
+ *      - sanitize the AI result if needed
+ *      - store a stereotype or documentation note
+ *      - add the concept to the new view at a calculated grid position
+ * 6) Recreate supported connections between source and target concepts that
+ *    exist in the new view.
+ * 7) Print a summary report and display an alert with the result.
+ *
+ * AI Integration Details
+ * ----------------------
+ * The optional AI layer relies on sendToAI.js, which calls the local Ollama
+ * API at:
+ *   http://localhost:11434/v1/chat/completions
+ *
+ * The script sends a short, structured prompt asking the model to suggest a UML stereotype for the selected ArchiMate
+ * concept. Example prompts include:
+ *   - "Given an ArchiMate element named 'Policy Data' ... suggest a brief UML stereotype (1-2 words, lowercase) ..."
+ *   - "Provide a brief UML-oriented description of an ArchiMate ..."
+ *
+ * Responses are cleaned to remove Unicode formatting characters, zero-width separators, and excessive whitespace before
+ * being used. If the AI response is invalid, empty, or null, the script falls back gracefully to a heuristic stereotype.
+ *
+ * If Ollama returns HTTP errors repeatedly, the script automatically switches to heuristic-only mode.
+ *
+ * Output Markers
+ * --------------
+ * When AI is enabled, the generated element documentation is prefixed with a recognizable marker to distinguish
+ * AI-enriched items from heuristic output.
+ *
+ * Examples:
+ *   <<[AI] entity>>
+ *   <<[AI] service>>
+ *
+ * Heuristic-only output is marked similarly:
+ *   <<[HEUR] dataobject>>
+ *
+ * The generated view documentation also records whether the output is AI-enriched or heuristic-only.
+ *
+ * Important Behavior Notes
+ * ------------------------
+ * - The script expects the user to select the desired source view manually.
+ * - It does not validate that the selected view is semantically correct; it
+ *   simply converts whatever supported concepts it finds.
+ * - It only creates diagram objects for recognized types.
+ * - Unsupported relationship types are skipped and logged in the console.
+ * - Connection creation depends on both endpoints being present in the newly
+ *   generated view; if not, the link is skipped.
+ * - AI analysis is optional: if Ollama is absent or the service fails, the script
+ *   still generates a valid UML-like view using heuristics.
+ *
+ * File Dependencies
+ * -----------------
+ * Requires the following in the same directory or accessible runtime scope:
+ *   - sendToAI.js  (optional but recommended for AI enrichment)
+ *
+ * Runtime Context
+ * ---------------
+ * This script is intended to run in Archi's JArchi/GraalJS environment, not as a
+ * standard browser or Node.js script. It relies on the Archi model API, selection
+ * objects, global load(), and Java interop capabilities available in the
+ * JArchi/GraalJS runtime.
+ *
+ * Result
+ * ------
+ * The script creates a new Archi view in the model named: <Original View Name> (UML)
+ *
+ * The new view contains:
+ *   - UML-like concept boxes for supported application/business/data elements
+ *   - AI-generated or heuristic UML stereotype hints
+ *   - A console report of extracted elements, relationships, and skip reasons
+ *   - A completion alert summarizing the generated view
+ *
+ * This script reads a user-selected source view (typically Phase C: Information Systems Architecture), extracts
+ * application-layer concepts and relationships, and creates a new Archi view with UML-style component-like diagram
+ * notation, enhanced with AI-generated semantic classifications.
+ *
+ * Human-in-the-loop principle
+ * ---------------------------
+ *   The user explicitly selects the source View in Archi.
+ *   Selection of a Phase C (Application Layer) view is the user's responsibility.
+ *   The script does NOT validate view contents.
+ *   AI analysis is optional and gracefully degrades if Ollama is unavailable.
+ *
+ * ArchiMate -> UML Visual Mappings
+ * --------------------------------
+ *
+ *   Application Component       -> Component box
+ *   Application Collaboration   -> Collaboration box (with stereotype)
+ *   Application Interface       -> Interface box (with << >> notation)
+ *   Application Service         -> Service box (with stereotype)
+ *   Data Object                 -> Class box
+ *   Business Object             -> BusinessEntity (with AI analysis)
+ *   Business Process            -> BusinessProcess (with AI analysis)
+ *
+ * Supported Relationships
+ * -----------------------
+ *   Composition, Aggregation, Association, Realization, Specialization,
+ *   Serving, Access, Flow, Triggering, Assignment, Influence
+ *
+ * A Note on UML Component Diagram
+ * -------------------------------
+ * UML diagram types, Component and Class diagrams are used to model the structural, implementation-oriented views of
+ * object-oriented systems. The UML resemblance of the converted views, is primarily closer to the UML Component
+ * Diagrams. The secondary resemblance is to the UML Class Diagrams, which is more stylistic and not structural identity
+ * resemblance. They provide a practical means for visualizing, specifying, and documenting component-based systems, as
+ * well as supporting the construction of executable systems through forward and reverse engineering. Component diagrams
+ * can be viewed as a specialized form of class diagram that focuses on a system’s components, and are commonly used to
+ * represent its static implementation view.
+ *
+ * Output
+ * ------
+ *   An ArchiMate View presenting the selected Application View in a UML-like Component Diagram-inspired
+ *   visual style. It does not create native UML elements.
+ *
+ */
+
+console.show();
+console.clear();
+
+// AI Integration: Attempt to load sendToAI.js for Ollama integration
+let sendToAI = null;
+let ollamaAvailable = false;
+let ollamaFailureCount = 0;
+let ollamaFailureThreshold = 3; // Disable AI after 3 consecutive failures
+
+try {
+    // Load sendToAI from current directory
+    load(__DIR__ + "/sendToAI.js");
+    
+    // Small delay to ensure GraalJS has processed the load.
+    // In GraalJS, load() executes synchronously but let's be defensive.
+    if (typeof sendToAI !== "undefined" && typeof sendToAI === "function") {
+        // Already available as local variable from load()
+        ollamaAvailable = true;
+    } else if (typeof globalThis !== "undefined" && typeof globalThis.sendToAI !== "undefined") {
+        // Access from globalThis
+        sendToAI = globalThis.sendToAI;
+        ollamaAvailable = true;
+    } else {
+        // Try direct global access
+        try {
+            if (typeof eval("sendToAI") === "function") {
+                sendToAI = eval("sendToAI");
+                ollamaAvailable = true;
+            }
+        } catch (evalErr) {
+            // Silent fail on eval
+        }
+    }
+    
+    if (ollamaAvailable) {
+        console.log("[𐓙] Ollama integration loaded successfully.");
+    } else {
+        console.log("[𐓙] sendToAI.js loaded but function not accessible.");
+        console.log("[𐓙] Proceeding without AI analysis (heuristic-only mode).");
+    }
+} catch (e) {
+    console.log("[𐓙] sendToAI.js not found or error loading: " + e.message);
+    console.log("[𐓙] Proceeding without AI analysis (heuristic-only mode).");
+    ollamaAvailable = false;
+}
+
+/**
+ * Analyze an element via Ollama to generate a UML-appropriate stereotype.
+ * Returns a string (stereotype) or null if analysis unavailable.
+ */
+function analyzeElementWithAI(elementName, elementType, elementDoc) {
+    if (!ollamaAvailable || !sendToAI) {
+        return null;
+    }
+
+    try {
+        const prompt = 
+            "Given an ArchiMate element named '" + elementName + "' of type '" + elementType + "', " +
+            "suggest a brief UML stereotype (1-2 words, lowercase). " +
+            "Documentation: " + (elementDoc || "(none)") + "\n" +
+            "Respond with ONLY the stereotype word(s), no explanation.";
+        
+        console.log("[𐓙] PROMPT for '" + elementName + "': " + prompt.substring(0, 60) + "...");
+        
+        const response = sendToAI(prompt);
+        
+        // Check for null response (API error or connection failure)
+        if (response === null) {
+            ollamaFailureCount++;
+            if (ollamaFailureCount >= ollamaFailureThreshold) {
+                console.warn("[𐓙] Ollama server unavailable after " + ollamaFailureCount + " attempts. Disabling AI mode.");
+                ollamaAvailable = false;
+            }
+            return null;
+        }
+        
+        // Reset failure counter on success
+        ollamaFailureCount = 0;
+        
+        console.log("[𐓙] RESPONSE: '" + response + "'");
+        
+        if (response && response.length > 0 && response.length < 50) {
+            const stereotype = sanitizeAiText(response.trim().toLowerCase());
+            console.log("[𐓙] ✓ Extracted stereotype: '" + stereotype + "'");
+            return stereotype;
+        } else {
+            console.log("[𐓙] ✗ Response too long or empty, skipping");
+        }
+    } catch (e) {
+        console.log("[𐓙] ✗ Analysis error for '" + elementName + "': " + e);
+    }
+
+    return null;
+}
+
+/**
+ * Generate an AI-enriched description for an element.
+ * Returns a string or null if analysis unavailable.
+ */
+function generateElementDescriptionWithAI(elementName, elementType) {
+    if (!ollamaAvailable || !sendToAI) {
+        return null;
+    }
+
+    try {
+        const prompt = 
+            "Provide a brief (1-2 sentences) UML-oriented description of an ArchiMate " + 
+            elementType + " named '" + elementName + "'. " +
+            "Focus on its role and relationships in a system architecture.";
+        
+        console.log("[𐓙] DESCRIPTION PROMPT for '" + elementName + "': " + prompt.substring(0, 50) + "...");
+        
+        const response = sendToAI(prompt);
+        
+        // Check for null response (API error)
+        if (response === null) {
+            return null;
+        }
+        
+        console.log("[𐓙] DESCRIPTION RESPONSE: '" + response.substring(0, 100) + "...'");
+        
+        if (response && response.length > 0 && response.length < 300) {
+            return sanitizeAiText(response.trim());
+        } else {
+            console.log("[𐓙] ✗ Description response invalid or too long");
+        }
+    } catch (e) {
+        console.log("[𐓙] ✗ Description generation error for '" + elementName + "': " + e);
+    }
+
+    return null;
+}
+
+function sanitizeAiText(raw) {
+    if (raw === null || typeof raw === "undefined") {
+        return "";
+    }
+    return String(raw)
+        .replace(/[\u200E\u200F\uFEFF\u2060\u00A0]/g, "")
+        .replace(/[\r\n\t]+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
+function normalizeAiStereotype(raw) {
+    const cleaned = sanitizeAiText(raw)
+        .replace(/[<>]/g, "")
+        .replace(/^[^A-Za-z0-9]+|[^A-Za-z0-9]+$/g, "");
+
+    if (!cleaned) {
+        return null;
+    }
+
+    const words = cleaned.split(/\s+/).filter(function(word) {
+        return word && word.length > 0;
+    }).slice(0, 2);
+
+    if (!words.length) {
+        return null;
+    }
+
+    const normalized = words.join(" ").toLowerCase();
+    if (normalized.length === 0 || normalized.length > 30) {
+        return null;
+    }
+
+    return normalized;
+}
+
+function isStructuralContainerType(type) {
+    if (!type) {
+        return false;
+    }
+    const normalized = String(type).toLowerCase();
+    return STRUCTURAL_CONTAINER_TYPES[normalized] || /group|package/i.test(normalized);
+}
+
+function isStructuralContainerObject(object) {
+    if (!object) {
+        return false;
+    }
+
+    const concept = object.concept;
+    const conceptType = concept && concept.type;
+    const objectType = object.type;
+
+    if (isStructuralContainerType(conceptType) || isStructuralContainerType(objectType)) {
+        return true;
+    }
+
+    if (object.parent && object.parent.concept && isStructuralContainerType(object.parent.concept.type)) {
+        return true;
+    }
+
+    return false;
+}
+
+function getUmlConceptMetadata(concept) {
+    // Retrieves semantic family and UML mapping information for an ArchiMate concept.
+    // This function enables the "derivative-style UML representation" by mapping
+    // ArchiMate concepts to UML-compatible semantic families and stereotypes.
+    //
+    // Parameters:
+    //   concept: jArchi concept object with .type property
+    //
+    // Returns:
+    //   Object with properties:
+    //     - family: semantic family (component, interface, service, behavior, data, event)
+    //     - umlKind: UML element kind (Component, Class, Interface, etc.)
+    //     - stereotype: UML stereotype (lowercase, used in <<...>> notation)
+    //     - packageGroup: logical grouping for organizational purposes
+    //     - relationshipBias: preferred relationship semantic role (structural, dependency, etc.)
+    //
+    // The function follows the ArchiMate Layer principle: each ArchiMate concept is
+    // mapped to a UML-equivalent visualization based on its semantic role, not its
+    // syntactic ArchiMate name. This is the key innovation of derivative-style UML.
+    
+    if (!concept || !concept.type) {
+        return {
+            family: "artifact",
+            umlKind: "Class",
+            stereotype: "artifact",
+            packageGroup: "General Elements",
+            relationshipBias: "dependency"
+        };
+    }
+
+    const type = String(concept.type).toLowerCase();
+    const metadata = UML_CONCEPT_MAP[type] || {
+        family: "artifact",
+        umlKind: "Class",
+        stereotype: "artifact",
+        packageGroup: "General Elements",
+        relationshipBias: "dependency"
+    };
+
+    return metadata;
+}
+
+function getRelationshipMetadata(relationship) {
+    // Retrieves semantic role and styling information for an ArchiMate relationship.
+    // This function maps ArchiMate relationship types to UML-compatible styles.
+    //
+    // Parameters:
+    //   relationship: jArchi relationship concept object with .type property
+    //
+    // Returns:
+    //   Object with properties:
+    //     - umlStyle: UML connector style (composition, aggregation, association, etc.)
+    //     - semanticRole: architectural semantic role (structural, dependency, behavior, etc.)
+    //     - label: human-readable relationship label
+    //
+    // The semantic role determines the visual styling (color, line width) via the
+    // RELATIONSHIP_ROLE_COLORS mapping, enabling visual differentiation of relationship
+    // types in the generated UML-style diagram.
+    
+    if (!relationship || !relationship.type) {
+        return {
+            umlStyle: "association",
+            semanticRole: "dependency",
+            label: "association"
+        };
+    }
+
+    const type = String(relationship.type).toLowerCase();
+    return RELATIONSHIP_TYPES[type] || {
+        umlStyle: "association",
+        semanticRole: "dependency",
+        label: "association"
+    };
+}
+
+function applySemantticFamilyStyling(diagramObject, concept) {
+    // Applies semantic family-based visual styling to a diagram element.
+    // This is the visual manifestation of the "derivative-style UML" concept.
+    //
+    // Parameters:
+    //   diagramObject: jArchi diagram model object created by view.add()
+    //   concept: ArchiMate concept that the diagram object represents
+    //
+    // Behavior:
+    //   1. Retrieves the semantic family of the concept via getUmlConceptMetadata()
+    //   2. Looks up the color scheme from SEMANTIC_FAMILY_COLORS
+    //   3. Applies fillColor, fontColor, and lineColor to the diagram object
+    //   4. Silently continues on any styling errors (robustness)
+    //
+    // Note on jArchi Styling API:
+    //   - jArchi diagram objects do not support direct CSS-style properties
+    //   - fillColor, fontColor, lineColor are EMF/Archi color properties
+    //   - Color values must be hex strings (#RRGGBB format)
+    //   - Not all diagram object types support all color properties
+    //   - Try-catch wrapping prevents styling failures from breaking diagram creation
+    
+    if (!diagramObject || !concept) {
+        return;
+    }
+
+    const metadata = getUmlConceptMetadata(concept);
+    const family = metadata && metadata.family ? metadata.family : "default";
+    const colorScheme = SEMANTIC_FAMILY_COLORS[family] || SEMANTIC_FAMILY_COLORS["default"];
+
+    try {
+        // Apply colors to the diagram object
+        // Each property is checked for existence before setting to avoid errors
+        // on object types that don't support all color properties
+        if (diagramObject.fillColor !== undefined) {
+            diagramObject.fillColor = colorScheme.fillColor;
+        }
+        if (diagramObject.fontColor !== undefined) {
+            diagramObject.fontColor = colorScheme.fontColor;
+        }
+        if (diagramObject.lineColor !== undefined) {
+            diagramObject.lineColor = colorScheme.lineColor;
+        }
+    } catch (e) {
+        // Silently ignore styling errors to not break element creation
+        // The diagram will still be created even if colors cannot be applied
+    }
+}
+
+function applyRelationshipRoleStyling(connectionLine, relationship) {
+    // Applies semantic role-based visual styling to a diagram connection line.
+    // This provides visual feedback about the semantic nature of relationships.
+    //
+    // Parameters:
+    //   connectionLine: jArchi diagram connection object created by view.add(relationship, ...)
+    //   relationship: ArchiMate relationship concept that the line represents
+    //
+    // Behavior:
+    //   1. Retrieves the semantic role via getRelationshipMetadata()
+    //   2. Looks up the line styling from RELATIONSHIP_ROLE_COLORS
+    //   3. Applies lineColor and lineWidth to the connection object
+    //   4. Silently continues on any styling errors (robustness)
+    //
+    // Note on jArchi Connection Styling API:
+    //   - Connection objects support lineColor and lineWidth properties
+    //   - lineColor values are hex strings (#RRGGBB format)
+    //   - lineWidth is a numeric value (typically 1-3 for visibility)
+    //   - Some Archi versions may not support lineWidth; try-catch handles this
+    
+    if (!connectionLine || !relationship) {
+        return;
+    }
+
+    const metadata = getRelationshipMetadata(relationship);
+    const role = metadata && metadata.semanticRole ? metadata.semanticRole : "default";
+    const colorScheme = RELATIONSHIP_ROLE_COLORS[role] || RELATIONSHIP_ROLE_COLORS["default"];
+
+    try {
+        // Apply colors to the connection line
+        if (connectionLine.lineColor !== undefined) {
+            connectionLine.lineColor = colorScheme.lineColor;
+        }
+        if (connectionLine.lineWidth !== undefined) {
+            connectionLine.lineWidth = colorScheme.lineWidth;
+        }
+    } catch (e) {
+        // Silently ignore styling errors to not break relationship creation
+        // The connection will still be created even if styles cannot be applied
+    }
+}
+
+// ArchiMate types recognized for UML view generation
+// ============================================================================
+// Includes all Application Layer elements and related Business/Data types
+//
+// SEMANTIC FAMILY CLASSIFICATION (per Open Group white paper):
+// This mapping implements the core principle of "derivative-style UML representation":
+// instead of performing syntactic 1:1 type conversion, we classify ArchiMate concepts
+// by their semantic role within the architecture. This allows:
+//
+//   1. UML-FRIENDLY VISUALIZATION: ArchiMate concepts are grouped by UML-compatible
+//      semantic roles (Component, Interface, Service, Behavior, Data, Event) rather
+//      than by their specific ArchiMate type.
+//
+//   2. SEMANTIC PRESERVATION: The mapping preserves ArchiMate semantics while making
+//      them visible in a UML-friendly notation, enabling interoperability between
+//      ArchiMate and UML tooling communities.
+//
+//   3. RELATIONSHIP SEMANTICS: Each type includes a "relationshipBias" that indicates
+//      the preferred semantic role for this element's relationships (structural,
+//      dependency, behavioral, etc.).
+//
+// LAYERING PRINCIPLE:
+// ArchiMate organizes the enterprise architecture into layers:
+//   - Business Layer: business processes, actors, capabilities
+//   - Application Layer: application components, services, interfaces
+//   - Technology Layer: infrastructure, platforms, devices
+//
+// This script focuses on Application Layer and related Business/Data concepts because:
+//   - Application components are most directly analogous to UML components
+//   - Services and interfaces have direct UML equivalents
+//   - Business processes provide behavioral context
+//   - Data objects represent information assets
+//
+// Each ArchiMate concept in jArchi has:
+//   - .type: string identifier (e.g., "application-component")
+//   - .name: human-readable label
+//   - .id: unique identifier within the model
+//   - .documentation: optional description text
+//   - .properties: optional key-value pairs
+//   - .parent: reference to containing element (if any)
+//
+// UML_CONCEPT_MAP ENTRY STRUCTURE:
+// Each entry defines how an ArchiMate type maps to UML representation:
+//   - family: semantic family (component, interface, service, behavior, data, event)
+//   - umlKind: UML element kind (used for documentation/notation)
+//   - stereotype: UML stereotype label (lowercase, used in <<...>> notation)
+//   - packageGroup: logical grouping for organizational purposes
+//   - relationshipBias: semantic role for relationships (structural, dependency, behavior, trigger, realization, generalization)
+// ============================================================================
+const UML_CONCEPT_MAP = {
+    // APPLICATION LAYER - COMPONENTS: Structural building blocks
+    "application-component": {
+        family: "component",
+        umlKind: "Component",
+        stereotype: "component",
+        packageGroup: "Application Components",
+        relationshipBias: "structural"
+    },
+    "application-collaboration": {
+        family: "component",
+        umlKind: "Collaboration",
+        stereotype: "collaboration",
+        packageGroup: "Application Components",
+        relationshipBias: "structural"
+    },
+    
+    // APPLICATION LAYER - INTERFACES: Contract/boundary elements
+    "application-interface": {
+        family: "interface",
+        umlKind: "Interface",
+        stereotype: "interface",
+        packageGroup: "Application Interfaces",
+        relationshipBias: "dependency"
+    },
+    
+    // APPLICATION LAYER - SERVICES: Behavioral capabilities
+    "application-service": {
+        family: "service",
+        umlKind: "Service",
+        stereotype: "service",
+        packageGroup: "Application Services",
+        relationshipBias: "dependency"
+    },
+    
+    // APPLICATION LAYER - BEHAVIOR: Functions, processes, interactions
+    "application-function": {
+        family: "behavior",
+        umlKind: "Function",
+        stereotype: "function",
+        packageGroup: "Application Behavior",
+        relationshipBias: "behavior"
+    },
+    "application-process": {
+        family: "behavior",
+        umlKind: "Process",
+        stereotype: "process",
+        packageGroup: "Application Behavior",
+        relationshipBias: "behavior"
+    },
+    "application-interaction": {
+        family: "behavior",
+        umlKind: "Interaction",
+        stereotype: "interaction",
+        packageGroup: "Application Behavior",
+        relationshipBias: "behavior"
+    },
+    
+    // APPLICATION LAYER - EVENTS: Stimulus/response elements
+    "application-event": {
+        family: "event",
+        umlKind: "Event",
+        stereotype: "event",
+        packageGroup: "Application Events",
+        relationshipBias: "trigger"
+    },
+    
+    // APPLICATION LAYER - INFORMATION: Application-level data objects
+    "application-object": {
+        family: "artifact",
+        umlKind: "Object",
+        stereotype: "object",
+        packageGroup: "Application Objects",
+        relationshipBias: "dependency"
+    },
+    "data-object": {
+        family: "data",
+        umlKind: "Class",
+        stereotype: "dataObject",
+        packageGroup: "Data Objects",
+        relationshipBias: "structural"
+    },
+    "business-object": {
+        family: "data",
+        umlKind: "BusinessEntity",
+        stereotype: "businessObject",
+        packageGroup: "Business Objects",
+        relationshipBias: "structural"
+    },
+    "business-process": {
+        family: "behavior",
+        umlKind: "BusinessProcess",
+        stereotype: "businessProcess",
+        packageGroup: "Business Processes",
+        relationshipBias: "behavior"
+    }
+};
+
+// Supported relationship types for diagram connections
+// ============================================================================
+// ArchiMate defines multiple relationship types that represent different kinds
+// of dependencies and connections between concepts. This mapping classifies them
+// by their semantic role for UML-style visualization.
+//
+// RELATIONSHIP SEMANTICS IN ARCHIMATE:
+// ArchiMate relationships fall into three main categories:
+//
+//   1. STRUCTURAL RELATIONSHIPS: Composition, Aggregation
+//      - Represent "part-of" or containment relationships
+//      - Composition: Strong ownership (part cannot exist without whole)
+//      - Aggregation: Weak containment (part can exist independently)
+//      - UML Analogy: Component composition and aggregation
+//      - Visual: Solid, thick lines (high importance)
+//
+//   2. DEPENDENCY RELATIONSHIPS: Association, Serving, Access, Assignment, Influence
+//      - Represent various forms of dependency or use relationships
+//      - Association: General connection or usage relationship
+//      - Serving: One element provides capability to another
+//      - Access: One element accesses data/resources of another
+//      - Assignment: Implementation or allocation relationship
+//      - Influence: One element affects another (weaker connection)
+//      - UML Analogy: Dependencies, associations, generalizations
+//      - Visual: Dashed or standard lines (lower importance than structural)
+//
+//   3. BEHAVIORAL RELATIONSHIPS: Flow, Triggering
+//      - Represent process flow and causality
+//      - Flow: Sequential or data flow between elements
+//      - Triggering: One element causes another to execute
+//      - UML Analogy: Message sequences, temporal ordering
+//      - Visual: Green lines (activity/process indicator)
+//
+//   4. ABSTRACTION RELATIONSHIPS: Realization, Generalization/Specialization
+//      - Represent abstraction hierarchies and implementation
+//      - Realization: Implementation of an interface/specification
+//      - Generalization/Specialization: Type hierarchy
+//      - UML Analogy: Implementation, inheritance
+//      - Visual: Colored lines (purple for realization, red for generalization)
+//
+// ArchiMate RELATIONSHIP CREATION IN jArchi:
+// To create a diagram relationship in jArchi, you use:
+//   const connectionLine = view.add(relationship, sourceObject, targetObject);
+// where:
+//   - relationship: jArchi relationship concept object
+//   - sourceObject: jArchi diagram object representing the source concept
+//   - targetObject: jArchi diagram object representing the target concept
+//   - returns: jArchi diagram connection object (or null if failed)
+//
+// RELATIONSHIP ENTRY STRUCTURE:
+//   - umlStyle: UML equivalent style notation
+//   - semanticRole: architectural semantic role used for color/style mapping
+//   - label: human-readable relationship label
+// ============================================================================
+const RELATIONSHIP_TYPES = {
+    // ========== STRUCTURAL RELATIONSHIPS: "Part-of" semantics ==========
+    "composition-relationship": {
+        umlStyle: "composition",
+        semanticRole: "structural",      // Blue lines, thick (important)
+        label: "composition"              // Strong ownership
+    },
+    "aggregation-relationship": {
+        umlStyle: "aggregation",
+        semanticRole: "structural",      // Blue lines, thick
+        label: "aggregation"              // Weak containment
+    },
+    
+    // ========== DEPENDENCY RELATIONSHIPS: Usage/connection semantics ==========
+    "association-relationship": {
+        umlStyle: "association",
+        semanticRole: "dependency",      // Orange lines (dependency indicator)
+        label: "association"              // General connection/usage
+    },
+    "serving-relationship": {
+        umlStyle: "serving",
+        semanticRole: "dependency",      // Orange lines
+        label: "serving"                  // Capability provision (e.g., service to client)
+    },
+    "access-relationship": {
+        umlStyle: "access",
+        semanticRole: "dependency",      // Orange lines
+        label: "access"                   // Data/resource access (e.g., component accesses data)
+    },
+    "assignment-relationship": {
+        umlStyle: "assignment",
+        semanticRole: "dependency",      // Orange lines
+        label: "assignment"               // Implementation/allocation (e.g., app implements service)
+    },
+    "influence-relationship": {
+        umlStyle: "influence",
+        semanticRole: "dependency",      // Orange lines
+        label: "influence"                // Weaker influence relationship
+    },
+    
+    // ========== BEHAVIORAL RELATIONSHIPS: Process flow semantics ==========
+    "flow-relationship": {
+        umlStyle: "flow",
+        semanticRole: "behavior",        // Green lines (activity/flow indicator)
+        label: "flow"                     // Sequential or data flow
+    },
+    "triggering-relationship": {
+        umlStyle: "triggering",
+        semanticRole: "behavior",        // Green lines
+        label: "triggering"               // Causality (A triggers B)
+    },
+    
+    // ========== ABSTRACTION RELATIONSHIPS: Type hierarchy semantics ==========
+    "realization-relationship": {
+        umlStyle: "realization",
+        semanticRole: "realization",     // Purple lines (implementation indicator)
+        label: "realization"              // Implementation of interface/specification
+    },
+    "specialization-relationship": {
+        umlStyle: "generalization",
+        semanticRole: "generalization",  // Red lines (inheritance/type indicator)
+        label: "generalization"           // Type hierarchy (subtype-of)
+    }
+};
+
+// Grid layout parameters for diagram element positioning
+// ============================================================================
+// When creating a new UML-style view, elements need to be positioned in the
+// diagram. This script uses a simple grid-based layout algorithm:
+//
+//   1. Elements are placed in a grid with GRID_SPACING_X and GRID_SPACING_Y
+//   2. Elements start at (START_X, START_Y)
+//   3. Each element occupies ELEMENT_WIDTH x ELEMENT_HEIGHT pixels
+//   4. Elements are placed left-to-right, top-to-bottom (max 4 columns per row)
+//   5. After 4 columns, wrap to the next row
+//
+// This provides a clean, organized layout that is easy to read and modify.
+// The positions are set during view creation via:
+//   view.add(concept, x, y, width, height);
+//
+// Note on Archi Coordinates:
+//   - Archi uses pixel coordinates for diagram element positioning
+//   - (0, 0) is typically the top-left corner
+//   - Y increases downward
+//   - Z-order (layering) is determined by creation order
+// ============================================================================
+const GRID_SPACING_X = 250;      // Horizontal spacing between elements (pixels)
+const GRID_SPACING_Y = 200;      // Vertical spacing between rows (pixels)
+const ELEMENT_WIDTH = 180;       // Width of each element box (pixels)
+const ELEMENT_HEIGHT = 100;      // Height of each element box (pixels)
+const START_X = 50;              // Starting X coordinate (pixels from left)
+const START_Y = 50;              // Starting Y coordinate (pixels from top)
+
+// Semantic family color scheme for UML-style visualization
+// ============================================================================
+// This color scheme implements the "derivative-style UML representation" concept
+// from the Open Group's "How to Use the ArchiMate Language" white paper.
+//
+// Instead of converting ArchiMate concepts to "real UML" (which is impossible),
+// we create a UML-like notation view that is a derived representation of the
+// ArchiMate model, preserving source semantics while offering UML-friendly
+// visual structure.
+//
+// The semantic families group ArchiMate types by their architectural role:
+//  - COMPONENT: Structural building blocks (components, collaborations, services)
+//  - INTERFACE: Contract/boundary elements that connect components
+//  - SERVICE: Behavioral capabilities and service definitions
+//  - BEHAVIOR: Business processes and application functions
+//  - DATA: Information and data objects
+//  - EVENT: Stimulus/response elements
+//  - CONTAINER: Structural grouping containers
+//
+// Each family has three colors:
+//  - fillColor: Background color of the element box
+//  - fontColor: Text color for element name and text
+//  - lineColor: Border/outline color of the element
+//
+// Color psychology applied:
+//  - Blue (component): Trust, stability, structure
+//  - Purple (interface): Abstraction, boundaries
+//  - Green (service): Growth, capability, positive action
+//  - Orange (behavior): Energy, processes, activity
+//  - Red (data): Information, importance, critical assets
+//  - Magenta (event): Stimulus, triggers, communication
+// ============================================================================
+const SEMANTIC_FAMILY_COLORS = {
+    "component": {
+        fillColor: "#E8F4F8",      // Light cyan - professional, structural
+        fontColor: "#004080",      // Dark blue - readable, authoritative
+        lineColor: "#0066CC"       // Blue - represents structural integrity
+    },
+    "interface": {
+        fillColor: "#F0E8F8",      // Light purple - represents boundaries
+        fontColor: "#330066",      // Dark purple - contract-oriented
+        lineColor: "#9933CC"       // Purple - abstraction layer indicator
+    },
+    "service": {
+        fillColor: "#E8F8E8",      // Light green - growth, capability
+        fontColor: "#004000",      // Dark green - positive, action-oriented
+        lineColor: "#00AA00"       // Green - service/capability indicator
+    },
+    "behavior": {
+        fillColor: "#FFF4E6",      // Light orange - process, activity
+        fontColor: "#804000",      // Dark orange-brown - warm, process-oriented
+        lineColor: "#FF9900"       // Orange - workflow, activity indicator
+    },
+    "data": {
+        fillColor: "#FFE8E8",      // Light red - information, critical
+        fontColor: "#800000",      // Dark red - importance indicator
+        lineColor: "#CC0000"       // Red - data/information asset
+    },
+    "event": {
+        fillColor: "#F8E8F8",      // Light magenta - stimulus, trigger
+        fontColor: "#660066",      // Dark magenta - significant, notable
+        lineColor: "#DD00DD"       // Magenta - event/trigger indicator
+    },
+    "container": {
+        fillColor: "#F0F0F0",      // Light gray - grouping, structural
+        fontColor: "#333333",      // Dark gray - neutral, background
+        lineColor: "#666666"       // Gray - container/grouping indicator
+    },
+    "default": {
+        fillColor: "#F5F5F5",      // Very light gray - fallback/unknown
+        fontColor: "#555555",      // Medium gray - neutral
+        lineColor: "#999999"       // Light gray border - unclassified
+    }
+};
+
+// Semantic role-based styling for relationships
+// ============================================================================
+// Relationships (connections between elements) are classified by their semantic
+// role in the architecture, following the Open Group UML/ArchiMate interoperability
+// guidelines. This allows visual differentiation of relationship types:
+//
+// STRUCTURAL: Composition and aggregation relationships
+//   - Indicates "part-of" or hierarchical containment
+//   - Blue solid lines represent solid, permanent structural bonds
+//
+// DEPENDENCY: Service, access, assignment, and influence relationships
+//   - Indicates that one element depends on or influences another
+//   - Orange dashed/thin lines represent less rigid dependencies
+//
+// BEHAVIORAL: Flow and triggering relationships
+//   - Indicates process flow, sequences, or causality
+//   - Green lines represent activity flow and process choreography
+//
+// REALIZATION: Realization relationships
+//   - Indicates implementation of an interface or specification
+//   - Purple lines represent implementation bonds
+//
+// GENERALIZATION: Specialization/inheritance relationships
+//   - Indicates type hierarchy or classification
+//   - Red lines represent inheritance and type relationships
+// ============================================================================
+const RELATIONSHIP_ROLE_COLORS = {
+    "structural": {
+        lineColor: "#0066CC",      // Blue - structural integrity
+        lineWidth: 2               // Thicker line for important structural bonds
+    },
+    "dependency": {
+        lineColor: "#FF9900",      // Orange - dependency indicator
+        lineWidth: 2               // Standard width for dependency relationships
+    },
+    "behavior": {
+        lineColor: "#00AA00",      // Green - process flow indicator
+        lineWidth: 2               // Standard width for behavioral flow
+    },
+    "realization": {
+        lineColor: "#9933CC",      // Purple - implementation indicator
+        lineWidth: 2               // Standard width for realization relationships
+    },
+    "generalization": {
+        lineColor: "#CC0000",      // Red - inheritance/type relationship
+        lineWidth: 2               // Standard width for generalization
+    },
+    "default": {
+        lineColor: "#666666",      // Gray - unknown relationship type
+        lineWidth: 1               // Thinner line for unclassified relationships
+    }
+};
+
+function collectVisualObjects(node, list, seen) {
+    if (!node || !list) {
+        return;
+    }
+
+    const nodeId = (node && node.id) || (node && node.concept && node.concept.id);
+    if (nodeId && seen[nodeId]) {
+        return;
+    }
+    if (nodeId) {
+        seen[nodeId] = true;
+    }
+
+    list.push(node);
+
+    try {
+        const children = $(node).children();
+        if (children && children.length) {
+            children.each(function(child) {
+                collectVisualObjects(child, list, seen);
+            });
+        }
+    } catch (e) {
+        // Ignore traversal errors and continue with already collected objects.
+    }
+}
+
+const STRUCTURAL_CONTAINER_TYPES = {
+    "grouping": true,
+    "group": true,
+    "diagram-model-group": true
+};
+
+
+/* ============================================================================
+ * MAIN EXECUTION FLOW
+ *
+ * This section orchestrates the complete ArchiMate-to-UML transformation:
+ *   1. Obtain user-selected view
+ *   2. Extract visual objects (concepts and relationships) from source view
+ *   3. Filter for supported element types
+ *   4. Create new UML-style view in the model
+ *   5. Add elements to new view with AI enrichment (optional)
+ *   6. Add relationships to new view
+ *   7. Report results
+ *
+ * jArchi API NOTES:
+ *   - $(selection): jArchi collection API; selects items from current context
+ *   - $(selection).filter("view"): filters to view elements only
+ *   - $(view).children(): recursively gets child elements
+ *   - $(view).children("connection"): explicitly gets diagram connections
+ *   - view.add(concept, x, y, width, height): creates diagram element
+ *   - view.add(relationship, sourceObject, targetObject): creates diagram connection
+ *   - Each collection method returns an object with .length and .each() methods
+ *
+ * GraalJS RUNTIME NOTES:
+ *   - Global object is 'globalThis' in GraalJS
+ *   - No async/await or Promises (synchronous only)
+ *   - Java interop via Java.type() for Java class access
+ *   - String interpolation via + operator only (no template literals in some versions)
+ * ============================================================================ */
+
+/* ============================================================================
+ * 1. Obtain the user-selected View
+ * ============================================================================
+ * Retrieving the source view is the first step. The user must select a view
+ * in Archi's Model Tree before running this script. The jArchi selection
+ * global captures the current selection in the UI.
+ *
+ * jArchi SELECTION API:
+ *   - selection: global variable set by jArchi on script execution
+ *   - Contains the currently selected elements in Archi's UI
+ *   - $(selection): converts selection to a jArchi collection
+ *   - .filter("view"): keeps only view elements (diagram models)
+ *   - .first(): returns the first element or null
+ *
+ * For users, the typical workflow is:
+ *   1. Open Archi and load a model
+ *   2. Locate a view in the Model Tree (e.g., "Phase C: Information Systems Architecture")
+ *   3. Right-click and run this script
+ *   4. The script captures that selected view
+ * ============================================================================ */
+
+const selectedView = $(selection).filter("view").first();
+
+if (!selectedView) {
+    window.alert(
+        "Please select an ArchiMate View (e.g., Phase C: Information Systems)\n" +
+        "in Archi's Models Tree and run the script again."
+    );
+    throw new Error("No View selected.");
+}
+
+const sourceView = selectedView;
+console.log("Application View → UML Notation");
+console.log("Source View: " + sourceView.name);
+
+/* ============================================================================
+ * 2. Extract visual objects and relationships from the source View
+ * ============================================================================
+ * A view is a diagram consisting of visual objects (diagram elements) and
+ * connections (diagram relationships). We need to extract both to create
+ * the new UML-style view.
+ *
+ * jArchi VIEW STRUCTURE:
+ * In jArchi, a view is a container of:
+ *   - diagram-model-object: visual representation of an ArchiMate concept
+ *     - Has .concept property pointing to the underlying ArchiMate model
+ *     - Has .source and .target only if it's a connection
+ *     - Has position properties (x, y) and size (width, height)
+ *
+ *   - diagram-model-connection: visual representation of a relationship
+ *     - Has .concept property pointing to the underlying relationship
+ *     - Has .source: diagram-model-object at starting end
+ *     - Has .target: diagram-model-object at ending end
+ *
+ * COLLECTION TRAVERSAL IN jArchi:
+ *   - $(node).children(): recursively collects all descendants
+ *   - $(view).children("connection"): specifically gets connection type descendants
+ *   - The recursion handles nested groups and complex hierarchies
+ *   - .each(function(item) {...}): iterates collection items
+ * ============================================================================ */
+
+const visualObjects = [];
+const seenObjects = {};
+collectVisualObjects(sourceView, visualObjects, seenObjects);
+
+// Also explicitly collect connections from the view
+// This is a two-step approach:
+//   1. collectVisualObjects traverses the tree to find visual objects
+//   2. We then explicitly query for "connection" type objects
+// This ensures we capture all connections even if hierarchy is unusual
+const connections_raw = [];
+try {
+    // jArchi COLLECTION API FOR CONNECTIONS:
+    // $(sourceView).children("connection"): queries direct and nested connections
+    // The .each() method is the primary iteration mechanism in jArchi collections
+    $(sourceView).children("connection").each(function(conn) {
+        if (conn && conn.source && conn.target) {
+            connections_raw.push(conn);
+        }
+    });
+} catch (e) {
+    // Connections may not exist in this view; silently continue
+    // The view may contain only elements with no relationships
+}
+
+/* ============================================================================
+ * Filter for supported element types and excluded structural containers
+ * ============================================================================
+ * ArchiMate views can contain many element types. We only want:
+ *   - Supported application layer elements (see UML_CONCEPT_MAP)
+ *   - Element types that exist in RELATIONSHIP_TYPES for relationships
+ *
+ * We explicitly exclude:
+ *   - Structural containers (group, grouping, diagram-model-group)
+ *     These are ArchiMate grouping elements used for organization
+ *     We don't want them in the UML view as they represent pure containment
+ *     Elements that are CHILDREN of containers are still included individually
+ *   - Container-type concepts (family: "container")
+ *     This includes grouping and other pure structural elements
+ *
+ * The filtering happens in three steps:
+ *   1. isStructuralContainerObject: checks the visual object type
+ *   2. isStructuralContainerType: checks the concept type
+ *   3. Check if object's parent is a structural container
+ ============================================================================ */
+
+const flattenedVisualObjects = [];
+visualObjects.forEach(function(object) {
+    if (!object || isStructuralContainerObject(object)) {
+        return;
+    }
+
+    const concept = object.concept;
+    const conceptType = concept && concept.type;
+    const objectType = object.type;
+
+    // Filter out both the visual object type and the concept type
+    if (isStructuralContainerType(conceptType) || isStructuralContainerType(objectType)) {
+        return;
+    }
+
+    // Also filter out children of containers to avoid orphans
+    if (object.parent && object.parent.concept && isStructuralContainerType(object.parent.concept.type)) {
+        return;
+    }
+
+    flattenedVisualObjects.push(object);
+});
+
+// Add explicitly collected connections to visual objects for processing
+// This includes them in the main extraction loop below
+connections_raw.forEach(function(conn) {
+    flattenedVisualObjects.push(conn);
+});
+
+const concepts = {};
+const connections = [];
+const foundTypes = {};
+const skippedTypes = {};
+
+flattenedVisualObjects.forEach(function(object) {
+    const concept = object.concept;
+
+    // Handle diagram connections/relationships (with source and target)
+    if (object.source && object.target && object.concept) {
+        connections.push(object);
+        return;
+    }
+
+    // Only process concept elements (skip relationship concepts)
+    if (concept) {
+        const type = concept.type;
+        
+        // Skip relationship types - they should only be added via connections
+        if (RELATIONSHIP_TYPES[type]) {
+            skippedTypes[type] = (skippedTypes[type] || 0) + 1;
+            return;
+        }
+        
+        const metadata = getUmlConceptMetadata(concept);
+
+        if (metadata && metadata.family !== "container") {
+            concepts[concept.id] = concept;
+            foundTypes[type] = (foundTypes[type] || 0) + 1;
+            return;
+        }
+
+        skippedTypes[type] = (skippedTypes[type] || 0) + 1;
+    }
+});
+
+console.log("Elements extracted: " + Object.keys(concepts).length);
+console.log("Relationships extracted: " + connections.length);
+
+// Report recognized vs. unrecognized element types
+if (Object.keys(foundTypes).length > 0) {
+    console.log("\nRecognized element types:");
+    Object.keys(foundTypes).forEach(function(type) {
+        console.log("  + " + type + ": " + foundTypes[type]);
+    });
+}
+
+if (Object.keys(skippedTypes).length > 0) {
+    console.log("\nUnrecognized element types (not included):");
+    Object.keys(skippedTypes).forEach(function(type) {
+        console.log("  - " + type + ": " + skippedTypes[type]);
+    });
+}
+
+// 3. Create a new UML-notation View in the model
+
+const newViewName = sourceView.name + " (UML)";
+
+// Create new view (jArchi API: createArchimateView(name) or createArchimateView(name, folder))
+let newView = model.createArchimateView(newViewName);
+
+if (!newView) {
+    throw new Error("Failed to create new Archi view.");
+}
+
+// Add documentation to the view
+let viewDocumentation = "UML-notation view generated from: " + sourceView.name;
+if (ollamaAvailable) {
+    viewDocumentation += "\n\n[AI-ENRICHED] Elements contain AI-generated semantic stereotypes and descriptions from Ollama analysis.";
+    viewDocumentation += "\nLook for [AI] prefix in element documentation to distinguish AI-generated from heuristic classifications.";
+} else {
+    viewDocumentation += "\n\n[HEURISTIC-ONLY] Ollama not available. Elements use standard heuristic-based stereotypes.";
+}
+newView.documentation = viewDocumentation;
+
+console.log("Created new view: " + newViewName);
+
+// 4. Create diagram objects in the new view (with AI enrichment)
+
+const diagramObjectMap = {}; // Maps concept.id -> diagramObject
+
+let gridRow = 0;
+let gridCol = 0;
+let elementsAdded = 0;
+let aiAnalysisCount = 0;
+
+Object.keys(concepts).forEach(function(conceptId) {
+    const concept = concepts[conceptId];
+    const typeInfo = getUmlConceptMetadata(concept);
+
+    if (ollamaAvailable) {
+        console.log("[𐓙] Analyzing: " + concept.name);
+
+        const aiStereotype = analyzeElementWithAI(
+            concept.name,
+            concept.type,
+            concept.documentation || ""
+        );
+
+        if (aiStereotype) {
+            const aiMarkedStereotype = "[AI] " + aiStereotype;
+            if (concept.documentation) {
+                concept.documentation = "<<" + aiMarkedStereotype + ">>\n" + concept.documentation;
+            } else {
+                concept.documentation = "<<" + aiMarkedStereotype + ">>";
+            }
+            aiAnalysisCount++;
+            console.log("[𐓙] ✓ Applied 𐓙 stereotype: <<" + aiMarkedStereotype + ">>");
+        }
+
+        const aiDescription = generateElementDescriptionWithAI(
+            concept.name,
+            concept.type
+        );
+        if (aiDescription && !concept.documentation) {
+            console.log("[𐓙] 📝 Applied AI description: " + aiDescription.substring(0, 60) + "...");
+            concept.documentation = "[AI-Generated Description]\n" + aiDescription;
+        }
+    } else if (typeInfo && typeInfo.stereotype) {
+        const heurStereotype = "[HEUR] " + typeInfo.stereotype;
+        concept.documentation = "<<" + heurStereotype + ">>\n" +
+            (concept.documentation || "");
+    }
+
+    const x = START_X + gridCol * GRID_SPACING_X;
+    const y = START_Y + gridRow * GRID_SPACING_Y;
+
+    const diagramObject = newView.add(
+        concept,
+        x,
+        y,
+        ELEMENT_WIDTH,
+        ELEMENT_HEIGHT
+    );
+
+    if (diagramObject) {
+        // Apply semantic family-based styling
+        applySemantticFamilyStyling(diagramObject, concept);
+        
+        diagramObjectMap[conceptId] = diagramObject;
+        elementsAdded++;
+        gridCol++;
+        if (gridCol > 3) {
+            gridCol = 0;
+            gridRow++;
+        }
+    }
+});
+
+console.log("Diagram objects created: " + elementsAdded);
+if (aiAnalysisCount > 0) {
+    console.log("✓ Elements enriched with AI analysis: " + aiAnalysisCount);
+} else if (ollamaAvailable) {
+    console.log("⚠ Ollama available but no AI stereotypes were generated");
+}
+
+//5. Create diagram connections for relationships
+
+let connectionsAdded = 0;
+let skippedConnections = 0;
+const skipReasons = {};
+
+connections.forEach(function(connection) {
+    const relationship = connection.concept;
+
+    if (!relationship) {
+        skippedConnections++;
+        skipReasons["no_relationship"] = (skipReasons["no_relationship"] || 0) + 1;
+        return;
+    }
+
+    const sourceVisual = connection.source;
+    const targetVisual = connection.target;
+
+    if (!sourceVisual || !targetVisual) {
+        skippedConnections++;
+        skipReasons["missing_visual_endpoint"] = (skipReasons["missing_visual_endpoint"] || 0) + 1;
+        return;
+    }
+
+    const sourceConcept = sourceVisual.concept;
+    const targetConcept = targetVisual.concept;
+
+    if (!sourceConcept || !targetConcept) {
+        skippedConnections++;
+        skipReasons["missing_concept_endpoint"] = (skipReasons["missing_concept_endpoint"] || 0) + 1;
+        return;
+    }
+
+    if (!diagramObjectMap[sourceConcept.id]) {
+        skippedConnections++;
+        skipReasons["source_not_in_view"] = (skipReasons["source_not_in_view"] || 0) + 1;
+        return;
+    }
+
+    if (!diagramObjectMap[targetConcept.id]) {
+        skippedConnections++;
+        skipReasons["target_not_in_view"] = (skipReasons["target_not_in_view"] || 0) + 1;
+        return;
+    }
+
+    if (!RELATIONSHIP_TYPES[relationship.type]) {
+        skippedConnections++;
+        skipReasons["unsupported_relationship_type:" + relationship.type] =
+            (skipReasons["unsupported_relationship_type:" + relationship.type] || 0) + 1;
+        return;
+    }
+
+    const sourceObject = diagramObjectMap[sourceConcept.id];
+    const targetObject = diagramObjectMap[targetConcept.id];
+
+    try {
+        const connectionLine = newView.add(relationship, sourceObject, targetObject);
+        if (connectionLine) {
+            // Apply semantic role-based styling to the relationship line
+            applyRelationshipRoleStyling(connectionLine, relationship);
+            
+            connectionsAdded++;
+        } else {
+            skippedConnections++;
+            skipReasons["add_failed"] = (skipReasons["add_failed"] || 0) + 1;
+        }
+    } catch (e) {
+        console.log("Failed to add connection: " + e);
+        skippedConnections++;
+        skipReasons["exception"] = (skipReasons["exception"] || 0) + 1;
+    }
+});
+
+console.log("Connections created: " + connectionsAdded);
+console.log("Connections skipped: " + skippedConnections);
+
+if (skippedConnections > 0 && Object.keys(skipReasons).length > 0) {
+    console.log("\nSkip reasons:");
+    Object.keys(skipReasons).forEach(function(reason) {
+        console.log("  - " + reason + ": " + skipReasons[reason]);
+    });
+}
+
+
+// 6. Report summary and completion
+
+console.log("");
+console.log("==============================================");
+console.log("UML View Generation Completed");
+console.log("==============================================");
+console.log("Source View: " + sourceView.name);
+console.log("Target View: " + newViewName);
+console.log("Elements: " + elementsAdded);
+console.log("Connections: " + connectionsAdded);
+
+if (ollamaAvailable && aiAnalysisCount > 0) {
+    console.log("✓ Elements enriched with AI: " + aiAnalysisCount + " / " + elementsAdded);
+    console.log("[𐓙] Ollama analysis completed successfully.");
+    console.log("[𐓙] Stereotypes marked with [𐓙] prefix in element documentation.");
+} else if (!ollamaAvailable) {
+    console.log("⚠ Ollama not available - used heuristic-only mode.");
+    console.log("   Stereotypes marked with [HEUR] prefix in element documentation.");
+} else if (ollamaAvailable && aiAnalysisCount === 0) {
+    console.log("⚠ Ollama available but no elements were analyzed (check Ollama server).");
+}
+
+console.log("");
+console.log("The new UML-notation view is now visible in");
+console.log("Archi's Models panel. You can edit, rearrange,");
+console.log("and publish this view directly.");
+console.log("");
+console.log("VERIFICATION: Check element documentation for:");
+console.log("  • [𐓙] prefix   = AI-generated from Ollama");
+console.log("  • [HEUR] prefix = Heuristic-only (Ollama unavailable)");
+
+const alertMsg = 
+    "UML View Generation Completed\n\n" +
+    "Source: " + sourceView.name + "\n" +
+    "New View: " + newViewName + "\n\n" +
+    "Elements: " + elementsAdded + "\n" +
+    "Connections: " + connectionsAdded + "\n" +
+    (ollamaAvailable && aiAnalysisCount > 0 ? 
+        "✓ AI-Enriched Elements: " + aiAnalysisCount + " / " + elementsAdded + "\n\n" +
+        "Check element documentation for [𐓙] prefix to verify\n" +
+        "AI-generated stereotypes vs. heuristic ones.\n\n" :
+        (ollamaAvailable ? 
+            "⚠ Ollama available but check if server is running\n\n" :
+            "Ollama not available - heuristic-only mode used\n\n")) +
+    "The view is now in your model and can be\n" +
+    "edited and published directly from Archi.";
+
+window.alert(alertMsg);
+
+
+

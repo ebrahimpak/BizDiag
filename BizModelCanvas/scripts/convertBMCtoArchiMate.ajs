@@ -1,0 +1,253 @@
+/*
+ * Copyright © 2026 Ebrahim Pak
+ *
+ * SPDX-License-Identifier: CECILL-B
+ *
+ * This file is part of BizDiag.
+ *
+ * BizDiag is distributed under the CeCILL-B Free Software License Agreement,
+ * Version 1.0. See the LICENSE file for details.
+ *
+ * The French and English versions of the license are available in
+ * LICENSE-FR and LICENSE, respectively.
+ *
+ * Author: Ebrahim Pak
+ *
+ * ---------------------------------------------------------------------------------------------------------------------
+ * Business Model Canvas to ArchiMate Conversion Script
+ * 
+ * This script:
+ * 1. Finds Business Model Canvas diagrams in the current model
+ * 2. Extracts the 9 building blocks
+ * 3. Converts them to ArchiMate Business Layer notation
+ * 4. Creates the new model in the same view as the original BMC
+ *
+ */
+
+console.show();
+console.clear();
+
+// Load required modules
+load(__DIR__ + "../lib/bmcDetector.ajs");
+load(__DIR__ + "../lib/bmcGenerator.ajs");
+
+(function() {
+    "use strict";
+
+
+    // Setup logging to temp file for GUI access
+    const System = Java.type('java.lang.System');
+    const File = Java.type('java.io.File');
+    const FileWriter = Java.type('java.io.FileWriter');
+    const PrintWriter = Java.type('java.io.PrintWriter');
+    
+    const tempDir = System.getProperty('java.io.tmpdir');
+    const logFile = new File(tempDir, 'BizModelCanvas_output.log');
+    let logWriter = null;
+    
+    function initLog() {
+        try {
+            logWriter = new PrintWriter(new FileWriter(logFile, false)); // false = overwrite
+        } catch (e) {
+            console.error("Could not initialize log file"); }
+    }
+    
+    function logOutput(msg) {
+        console.log(msg);
+        if (logWriter) {
+            try {
+                logWriter.println(msg);
+                logWriter.flush();
+            } catch (e) { }
+        }
+    }
+    
+    function closeLog() {
+        if (logWriter) {
+            try {
+                logWriter.flush();
+                logWriter.close();
+            } catch (e) { }
+        }
+    }
+    
+    initLog();
+    
+    try {
+        // Verify model is open - check multiple ways
+        if (!model) {
+            console.error("Error: No ArchiMate model is open. Please open or create a model first.");
+            return;
+        }
+        
+        // Try to get model name to verify it's accessible
+        let modelName;
+        try {
+            modelName = model.getName ? model.getName() : model.name;
+            if (!modelName) {
+                throw new Error("Could not get model name");
+            }
+        } catch (e) {
+            console.error("Error: Could not access the ArchiMate model. Please ensure a model is selected in Archi.");
+            console.error("Details: " + e);
+            return; }
+
+        // Verify libraries are loaded
+        if (typeof bmcDetector === "undefined") {
+            console.error("Error: bmcDetector library not loaded");
+            return;
+        }
+        if (typeof bmcGenerator === "undefined") {
+            console.error("Error: bmcGenerator library not loaded");
+            return;
+        }
+
+        logOutput("Business Model Canvas to ArchiMate Converter");
+        logOutput("============================================");
+        logOutput("Working with model: " + modelName);
+        logOutput("");
+
+        // Check if a view is selected
+        const selectedView = $(selection).filter("archimate-diagram-model").first();
+        if (!selectedView) {
+            console.error("Error: Please select a view in Archi first.");
+            console.error("The ArchiMate diagram will be created as a child of the selected view.");
+            console.error("Steps:");
+            console.error("  1. Open or navigate to the view where you want the new diagram");
+            console.error("  2. Click on the view name in the tree to select it");
+            console.error("  3. Run this script again");
+            return;
+        }
+        
+        logOutput("Using selected view: " + selectedView.getName());
+        logOutput("");
+
+        // Step 1: Find all Business Model Canvas diagrams in the model
+        logOutput("Step 1: Scanning model for Business Model Canvas diagrams...");
+        const bmcDiagrams = bmcDetector.findBMCDiagrams();
+
+        if (bmcDiagrams.length === 0) {
+            logOutput("No Business Model Canvas diagrams found in the model.");
+            logOutput("Note: BMC diagrams should have 'Business Model Canvas' or 'BMC' in the name");
+            logOutput("or contain the 9 BMC building block indicators (VP, KA, KR, CH, CR, CS, KP, C$, R$)");
+            return;
+        }
+
+        logOutput("Found " + bmcDiagrams.length + " Business Model Canvas diagram(s):");
+        bmcDiagrams.forEach(function(bmc, index) {
+            logOutput("  " + (index + 1) + ". '" + bmc.name + "' in view '" + bmc.viewName + "' (View #" + bmc.viewNumber + ")");
+        });
+        logOutput("");
+
+        // Step 2: Process each BMC diagram
+        let processedCount = 0;
+        bmcDiagrams.forEach(function(bmcItem) {
+            try {
+                logOutput("Processing: " + bmcItem.name);
+                logOutput("-".repeat(40));
+
+                // Step 2a: Extract building blocks
+                logOutput("Extracting BMC building blocks...");
+                const buildingBlocks = bmcDetector.extractBuildingBlocks(bmcItem.diagram);
+
+                // Step 2a2: Extract actual connections between building blocks
+                const bmcConnections = bmcDetector.extractBMCConnections(bmcItem.diagram, buildingBlocks);
+                if (bmcConnections.length > 0) {
+                    logOutput("  Found " + bmcConnections.length + " actual connection(s) in BMC diagram");
+                }
+
+                // Log what was found
+                let totalElements = 0;
+                for (let block in buildingBlocks) {
+                    if (buildingBlocks[block].length > 0) {
+                        logOutput("  [" + block + "] " + buildingBlocks[block].length + " element(s)");
+                        totalElements += buildingBlocks[block].length;
+                    }
+                }
+                logOutput("Total: " + totalElements + " building block element(s) extracted");
+                logOutput("");
+
+                // Step 2b: Find the top-level parent view
+                // Need to find the uppermost archimate-diagram-model to add the new view as a child
+                const bmcViewElement = $(bmcItem.diagram);
+                const parentViewCollection = bmcViewElement
+                    .parents()
+                    .filter("archimate-diagram-model");
+                
+                let rootView = null;
+                if (parentViewCollection.size() > 0) {
+                    rootView = parentViewCollection.first();
+                } else {
+                    rootView = selectedView;  // Use the selected view if no parent found
+                }
+                
+                logOutput("Parent root view: " + (rootView ? rootView.getName() : "Unknown"));
+
+                logOutput("Creating semantic ArchiMate views (per Open Group white paper)...");
+                logOutput("");
+
+                // Get enterprise name from model or use default
+                const enterpriseName = model.getName ? model.getName() : "Enterprise";
+
+                // Create three semantic views: Value Proposition, Customer Interaction, Core Capability
+                // Pass actual BMC connections to enable smart relationship inference
+                const semanticResult = bmcGenerator.createSemanticViews(buildingBlocks, enterpriseName, bmcConnections);
+                const createdViews = semanticResult.views;
+                const relationships = semanticResult.relationships;
+                
+                logOutput("  Created " + createdViews.length + " semantic view(s):");
+                createdViews.forEach(function(viewInfo, index) {
+                    var viewName = viewInfo && viewInfo.name ? viewInfo.name : ("View " + (index + 1));
+                    logOutput("    ✓ " + viewName);
+                });
+                logOutput("");
+                logOutput("  Created " + relationships.length + " semantic relationship(s)");
+                logOutput("");
+                
+                // Open each view for display
+                createdViews.forEach(function(viewInfo) {
+                    try {
+                        if (viewInfo && viewInfo.view && typeof viewInfo.view.open === "function") {
+                            viewInfo.view.open();
+                        }
+                    } catch (e) {
+                        console.error("    Error opening view: " + e.message); }
+                });
+
+                logOutput("");
+                logOutput("Completed processing: " + bmcItem.name);
+                logOutput("");
+                processedCount++;
+
+            } catch (err) {
+                console.error("Error processing " + bmcItem.name + ": " + err); }
+        });
+
+        logOutput("============================================");
+        logOutput("Conversion Complete!");
+        logOutput("");
+        logOutput("Summary:");
+        logOutput("- Processed: " + processedCount + " Business Model Canvas diagram(s)");
+        logOutput("- Original BMC diagrams remain unchanged");
+        logOutput("- Created THREE semantic ArchiMate views (per Open Group white paper):");
+        logOutput("  1. Value Proposition View - focuses on VP and CS");
+        logOutput("  2. Customer Interaction View - focuses on CR, CH, CS, R$");
+        logOutput("  3. Core Capability View - focuses on KA, KR, KP, C$");
+        logOutput("- All elements linked with semantically correct ArchiMate relationships");
+        logOutput("- Cross-view relationships establish complete BMC model");
+        logOutput("");
+        logOutput("The new ArchiMate views should now be visible in the Archi tree");
+
+    } catch (err) {
+        console.error("Fatal error: " + err);
+        console.error(err.stack);
+    } finally {
+        closeLog();
+    }
+})();
+
+
+
+
+
+

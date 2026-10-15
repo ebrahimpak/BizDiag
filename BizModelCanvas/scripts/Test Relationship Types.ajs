@@ -1,0 +1,210 @@
+/*
+ * Copyright © 2026 Ebrahim Pak
+ *
+ * SPDX-License-Identifier: CECILL-B
+ *
+ * This file is part of BizDiag.
+ *
+ * BizDiag is distributed under the CeCILL-B Free Software License Agreement,
+ * Version 1.0. See the LICENSE file for details.
+ *
+ * The French and English versions of the license are available in
+ * LICENSE-FR and LICENSE, respectively.
+ *
+ * Author: Ebrahim Pak
+ *
+ * ---------------------------------------------------------------------------------------------------------------------
+ * Test script to discover valid relationship types in Archi
+ * This will test various relationship type names and report which ones work
+ *
+ */
+
+console.show();
+console.clear();
+
+(function() {
+    "use strict";
+    
+
+    // Setup logging to temp file for GUI access
+    const System = Java.type('java.lang.System');
+    const File = Java.type('java.io.File');
+    const FileWriter = Java.type('java.io.FileWriter');
+    const PrintWriter = Java.type('java.io.PrintWriter');
+    
+    const tempDir = System.getProperty('java.io.tmpdir');
+    const logFile = new File(tempDir, 'BizModelCanvas_output.log');
+    let logWriter = null;
+    
+    function initLog() {
+        try {
+            logWriter = new PrintWriter(new FileWriter(logFile, false)); // false = overwrite
+        } catch (e) {
+            console.error("Could not initialize log file"); }
+    }
+    
+    function logOutput(msg) {
+        console.log(msg);
+        if (logWriter) {
+            try {
+                logWriter.println(msg);
+                logWriter.flush();
+            } catch (e) { }
+        }
+    }
+    
+    function closeLog() {
+        if (logWriter) {
+            try {
+                logWriter.flush();
+                logWriter.close();
+            } catch (e) { }
+        }
+    }
+    
+    initLog();
+    
+    try {
+        if (!model) {
+            console.error("No model open");
+            return;
+        }
+        
+        logOutput("Testing Relationship Types in Archi");
+        logOutput("===================================\n");
+        
+        // Create two test elements first
+        const testActor1 = model.createElement("business-actor", "Test Actor 1");
+        const testActor2 = model.createElement("business-actor", "Test Actor 2");
+        
+        if (!testActor1 || !testActor2) {
+            console.error("Could not create test elements");
+            return;
+        }
+        
+        logOutput("Created test elements: " + testActor1.getName() + " and " + testActor2.getName() + "\n");
+        
+        // List of relationship types to try
+        const relationshipTypes = [
+            // Business layer
+            "business-service",
+            "business-process",
+            "business-interface",
+            "business-interaction",
+            "business-function",
+            "business-actor",
+            "business-role",
+            "business-collaboration",
+            "business-object",
+            
+            // Relationships - common patterns
+            "serving-relationship",
+            "association-relationship",
+            "used-by-relationship",
+            "aggregation-relationship",
+            "realization-relationship",
+            "triggering-relationship",
+            "flow-relationship",
+            "composition-relationship",
+            "assignment-relationship",
+            "specialization-relationship",
+            "access-relationship",
+            "influence-relationship",
+            "realizes-relationship",
+            "specializes-relationship",
+            
+            // Try with different prefixes
+            "relationship",
+            "rel",
+            "edge",
+            "connector",
+            "link",
+            "junction",
+            "junction-relationship",
+            
+            // Implementation layer patterns
+            "implementation-relationship",
+            "component-relationship",
+            "interface-relationship",
+            
+            // Some other patterns
+            "communication-relationship",
+            "interaction-relationship",
+            "dependency-relationship",
+            "derives-relationship",
+            "grounds-relationship"
+        ];
+        
+        logOutput("Testing " + relationshipTypes.length + " relationship types:\n");
+        
+        let workingTypes = [];
+        let failedTypes = [];
+        
+        for (let i = 0; i < relationshipTypes.length; i++) {
+            const typeToTest = relationshipTypes[i];
+            
+            try {
+                const testRel = model.createElement(typeToTest, "TEST");
+                if (testRel) {
+                    workingTypes.push(typeToTest);
+                    logOutput("✓ " + typeToTest + " (WORKS)");
+                    
+                    // Try setting source/target
+                    try {
+                        if (typeof testRel.setSource === "function") {
+                            testRel.setSource(testActor1);
+                            testRel.setTarget(testActor2);
+                            logOutput("    └─ setSource/setTarget: WORKS");
+                        } else {
+                            logOutput("    └─ setSource/setTarget: NOT AVAILABLE");
+                        }
+                    } catch (e) {
+                        logOutput("    └─ setSource/setTarget: FAILED (" + e.message + ")");
+                    }
+                    
+                    // Try to delete it
+                    try {
+                        testRel.delete();
+                    } catch (e) {
+                        // Ignore
+                    }
+                } else {
+                    failedTypes.push(typeToTest);
+                }
+            } catch (e) {
+                failedTypes.push(typeToTest);
+            }
+        }
+        
+        logOutput("\n===================================");
+        logOutput("Summary:");
+        logOutput("Working types: " + workingTypes.length);
+        if (workingTypes.length > 0) {
+            logOutput("\nUsable Relationship Types:");
+            workingTypes.forEach((type) => {
+                logOutput("  - " + type);
+            });
+        }
+        
+        // Clean up
+        try {
+            testActor1.delete();
+            testActor2.delete();
+        } catch (e) {
+            // Ignore
+        }
+        
+    } catch (err) {
+        console.error("Error: " + err);
+    } finally {
+        closeLog();
+    }
+})();
+
+
+
+
+
+
+
+

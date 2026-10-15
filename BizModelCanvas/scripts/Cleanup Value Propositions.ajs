@@ -1,0 +1,294 @@
+/*
+ * Copyright © 2026 Ebrahim Pak
+ *
+ * SPDX-License-Identifier: CECILL-B
+ *
+ * This file is part of BizDiag.
+ *
+ * BizDiag is distributed under the CeCILL-B Free Software License Agreement,
+ * Version 1.0. See the LICENSE file for details.
+ *
+ * The French and English versions of the license are available in
+ * LICENSE-FR and LICENSE, respectively.
+ *
+ * Author: Ebrahim Pak
+ *
+ * ---------------------------------------------------------------------------------------------------------------------
+ * Value Proposition Model Cleanup Script
+ * 
+ * This script provides step-by-step guidance to clean up the model duplicates and type inconsistencies.
+ * 
+ * Current State:
+ * - 2 identical [value] elements (both named [VP] VALUE PROPOSITIONS)
+ * - 3 different types all with similar names
+ * - Inconsistent tagging and naming
+ *
+ */
+
+console.show();
+console.clear();
+
+(function() {
+    "use strict";
+    
+    // Setup logging to temp file for GUI access
+    const System = Java.type('java.lang.System');
+    const File = Java.type('java.io.File');
+    const FileWriter = Java.type('java.io.FileWriter');
+    const PrintWriter = Java.type('java.io.PrintWriter');
+    
+    const tempDir = System.getProperty('java.io.tmpdir');
+    const logFile = new File(tempDir, 'BizModelCanvas_output.log');
+    let logWriter = null;
+    
+    function initLog() {
+        try {
+            logWriter = new PrintWriter(new FileWriter(logFile, false)); // false = overwrite
+        } catch (e) {
+            console.error("Could not initialize log file"); }
+    }
+    
+    function logOutput(msg) {
+        console.log(msg);
+        if (logWriter) {
+            try {
+                logWriter.println(msg);
+                logWriter.flush();
+            } catch (e) { }
+        }
+    }
+    
+    function closeLog() {
+        if (logWriter) {
+            try {
+                logWriter.flush();
+                logWriter.close();
+            } catch (e) { }
+        }
+    }
+    
+    initLog();
+    
+    try {
+        if (!model) {
+            console.error("Error: No ArchiMate model is open.");
+            return;
+        }
+        
+        logOutput("=" .repeat(80));
+        logOutput("VALUE PROPOSITION CLEANUP - STEP-BY-STEP GUIDE");
+        logOutput("=" .repeat(80));
+        logOutput("");
+        
+        logOutput("CURRENT STATE OF YOUR MODEL:");
+        logOutput("-" .repeat(80));
+        logOutput("");
+        logOutput("You have 4 Value Proposition elements with mixed types and naming:\n");
+        logOutput("1. [business-service] [VP] VALUE PROPOSITIONS");
+        logOutput("   ID: id-fdcd985f50fc4e8f8c6123f72ceb079c");
+        logOutput("   Relationships: ArchiSurance → [association] → This element");
+        logOutput("   Purpose: ??? (ambiguous - business-service is for operational services)\n");
+        
+        logOutput("2. [product] [VP] Product - VALUE PROPOSITIONS");
+        logOutput("   ID: id-98ca1cd86f0a4c68a9f3a58d416a431f");
+        logOutput("   Relationships: ArchiSurance → [association] → This element");
+        logOutput("   Purpose: ??? (ambiguous - product is for business products)\n");
+        
+        logOutput("3. [value] [VP] VALUE PROPOSITIONS (DUPLICATE #1)");
+        logOutput("   ID: id-ea04ce63e5924e96a35a0fdf1882b96c");
+        logOutput("   Relationships:");
+        logOutput("      ← ArchiSurance 3.1 Case Study [association]");
+        logOutput("      → [CS] KEY RESOURCES [serving]");
+        logOutput("      → [CS] CUSTOMER SEGMENTS [serving]");
+        logOutput("      ← [KA] KEY ACTIVITIES [realization]\n");
+        
+        logOutput("4. [value] [VP] VALUE PROPOSITIONS (DUPLICATE #2)");
+        logOutput("   ID: id-67b19f96cbd44b1a94675c3de3f26580");
+        logOutput("   Relationships: NONE (orphaned)");
+        logOutput("   Status: ❌ DELETE THIS ONE\n");
+        
+        logOutput("=" .repeat(80));
+        logOutput("CLEANUP PLAN");
+        logOutput("=" .repeat(80));
+        logOutput("");
+        
+        // Find and display the elements
+        const toDelete = [];
+        const toRename = [];
+        const toConvert = [];
+        
+        $("*").each(function(el) {
+            const name = el.getName();
+            if (!name.includes("[VP]")) return;
+            
+            const id = el.getId();
+            const type = el.getType ? el.getType() : "unknown";
+            
+            // Count relationships
+            let incomingCount = 0;
+            let outgoingCount = 0;
+            $("relationship").each(function(rel) {
+                if (rel.getSource() && rel.getSource().getId() === id) outgoingCount++;
+                if (rel.getTarget() && rel.getTarget().getId() === id) incomingCount++;
+            });
+            
+            if (name === "[VP] VALUE PROPOSITIONS" && type === "value" && incomingCount === 0 && outgoingCount === 0) {
+                toDelete.push({el: el, name: name, id: id});
+            }
+        });
+        
+        logOutput("STEP 1: DELETE ORPHANED DUPLICATE");
+        logOutput("-" .repeat(80));
+        if (toDelete.length > 0) {
+            logOutput("❌ Found 1 orphaned duplicate:\n");
+            toDelete.forEach(function(item) {
+                logOutput("   Name: " + item.name);
+                logOutput("   ID: " + item.id);
+                logOutput("   Type: value");
+                logOutput("   Relationships: NONE\n");
+                logOutput("   ACTION: DELETE THIS ELEMENT");
+                logOutput("   ⚠️  How to delete in Archi:");
+                logOutput("      1. Open ModelStructure view (Windows → Show View → ModelStructure)");
+                logOutput("      2. Search for or find this element by ID: " + item.id);
+                logOutput("      3. Right-click → Delete");
+                logOutput("");
+            });
+        }
+        
+        logOutput("\nSTEP 2: CONSOLIDATE & CLARIFY REMAINING ELEMENTS");
+        logOutput("-" .repeat(80));
+        logOutput("");
+        logOutput("After deleting the orphan, you'll have 3 elements with the same name");
+        logOutput("but different types. You need to decide what each represents:\n");
+        
+        logOutput("DECISION MATRIX:\n");
+        logOutput("┌─────────────────────────────────────────────────────────────┐");
+        logOutput("│ Current Type      │ ArchiMate Meaning       │ Use Case        │");
+        logOutput("├─────────────────────────────────────────────────────────────┤");
+        logOutput("│ business-service  │ Service the enterprise  │ What services   │");
+        logOutput("│                   │ provides to others      │ deliver value?  │");
+        logOutput("├─────────────────────────────────────────────────────────────┤");
+        logOutput("│ product           │ Business product        │ What products   │");
+        logOutput("│                   │ (tangible deliverable)  │ deliver value?  │");
+        logOutput("├─────────────────────────────────────────────────────────────┤");
+        logOutput("│ value             │ Abstract value concept  │ What value      │");
+        logOutput("│ (Motivation)      │ (from motivation layer) │ propositions    │");
+        logOutput("│                   │                         │ matter to       │");
+        logOutput("│                   │                         │ stakeholders?   │");
+        logOutput("└─────────────────────────────────────────────────────────────┘\n");
+        
+        logOutput("OPTION A: Keep all 3 separate (recommended for Business Model Canvas)");
+        logOutput("──────────────────────────────────────────────────────────────────");
+        logOutput("Rename them to distinguish their purpose:\n");
+        logOutput("   1. [VP-Service] Claims Handling (type: business-service)");
+        logOutput("      → What service delivers value?\n");
+        logOutput("   2. [VP-Product] Insurance Products (type: product)");
+        logOutput("      → What product delivers value?\n");
+        logOutput("   3. [VP-Benefit] Fast Claims Processing (type: value)");
+        logOutput("      → What abstract benefit/outcome is the value?\n");
+        
+        logOutput("✓ Advantages:");
+        logOutput("  • Clearer semantics (each element has specific purpose)");
+        logOutput("  • Better for Business Model Canvas breakdown");
+        logOutput("  • Matches ArchiMate intent\n");
+        
+        logOutput("OPTION B: Convert all to same type (simpler, less semantic clarity)");
+        logOutput("──────────────────────────────────────────────────────────────────");
+        logOutput("Convert all 3 to 'value' type (or all to 'product'), rename clearly:\n");
+        logOutput("   1. [VP] Fast Claims Processing");
+        logOutput("   2. [VP] 24/7 Customer Support");
+        logOutput("   3. [VP] Competitive Insurance Pricing\n");
+        
+        logOutput("✓ Advantages:");
+        logOutput("  • Simpler to manage (one element type)");
+        logOutput("  • Enhanced Value View will be more uniform\n");
+        
+        logOutput("" .repeat(80));
+        logOutput("RECOMMENDATION");
+        logOutput("-" .repeat(80));
+        logOutput("");
+        logOutput("Use OPTION A (keep separate types with renamed prefixes) because:\n");
+        logOutput("  1. Your model already has [VP-Service] and [VP-Product] elements");
+        logOutput("  2. This matches the Business Model Canvas structure");
+        logOutput("  3. It preserves ArchiMate semantic semantics");
+        logOutput("  4. The Enhanced Value View can handle multiple types\n");
+        
+        logOutput("Proposed renaming:\n");
+        logOutput("  From: [business-service] [VP] VALUE PROPOSITIONS");
+        logOutput("  To:   [VP-Service] Claims Management Service");
+        logOutput("  Reason: Clarifies this is a SERVICE that delivers value\n");
+        
+        logOutput("  From: [product] [VP] Product - VALUE PROPOSITIONS");
+        logOutput("  To:   [VP-Product] Insurance Coverage");
+        logOutput("  Reason: Clarifies this is a PRODUCT that delivers value\n");
+        
+        logOutput("  From: [value] [VP] VALUE PROPOSITIONS (keep the one with relationships)");
+        logOutput("  To:   [VP-Benefit] Transparent & Fast Claims");
+        logOutput("  Reason: Clarifies this is the abstract BENEFIT/VALUE outcome\n");
+        
+        logOutput("=" .repeat(80));
+        logOutput("MANUAL CLEANUP STEPS (IN ARCHI)");
+        logOutput("=" .repeat(80));
+        logOutput("");
+        logOutput("1. DELETE the orphaned duplicate:");
+        logOutput("   • ID: id-67b19f96cbd44b1a94675c3de3f26580");
+        logOutput("   • Right-click in model tree → Delete\n");
+        
+        logOutput("2. RENAME the business-service element:");
+        logOutput("   • ID: id-fdcd985f50fc4e8f8c6123f72ceb079c");
+        logOutput("   • From: [VP] VALUE PROPOSITIONS");
+        logOutput("   • To:   [VP-Service] Claims Management Service");
+        logOutput("   • Double-click name field → Edit\n");
+        
+        logOutput("3. RENAME the product element:");
+        logOutput("   • ID: id-98ca1cd86f0a4c68a9f3a58d416a431f");
+        logOutput("   • From: [VP] Product - VALUE PROPOSITIONS");
+        logOutput("   • To:   [VP-Product] Insurance Coverage");
+        logOutput("   • Double-click name field → Edit\n");
+        
+        logOutput("4. RENAME the value element (keep the one with relationships):");
+        logOutput("   • ID: id-ea04ce63e5924e96a35a0fdf1882b96c");
+        logOutput("   • From: [VP] VALUE PROPOSITIONS");
+        logOutput("   • To:   [VP-Benefit] Transparent & Fast Claims");
+        logOutput("   • Double-click name field → Edit\n");
+        
+        logOutput("5. VERIFY relationships are preserved (especially for the renamed value element):");
+        logOutput("   • The element with ID id-ea04ce63e5924e96a35a0fdf1882b96c should have:");
+        logOutput("     ✓ Incoming: ArchiSurance 3.1 Case Study [association]");
+        logOutput("     ✓ Incoming: [KA] KEY ACTIVITIES [realization]");
+        logOutput("     ✓ Outgoing: [CS] KEY RESOURCES [serving]");
+        logOutput("     ✓ Outgoing: [CS] CUSTOMER SEGMENTS [serving]\n");
+        
+        logOutput("6. RE-RUN THIS DIAGNOSTIC after cleanup to verify\n");
+        
+        logOutput("=" .repeat(80));
+        logOutput("EXPECTED RESULT AFTER CLEANUP");
+        logOutput("=" .repeat(80));
+        logOutput("");
+        logOutput("Your Enhanced Value View will show:\n");
+        logOutput("  ✓ [VP-Service] Claims Management Service (light blue)");
+        logOutput("  ✓ [VP-Product] Insurance Coverage (product color)");
+        logOutput("  ✓ [VP-Benefit] Transparent & Fast Claims (yellow/motivation)");
+        logOutput("");
+        logOutput("Each with DISTINCT PURPOSE, clearly showing:");
+        logOutput("  • What SERVICE delivers the value");
+        logOutput("  • What PRODUCT is the value");
+        logOutput("  • What BENEFIT/OUTCOME is perceived by customers\n");
+        
+        logOutput("" .repeat(80));
+        logOutput("END OF CLEANUP GUIDE");
+        logOutput("=" .repeat(80));
+        
+    } catch (err) {
+        console.error("Error: " + err.message);
+        console.error(err);
+    } finally {
+        closeLog();
+    }
+})();
+
+
+
+
+
+

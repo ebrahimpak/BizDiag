@@ -1,0 +1,871 @@
+/*
+ * Copyright © 2026 Ebrahim Pak
+ *
+ * SPDX-License-Identifier: CECILL-B
+ *
+ * This file is part of BizDiag.
+ *
+ * BizDiag is distributed under the CeCILL-B Free Software License Agreement,
+ * Version 1.0. See the LICENSE file for details.
+ *
+ * The French and English versions of the license are available in
+ * LICENSE-FR and LICENSE, respectively.
+ *
+ * Author: Ebrahim Pak
+ *
+ * ---------------------------------------------------------------------------------------------------------------------
+ * This provides the users with Markdown export functionality for the Archi views and Elements of their choice.
+ *
+ */
+
+console.show();
+console.clear();
+console.log("BizDiag — Markdown Exporter");
+
+const ARCHITECTURE_GROUPS = [
+    { name: "Implementation and Migration", types: ["work-package", "deliverable", "implementation-event", "plateau", "gap"] },
+    { name: "Strategy", types: ["resource", "capability", "course-of-action", "value-stream"] },
+    { name: "Motivation", types: ["stakeholder", "driver", "assessment", "goal", "outcome", "principle", "requirement", "constraint", "meaning", "value"] },
+    { name: "Business", types: ["business-actor", "business-role", "business-collaboration", "business-interface", "business-process", "business-function", "business-interaction", "business-event", "business-service", "contract", "product", "representation"] },
+    { name: "Data", types: ["business-object", "data-object", "artifact"] },
+    { name: "Application", types: ["application-component", "application-collaboration", "application-interface", "application-function", "application-process", "application-interaction", "application-event", "application-service"] },
+    { name: "Technology", types: ["node", "device", "system-software", "technology-collaboration", "technology-interface", "path", "communication-network", "technology-function", "technology-process", "technology-interaction", "technology-event", "technology-service", "equipment", "facility", "location", "distribution-network", "material"] }
+];
+
+
+class BizDiagMarkdownExporter {
+
+    constructor(options = {}) {
+        this.options = {
+            embedImage: options.embedImage === true,
+            includeHiddenRelationships: options.includeHiddenRelationships === true,
+            layered: options.layered === true
+        };
+
+        this.slugs = new Map();
+    }
+
+
+    reset() {
+        this.slugs.clear();
+    }
+
+
+    /*
+     * Normalize every possible caller input to one actual
+     * ArchiMate diagram-model proxy.
+     *
+     * jArchi scripts may supply:
+     *
+     *   - a single DiagramModelProxy
+     *   - a jArchi collection
+     *   - an EObjectProxyCollection
+     *   - an array-like selection
+     */
+    resolveView(value) {
+        if (!value) return null;
+
+        if (this.isDiagramView(value)) return value;
+
+        if (typeof value.length === "number") {
+            for (let i = 0; i < value.length; i++) {
+                const candidate = value[i];
+
+                if (this.isDiagramView(candidate)) {
+                    return candidate;
+                }
+            }
+        }
+
+        return null;
+    }
+
+
+    isDiagramView(value) {
+        return !!value && value.type === "archimate-diagram-model";
+    }
+
+
+    /*
+     * Main exporter entry point.
+     *
+     * The argument is deliberately called value rather than view because
+     * callers may supply either a view or a jArchi collection.
+     */
+    export(value) {
+        this.reset();
+
+        const view = this.resolveView(value);
+
+        if (!view) {
+            console.log("> No valid ArchiMate view supplied");
+            return "";
+        }
+
+        const document = this.collectDocument(view);
+
+        return this.renderDocument(document);
+    }
+
+
+    collectDocument(view) {
+        const document = {
+            title: view.name || "Exported View",
+            view: view,
+            viewpoint: this.readViewpoint(view),
+            introduction: this.readIntroduction(view),
+            toc: [],
+            sections: []
+        };
+
+        if (this.options.layered) {
+            document.sections = this.collectLayeredSections(view);
+            document.toc = this.buildLayeredToc(document.sections);
+        } else {
+            const tree = this.readElementTree(view);
+
+            document.toc = this.buildToc(tree);
+            document.sections = this.buildSections(tree);
+        }
+
+        return document;
+    }
+
+
+    readViewpoint(view) {
+        if (!view.viewpoint) return null;
+        if (view.viewpoint.name === "None") return null;
+
+        return view.viewpoint.name || null;
+    }
+
+
+    readIntroduction(view) {
+        const notes = [];
+
+        $(view).find("diagram-model-note").each(note => {
+            if ($(note).rels().length === 0 && note.text && note.text.length > 3) {
+                notes.push(note.text);
+            }
+        });
+
+        return notes;
+    }
+
+
+    readElementTree(parent) {
+        const nodes = [];
+
+        $(parent).children().not("relationship").each(element => {
+            if (!element.name) return;
+
+            nodes.push({
+                element: element,
+                name: element.name,
+                type: element.type,
+                children: this.readElementTree(element),
+                notes: this.readElementNotes(element)
+            });
+        });
+
+        return nodes;
+    }
+
+
+    readElementNotes(element) {
+        const notes = [];
+
+        $(element).children("diagram-model-note").each(note => {
+            if ($(note).rels().length === 0 && note.text) {
+                notes.push(note.text);
+            }
+        });
+
+        return notes;
+    }
+
+
+    buildToc(tree) {
+        const toc = [];
+        const counts = new Map();
+
+        const visit = (nodes, depth) => {
+            nodes.forEach(node => {
+                const label = this.elementLabel(node.element);
+                const base = this.anchorBase(label);
+                const occurrence = (counts.get(base) || 0) + 1;
+
+                counts.set(base, occurrence);
+
+                const anchor = occurrence === 1 ? base : `${base}-${occurrence}`;
+
+                toc.push({
+                    label: label,
+                    anchor: `#${anchor}`,
+                    depth: depth
+                });
+
+                visit(node.children, depth + 1);
+            });
+        };
+
+        visit(tree, 0);
+
+        return toc;
+    }
+
+
+    buildLayeredToc(sections) {
+        return sections.map(section => {
+            const label = section.title;
+            const base = this.anchorBase(label);
+
+            return {
+                label: label,
+                anchor: `#${base}`,
+                depth: 0
+            };
+        });
+    }
+
+
+    buildSections(tree) {
+        const sections = [];
+
+        const visit = (nodes, level) => {
+            nodes.forEach(node => {
+                sections.push({
+                    title: this.elementLabel(node.element),
+                    level: level + 2,
+                    element: node.element,
+                    documentation: node.element.documentation || "",
+                    properties: this.readProperties(node.element),
+                    relationships: this.readRelationships(node.element),
+                    notes: node.notes,
+                    table: null
+                });
+
+                visit(node.children, level + 1);
+            });
+        };
+
+        visit(tree, 0);
+
+        return sections;
+    }
+
+
+    collectLayeredSections(view) {
+        const sections = [];
+
+        ARCHITECTURE_GROUPS.forEach(group => {
+            const components = this.collectComponents(view, group.types);
+
+            if (components.length) {
+                sections.push({
+                    title: `${group.name} Architecture`,
+                    level: 2,
+                    element: null,
+                    documentation: "",
+                    properties: [],
+                    relationships: [],
+                    notes: [],
+                    table: this.createComponentTable(components)
+                });
+            }
+        });
+
+        return sections;
+    }
+
+
+    collectComponents(view, types) {
+        const components = new Map();
+
+        types.forEach(type => {
+            $(view).find(type).each(element => {
+                if (!element.name) return;
+
+                const key = `${element.name}:${element.type}`;
+
+                if (!components.has(key)) {
+                    components.set(key, element);
+                }
+            });
+        });
+
+        return Array.from(components.values()).sort((a, b) => {
+            return String(a.name).localeCompare(String(b.name));
+        });
+    }
+
+
+    readProperties(element) {
+        const values = [];
+
+        if (element.specialization) {
+            values.push(["Specialization", element.specialization]);
+        }
+
+        const properties = element.prop ? element.prop() : {};
+
+        Object.keys(properties).sort().forEach(name => {
+            values.push([name, properties[name]]);
+        });
+
+        return values;
+    }
+
+
+    readRelationships(element) {
+        const visible = $(element).rels();
+
+        const relationships = this.options.includeHiddenRelationships
+            ? $(element.concept).rels()
+            : visible;
+
+        const visibleIds = new Set();
+
+        visible.each(relationship => {
+            if (relationship.concept) {
+                visibleIds.add(relationship.concept.id);
+            }
+        });
+
+        const rows = [];
+
+        relationships.each(relationship => {
+            if (relationship.type === "diagram-model-connection") return;
+
+            const hidden =
+                this.options.includeHiddenRelationships &&
+                relationship.concept &&
+                !visibleIds.has(relationship.concept.id);
+
+            rows.push({
+                from: relationship.source ? relationship.source.name : "",
+                type: this.relationshipType(relationship),
+                to: relationship.target ? relationship.target.name : "",
+                targetType: relationship.target ? this.typeName(relationship.target.type) : "",
+                label: relationship.labelValue ? this.cleanInline(relationship.labelValue) : "",
+                documentation: this.cleanInline(relationship.documentation || ""),
+                hidden: hidden
+            });
+        });
+
+        return rows;
+    }
+
+
+    relationshipType(relationship) {
+        let value = this.typeName(relationship.type);
+
+        const concept = relationship.concept;
+
+        if (concept) {
+            if (concept.accessType) {
+                value += ` (${concept.accessType})`;
+            }
+
+            if (concept.influenceStrength) {
+                value += ` (${concept.influenceStrength})`;
+            }
+
+            if (concept.specialization) {
+                value += ` (${concept.specialization})`;
+            }
+        }
+
+        if (relationship._hidden) {
+            value += " (Hidden)";
+        }
+
+        return value;
+    }
+
+
+    typeName(type) {
+        return String(type || "")
+            .replaceAll("-", " ")
+            .split(" ")
+            .filter(Boolean)
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(" ")
+            .trim();
+    }
+
+
+    elementLabel(element) {
+        return `${element.name} (${this.typeName(element.type)})`;
+    }
+
+
+    createComponentTable(components) {
+        const withNotes = components.some(element => {
+            return $(element).rels().ends().filter("diagram-model-note").length > 0;
+        });
+
+        const headers = withNotes
+            ? ["Component", "Type", "Description", "Notes"]
+            : ["Component", "Type", "Description"];
+
+        const rows = components.map(element => {
+            const row = [
+                element.name,
+                `${this.typeName(element.type)}${element.specialization ? ` (${element.specialization})` : ""}`,
+                this.cleanInline(element.documentation || "")
+            ];
+
+            if (withNotes) {
+                const notes = [];
+
+                $(element).rels().ends().filter("diagram-model-note").each(note => {
+                    if (note.text) {
+                        notes.push(note.text);
+                    }
+                });
+
+                row.push(notes.join("\n"));
+            }
+
+            return row;
+        });
+
+        return {
+            headers: headers,
+            rows: rows
+        };
+    }
+
+
+    renderDocument(document) {
+        let output = "";
+
+        output += this.heading(document.title, 1);
+        output += "\n";
+
+        output += this.renderToc(document.toc);
+        output += "\n";
+
+        output += this.heading("Introduction", 2);
+        output += "\n";
+
+        output += this.renderViewImage(document.view);
+
+        if (document.view.documentation) {
+            output += `\n${this.escape(document.view.documentation)}\n`;
+        }
+
+        if (document.viewpoint) {
+            output += `\nViewpoint: ${this.escape(document.viewpoint)}\n`;
+        }
+
+        document.introduction.forEach(note => {
+            output += `\n${this.quote(note)}\n`;
+        });
+
+        if (document.sections.length) {
+            output += "\n";
+            output += document.sections.map(section => {
+                return this.renderSection(section);
+            }).join("\n");
+        }
+
+        output += `\n[^1]: Generated: ${new Date().toLocaleString()}\n`;
+
+        return output;
+    }
+
+
+    renderToc(toc) {
+        if (!toc.length) return "";
+
+        let output = "## Table of Contents\n\n";
+
+        toc.forEach(item => {
+            output += `${"  ".repeat(item.depth)}* [${this.escape(item.label)}](${item.anchor})\n`;
+        });
+
+        return output;
+    }
+
+
+    renderSection(section) {
+        let output = "";
+
+        output += `\n${this.heading(section.title, section.level)}\n`;
+
+        if (section.documentation) {
+            output += `\n${this.escape(section.documentation)}\n`;
+        }
+
+        if (section.properties.length) {
+            output += `\n${this.renderProperties(section.properties)}`;
+        }
+
+        if (section.relationships.length) {
+            output += `\n${this.renderRelationships(section.relationships)}`;
+        }
+
+        section.notes.forEach(note => {
+            output += `\n${this.quote(note)}\n`;
+        });
+
+        if (section.table) {
+            output += `\n${this.renderTable(section.table.headers, section.table.rows)}`;
+        }
+
+        return output;
+    }
+
+
+    renderProperties(properties) {
+        const rows = properties.map(property => {
+            return [property[0], property[1]];
+        });
+
+        return `**Properties**\n\n${this.renderTable(["Property", "Value"], rows)}`;
+    }
+
+
+    renderRelationships(relationships) {
+        const rows = relationships.map(relationship => {
+            return [
+                relationship.from,
+                relationship.type + (relationship.hidden ? " (Hidden)" : ""),
+                relationship.to ? `${relationship.to} (${relationship.targetType})` : "",
+                relationship.label,
+                relationship.documentation
+            ];
+        });
+
+        return `**Relationships**\n\n${this.renderTable(
+            ["From", "Relationship", "To", "Name/Label", "Description"],
+            rows
+        )}`;
+    }
+
+
+    renderTable(headers, rows) {
+        let output = `|${headers.map(header => this.escapeCell(header)).join("|")}|\n`;
+        output += `|${headers.map(() => "---").join("|")}|\n`;
+
+        rows.forEach(row => {
+            output += `|${row.map(value => this.escapeCell(value)).join("|")}|\n`;
+        });
+
+        return output;
+    }
+
+
+    /*
+     * IMPORTANT:
+     *
+     * Do not pass a JavaScript object as the third argument here.
+     * jArchi exposes Java overloads requiring a java.util.Map, while
+     * GraalJS ordinary objects are not guaranteed to be converted to it.
+     *
+     * The two-argument overload is stable and sufficient for exporting
+     * the diagram image.
+     */
+    renderViewImage(view) {
+        if (!view) return "";
+
+        const alt = this.escape(view.name || "Architecture View");
+
+        let bytes;
+
+        try {
+            bytes = $.model.renderViewAsBase64(view, "PNG");
+        } catch (e) {
+            console.log(`> Unable to render view image: ${e}`);
+            return "";
+        }
+
+        if (!bytes) return "";
+
+        if (this.options.embedImage) {
+            return `\n![${alt}](data:image/png;base64,${bytes})\n`;
+        }
+
+        return `\n![${alt}][embedView]\n`;
+    }
+
+
+    heading(text, level) {
+        return `${"#".repeat(level)} ${this.escape(text)}[^1]\n`;
+    }
+
+
+    quote(text) {
+        return `> ${this.escape(text).replaceAll("\n", "\n> ")}\n`;
+    }
+
+
+    anchorBase(text) {
+        return String(text || "")
+            .toLowerCase()
+            .replace(/[\[\]\(\)#\\\/"]/gi, "")
+            .replaceAll(" ", "-")
+            .replaceAll("<", "lt")
+            .replaceAll(">", "gt");
+    }
+
+
+    escape(text) {
+        if (text == null) return "";
+
+        return String(text)
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;");
+    }
+
+
+    escapeCell(text) {
+        return this.cleanInline(text)
+            .replaceAll("|", "\\|")
+            .replaceAll("\n", "<br>");
+    }
+
+
+    cleanInline(text) {
+        if (text == null) return "";
+
+        return this.escape(text)
+            .replaceAll("\r\n", "<br>")
+            .replaceAll("\n", "<br>")
+            .replaceAll("\r", "<br>");
+    }
+}
+
+
+/*
+ * User-facing export options.
+ */
+function readExportOptions() {
+    return {
+        embedImage: window.confirm(
+            "Do you want to embed the view image directly in the Markdown file?\n\n" +
+            "OK = Embed image\n" +
+            "Cancel = Link a separate PNG file"
+        ),
+
+        includeHiddenRelationships: window.confirm(
+            "Do you want to include relationships that are hidden on the diagram?\n\n" +
+            "OK = Include hidden relationships\n" +
+            "Cancel = Visible relationships only"
+        ),
+
+        layered: window.confirm(
+            "Do you want to generate a Layered Architecture Document?\n\n" +
+            "OK = Layered Architecture\n" +
+            "Cancel = View hierarchy"
+        )
+    };
+}
+
+
+/*
+ * Return only actual ArchiMate diagram views from the current selection.
+ */
+function selectedViews() {
+    return $(selection).filter("archimate-diagram-model");
+}
+
+
+/*
+ * Render a view image using the safe jArchi overload.
+ *
+ * This deliberately accepts only a DiagramModelProxy.
+ */
+function renderViewPng(view) {
+    if (!view || view.type !== "archimate-diagram-model") {
+        console.log("> Cannot render image: invalid diagram view");
+        return null;
+    }
+
+    try {
+        return $.model.renderViewAsBase64(view, "PNG");
+    } catch (e) {
+        console.log(`> Image rendering failed: ${e}`);
+        return null;
+    }
+}
+
+
+/*
+ * Export one Markdown file.
+ */
+function writeMarkdownFile(view, content, embedImage) {
+    const baseName = view.name
+        ? `${model.name}-${view.name}`
+        : "Exported View";
+
+    const file = window.promptSaveFile({
+        title: "Export to Markdown",
+        filterExtensions: ["*.md"],
+        fileName: `${baseName}.md`
+    });
+
+    if (!file) {
+        console.log("> Export cancelled");
+        return null;
+    }
+
+    if (!embedImage) {
+        const pngFile = file.substring(0, file.length - 3) + ".png";
+        const pngName = pngFile.split("\\").pop().replaceAll(" ", "%20");
+        const bytes = renderViewPng(view);
+
+        if (bytes) {
+            $.fs.writeFile(pngFile, bytes, "BASE64");
+            content += `\n[embedView]: ${pngName}\n`;
+        } else {
+            console.log("> PNG export failed; Markdown file will contain no image reference");
+        }
+    }
+
+    $.fs.writeFile(file, content);
+
+    console.log(`> Export done: ${file}`);
+
+    return file;
+}
+
+
+/*
+ * Export an index for multiple generated Markdown files.
+ */
+function writeIndexFile(index) {
+    const file = window.promptSaveFile({
+        title: "Export Markdown Index",
+        filterExtensions: ["*.md"],
+        fileName: "index.md"
+    });
+
+    if (!file) {
+        console.log("> Index export cancelled");
+        return null;
+    }
+
+    $.fs.writeFile(file, index);
+
+    console.log(`> Index exported: ${file}`);
+
+    return file;
+}
+
+
+/*
+ * Build the Markdown index for multiple view exports.
+ */
+function createIndex(viewFiles) {
+    let markdown = `# ${model.name} Export[^1]\n\n`;
+
+    viewFiles.forEach((file, viewName) => {
+        if (!file) return;
+
+        const relative = file.replaceAll(" ", "%20");
+
+        markdown += `* [${escapeIndexText(viewName)}](${relative})\n`;
+    });
+
+    markdown += `\n[^1]: Generated: ${new Date().toLocaleString()}\n`;
+
+    return markdown;
+}
+
+
+function escapeIndexText(text) {
+    return String(text || "")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;");
+}
+
+
+/*
+ * Interactive export entry point.
+ */
+function executeBizDiagMarkdownExport() {
+    const views = selectedViews();
+
+    if (!views || views.length === 0) {
+        console.log("> Please select a View");
+        return;
+    }
+
+    const options = readExportOptions();
+    const exporter = new BizDiagMarkdownExporter(options);
+    const generatedFiles = new Map();
+
+    views.each(view => {
+        console.log(`> Processing: ${view.name}`);
+
+        const markdown = exporter.export(view);
+
+        if (!markdown) {
+            console.log(`> Skipping invalid view: ${view.name}`);
+            return;
+        }
+
+        const file = writeMarkdownFile(
+            view,
+            markdown,
+            options.embedImage
+        );
+
+        if (file && views.length > 1) {
+            generatedFiles.set(view.name, file);
+        }
+    });
+
+    if (generatedFiles.size > 1) {
+        writeIndexFile(createIndex(generatedFiles));
+    }
+}
+
+
+/*
+ * Public API
+ *
+ * Existing callers may continue to use:
+ *
+ *     generateMarkdown(view, includeHiddenRelationships, layered, embed)
+ *
+ * The first argument may be either:
+ *
+ *     - an ArchiMate DiagramModelProxy
+ *     - a jArchi selection/collection containing a view
+ */
+function generateMarkdown(
+    value,
+    includeHiddenRelationships = false,
+    layered = false,
+    embed = false
+) {
+    const exporter = new BizDiagMarkdownExporter({
+        includeHiddenRelationships: includeHiddenRelationships,
+        layered: layered,
+        embedImage: embed
+    });
+
+    return exporter.export(value);
+}
+
+
+/*
+ * Interactive execution when this file is executed directly.
+ *
+ * When imported by another jArchi script, the caller receives the
+ * generateMarkdown() function through module.exports instead.
+ */
+try {
+    if (typeof library === "undefined" || !library) {
+        executeBizDiagMarkdownExport();
+    }
+} catch (e) {
+    console.log(`> Markdown exporter execution error: ${e}`);
+}
+
+
+module.exports = generateMarkdown;

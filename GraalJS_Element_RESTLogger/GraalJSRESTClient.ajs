@@ -1,0 +1,203 @@
+/*
+ * Copyright © 2026 Ebrahim Pak
+ *
+ * SPDX-License-Identifier: CECILL-B
+ *
+ * This file is part of BizDiag.
+ *
+ * BizDiag is distributed under the CeCILL-B Free Software License Agreement,
+ * Version 1.0. See the LICENSE file for details.
+ *
+ * The French and English versions of the license are available in
+ * LICENSE-FR and LICENSE, respectively.
+ *
+ * Author: Ebrahim Pak
+ *
+ * ---------------------------------------------------------------------------------------------------------------------
+ *
+ * GraalJS REST Client
+ *
+ */
+
+console.clear();
+console.show();
+
+// --- 1. Java Imports for Networking and Utilities ---
+const URL = Java.type("java.net.URL");
+const HttpURLConnection = Java.type("java.net.HttpURLConnection");
+const OutputStreamWriter = Java.type("java.io.OutputStreamWriter");
+const BufferedReader = Java.type("java.io.BufferedReader");
+const InputStreamReader = Java.type("java.io.InputStreamReader");
+const Instant = Java.type("java.time.Instant");
+const System = Java.type("java.lang.System");
+const FileWriter = Java.type("java.io.FileWriter");
+const File = Java.type("java.io.File");
+const scriptDir = new File(__FILE__).getParent();
+const JSONLPath = new File(scriptDir, "loggedElements.jsonl").getAbsolutePath();
+
+// --- 2. Configuration ---
+const LOGGING_URL = "http://localhost:9090/";
+// FIX 1: Removed literal asterisks. This is just the filename.
+const LOCAL_LOG_FILE = "archi_client_log.jsonl";
+// Attempt to get the system user name for logging
+const USER_NAME = System.getProperty("user.name") || "jarchi_user";
+
+/**
+ * Sends a single JSON payload to the local logging server.
+ * @param {string} jsonPayload - The JSON string to send.
+ */
+function postLog(jsonPayload) {
+  let connection = null;
+
+  try {
+    const url = new URL(LOGGING_URL);
+    connection = url.openConnection();
+
+    // 1. Setup the connection for POST
+    connection.setRequestMethod("POST");
+    connection.setRequestProperty("Content-Type", "application/json");
+    connection.setRequestProperty("Accept", "text/plain");
+    connection.setDoOutput(true); // Indicate that we will write a body
+
+    // 2. Write the JSON payload
+    const writer = new OutputStreamWriter(
+      connection.getOutputStream(),
+      "UTF-8"
+    );
+    writer.write(jsonPayload);
+    writer.flush();
+    writer.close();
+
+    // 3. Read the response status and body
+    const responseCode = connection.getResponseCode();
+
+    // Determine the input stream based on response code
+    let stream = null;
+    if (
+      responseCode >= HttpURLConnection.HTTP_OK &&
+      responseCode <= HttpURLConnection.HTTP_BAD_REQUEST
+    ) {
+      // Read success stream (200-399) or error stream (400+)
+      stream =
+        responseCode >= HttpURLConnection.HTTP_OK && responseCode < 400
+          ? connection.getInputStream()
+          : connection.getErrorStream();
+    } else {
+      // Handle other codes (500s)
+      stream = connection.getErrorStream();
+    }
+
+    let response = "";
+    if (stream) {
+      const reader = new BufferedReader(new InputStreamReader(stream, "UTF-8"));
+      let line;
+      while ((line = reader.readLine()) !== null) {
+        response += line;
+      }
+      reader.close();
+      stream.close();
+    }
+
+    // 4. Log the result back to the jArchi console
+    if (responseCode === HttpURLConnection.HTTP_OK) {
+      console.log("SUCCESS: Log posted. Server response: " + response);
+    } else {
+      console.log(
+        "ERROR: HTTP " + responseCode + ". Server responded: " + response
+      );
+    }
+  } catch (e) {
+    console.log(
+      "FATAL CONNECTION ERROR: Could not connect to the server at " +
+        LOGGING_URL
+    );
+    // Use e.getMessage() for Java exceptions which are standard in jArchi
+    console.log("Details: " + e.getMessage());
+  } finally {
+    if (connection !== null) {
+      connection.disconnect();
+    }
+  }
+}
+
+var selection = $(selection);
+
+/**
+ * Appends a JSON string (as a line) to a local JSONL file.
+ * FIX 2: Switched to writing the file in the user's home directory for reliable access.
+ * @param {string} jsonLine - The JSON string payload.
+ */
+function logToJsonl(jsonLine) {
+  let writer = null;
+  try {
+    writer = new FileWriter(new File(JSONLPath), true);
+    writer.write(jsonLine + "\n");
+    writer.flush();
+
+    // Log the absolute path so the user knows exactly where to find the file
+    console.log("Local Log: Saved to " + JSONLPath);
+  } catch (e) {
+    // Error logging uses the path for better troubleshooting
+    console.log("Local Log Error: Failed to write to file " + JSONLPath);
+    console.log("Details: " + e.getMessage());
+  } finally {
+    if (writer !== null) {
+      try {
+        writer.close();
+      } catch (ignore) {}
+    }
+  }
+}
+
+/**
+ * Main script execution function.
+ */
+function main() {
+  // 1. Get the current selection from the model.
+  // Using the standard jArchi selector '$().selection' and then
+  // applying the filter on the full result set.
+
+  if (selection.length === 0) {
+    console.log("Please select one or more Archimate elements to log.");
+    console.log(
+      "No elements selected",
+      "Please select one or more Archimate elements to log before running this script."
+    );
+    return;
+  }
+
+  console.log("--- Starting Log for " + selection.length + " Elements ---");
+
+  // 2. Iterate over selected elements
+  selection.each(function (element) {
+    // Get properties
+    const elementId = element.id;
+    const elementName = element.name;
+    // The type is retrieved from the Archimate type, e.g., "ApplicationComponent"
+    const elementType = element.type;
+
+    // Current UTC timestamp in ISO 8601 format
+    const timestamp = Instant.now().toString();
+
+    // 3. Construct the JSON payload object
+    const logObject = {
+      elementId: elementId,
+      elementName: elementName,
+      type: elementType,
+      user: USER_NAME,
+      timestamp: timestamp,
+    };
+
+    // 4. Send the log
+    const jsonString = JSON.stringify(logObject);
+    console.log("Posting: " + elementName + " (" + elementId + ")");
+    postLog(jsonString);
+
+    // 5. Log to local JSONL file as a backup/audit log
+    logToJsonl(jsonString);
+  });
+
+  console.log("--- Log Posting Complete ---");
+}
+
+main();

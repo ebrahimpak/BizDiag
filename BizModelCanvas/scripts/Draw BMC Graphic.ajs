@@ -1,0 +1,689 @@
+/*
+ * Copyright © 2026 Ebrahim Pak
+ *
+ * SPDX-License-Identifier: CECILL-B
+ *
+ * This file is part of BizDiag.
+ *
+ * BizDiag is distributed under the CeCILL-B Free Software License Agreement,
+ * Version 1.0. See the LICENSE file for details.
+ *
+ * The French and English versions of the license are available in
+ * LICENSE-FR and LICENSE, respectively.
+ *
+ * Author: Ebrahim Pak
+ *
+ * ---------------------------------------------------------------------------------------------------------------------
+ * This script draws Business Model Canvas Graphic. It creates a visual Business Model Canvas using SWT Graphics.
+ * This script opens a new shell, showing the BMC as a proper diagram with SWT painting.
+ *
+ */
+
+console.show();
+
+// Initialize logging
+function initLog() {
+    const System = Java.type('java.lang.System');
+    const tmpDir = System.getProperty('java.io.tmpdir');
+    const File = Java.type('java.io.File');
+    const logFile = new File(tmpDir, 'BizModelCanvas_output.log');
+    const FileWriter = Java.type('java.io.FileWriter');
+    const PrintWriter = Java.type('java.io.PrintWriter');
+    logFile.delete();
+    globalThis.logWriter = new PrintWriter(new FileWriter(logFile));
+}
+
+function logOutput(msg) {
+    console.log(msg);
+    if (typeof globalThis.logWriter !== 'undefined' && globalThis.logWriter) {
+        globalThis.logWriter.println(msg);
+    }
+}
+
+function closeLog() {
+    if (typeof globalThis.logWriter !== 'undefined' && globalThis.logWriter) {
+        globalThis.logWriter.flush();
+        globalThis.logWriter.close();
+    }
+}
+
+initLog();
+
+logOutput('='.repeat(60));
+logOutput('DRAWING BUSINESS MODEL CANVAS - GRAPHIC VIEW');
+logOutput('='.repeat(60));
+
+// Extract BMC data from model using jArchi query syntax
+function extractBMCData() {
+    const data = {
+        partners: [],
+        activities: [],
+        resources: [],
+        valuePropositions: [],
+        customerSegments: [],
+        channels: [],
+        customerRelationships: [],
+        costStructure: [],
+        revenueStreams: []
+    };
+    
+    try {
+        // Extract Business Actors as Key Partners (excluding customers)
+        $("business-actor").each(function(actor) {
+            const name = actor.getName();
+            if (name && !name.includes('[VP]') && !name.includes('Customer') && !name.includes('Client')) {
+                data.partners.push(name);
+            }
+        });
+        
+        // Extract Business Functions as Key Activities
+        $("business-function").each(function(func) {
+            const name = func.getName();
+            if (name) {
+                data.activities.push(name);
+            }
+        });
+        
+        // Extract Business Objects as Resources
+        $("business-object").each(function(obj) {
+            const name = obj.getName();
+            if (name && !name.includes('[VP]')) {
+                data.resources.push(name);
+            }
+        });
+        
+        // Extract Value Propositions - first try [VP] tagged, then fallback to Values
+        $("business-actor").each(function(actor) {
+            const name = actor.getName();
+            if (name && name.includes('[VP]')) {
+                data.valuePropositions.push(name.replace(/\[VP\]/g, '').trim());
+            }
+        });
+        
+        $("business-object").each(function(obj) {
+            const name = obj.getName();
+            if (name && name.includes('[VP]')) {
+                data.valuePropositions.push(name.replace(/\[VP\]/g, '').trim());
+            }
+        });
+        
+        // Fallback: use Values if no [VP] tagged elements
+        if (data.valuePropositions.length === 0) {
+            $("value").each(function(value) {
+                const name = value.getName();
+                if (name) {
+                    data.valuePropositions.push(name);
+                }
+            });
+        }
+        
+        // Fallback: use business-services ONLY if nothing else found
+        if (data.valuePropositions.length === 0) {
+            $("business-service").each(function(service) {
+                const name = service.getName();
+                if (name) {
+                    data.valuePropositions.push(name);
+                }
+            });
+        }
+        
+        // Extract Customer Segments (Business Actors with Customer/Client keywords)
+        $("business-actor").each(function(actor) {
+            const name = actor.getName();
+            if (name && (name.includes('Customer') || name.includes('Client') || name.includes('Stakeholder'))) {
+                data.customerSegments.push(name);
+            }
+        });
+        
+        // Fallback: if no customer segments, use any business role
+        if (data.customerSegments.length === 0) {
+            $("business-role").each(function(role) {
+                const name = role.getName();
+                if (name) {
+                    data.customerSegments.push(name);
+                }
+            });
+        }
+        
+        // Extract Channels - use business functions that are customer-facing or interfaces
+        $("business-interface").each(function(iface) {
+            const name = iface.getName();
+            if (name) {
+                data.channels.push(name);
+            }
+        });
+        
+        // Also get application interfaces
+        $("application-interface").each(function(iface) {
+            const name = iface.getName();
+            if (name) {
+                data.channels.push(name);
+            }
+        });
+        
+        // Fallback: use business functions as channels
+        if (data.channels.length === 0) {
+            $("business-function").each(function(func) {
+                const name = func.getName();
+                if (name && (name.includes('Customer') || name.includes('Contact') || name.includes('Service') || name.includes('Channel'))) {
+                    data.channels.push(name);
+                }
+            });
+        }
+        
+        // Last resort: use first few business functions
+        if (data.channels.length === 0) {
+            let count = 0;
+            $("business-function").each(function(func) {
+                if (count < 5) {
+                    const name = func.getName();
+                    if (name && name.length > 0) {
+                        data.channels.push(name);
+                        count++;
+                    }
+                }
+            });
+        }
+        
+        // Extract Customer Relationships from association relationships and interactions
+        $("association-relationship").each(function(rel) {
+            const name = rel.getName();
+            if (name) {
+                data.customerRelationships.push(name);
+            }
+        });
+        
+        // Extract serving relationships as customer interactions
+        $("serving-relationship").each(function(rel) {
+            const source = rel.getSource();
+            const target = rel.getTarget();
+            if (source && target) {
+                const name = source.getName() + ' ↔ ' + target.getName();
+                data.customerRelationships.push(name);
+            }
+        });
+        
+        // Fallback: extract from roles/actors that interact with customers
+        if (data.customerRelationships.length === 0) {
+            $("business-role").each(function(role) {
+                const name = role.getName();
+                if (name && (name.includes('Manager') || name.includes('Support') || name.includes('Service') || name.includes('Relation'))) {
+                    data.customerRelationships.push(name);
+                }
+            });
+        }
+        
+        // Last resort: use business functions related to customer interaction
+        if (data.customerRelationships.length === 0) {
+            $("business-function").each(function(func) {
+                const name = func.getName();
+                if (name && (name.includes('Relation') || name.includes('Support') || name.includes('Service') || name.includes('Interact') || name.includes('Communication'))) {
+                    data.customerRelationships.push(name);
+                }
+            });
+        }
+        
+        // Extract Cost Structure (Infrastructure and Technology)
+        $("infrastructure").each(function(inf) {
+            const name = inf.getName();
+            if (name) {
+                data.costStructure.push(name);
+            }
+        });
+        
+        $("node").each(function(node) {
+            const name = node.getName();
+            if (name) {
+                data.costStructure.push(name);
+            }
+        });
+        
+        $("technology").each(function(tech) {
+            const name = tech.getName();
+            if (name) {
+                data.costStructure.push(name);
+            }
+        });
+        
+        // Extract Revenue Streams (Business Services - direct)
+        $("business-service").each(function(service) {
+            const name = service.getName();
+            if (name) {
+                data.revenueStreams.push(name);
+            }
+        });
+        
+        // If nothing found, use business objects tagged as services/products
+        if (data.revenueStreams.length === 0) {
+            $("business-object").each(function(obj) {
+                const name = obj.getName();
+                if (name && (name.includes('Service') || name.includes('Product') || name.includes('Offering'))) {
+                    data.revenueStreams.push(name);
+                }
+            });
+        }
+        
+        // Last resort: use first few business functions with revenue/income keywords
+        if (data.revenueStreams.length === 0) {
+            $("business-function").each(function(func) {
+                const name = func.getName();
+                if (name && (name.includes('Payment') || name.includes('Billing') || name.includes('Sales') || name.includes('Service') || name.includes('Income'))) {
+                    data.revenueStreams.push(name);
+                }
+            });
+        }
+        
+    } catch (e) {
+        logOutput('ERROR extracting BMC data: ' + e);
+    }
+    
+    logOutput('Extracted BMC Components:');
+    logOutput('  Key Partners: ' + data.partners.length);
+    logOutput('  Key Activities: ' + data.activities.length);
+    logOutput('  Key Resources: ' + data.resources.length);
+    logOutput('  Value Propositions: ' + data.valuePropositions.length);
+    logOutput('  Customer Segments: ' + data.customerSegments.length);
+    logOutput('  Channels: ' + data.channels.length);
+    logOutput('  Customer Relationships: ' + data.customerRelationships.length);
+    logOutput('  Cost Structure: ' + data.costStructure.length);
+    logOutput('  Revenue Streams: ' + data.revenueStreams.length);
+    
+    return data;
+}
+
+// Filter function: remove BMC cell header items and metadata
+// Excludes only patterns that indicate metadata, not actual BMC content
+function filterCellHeaders(dataObject) {
+    const filteredData = {};
+    
+    // Patterns to exclude - these are definitively metadata, not BMC content:
+    // 1. Bracket patterns: [XX], [C$], [R$], etc. (cell labels)
+    // 2. Regex metacharacters: ^, $, ^.+$, etc. (escaped expressions)
+    // 3. Symbol sequences: just dashes, underscores, etc. (formatting)
+    // 4. Common BMC header keywords alone: COSTS, REVENUES, etc. (cell names, not content)
+    const excludePatterns = [
+        /^\s*\[[A-Z0-9$^+\-\*]+\]\s*/,      // [XX], [C$], [R$], [^+], etc.
+        /^\s*[\^\.\+\*\$\|\\]+[\^\.\+\*\$\|\\]*\s*$/,  // Regex patterns: ^, $, ^.+$, .*, etc.
+        /^\s*[\-\_\*\+\^]+\s*$/,            // Just dashes, underscores, symbols
+        /^\s*(COSTS|REVENUES|COST|REVENUE|KEY\s+PARTNERS|KEY\s+ACTIVITIES|KEY\s+RESOURCES|CUSTOMER\s+SEGMENTS|VALUE\s+PROPOSITIONS|CHANNELS|CUSTOMER\s+RELATIONSHIPS)\s*$/i  // Exact cell header names
+    ];
+    
+    for (const key in dataObject) {
+        if (Array.isArray(dataObject[key])) {
+            filteredData[key] = dataObject[key].filter((item, index, arr) => {
+                const trimmed = item.trim();
+                
+                // Skip empty strings
+                if (!trimmed) return false;
+                
+                // Exclude if matches any metadata pattern
+                if (excludePatterns.some(pattern => pattern.test(trimmed))) {
+                    return false;
+                }
+                
+                // Exclude if it's a duplicate in this array (keep only first occurrence)
+                return arr.indexOf(item) === index;
+            });
+        } else {
+            filteredData[key] = dataObject[key];
+        }
+    }
+    
+    return filteredData;
+}
+
+let bmcData = extractBMCData();
+bmcData = filterCellHeaders(bmcData);
+
+// HD resolution multiplier: 2x = double resolution for crisp output
+const RESOLUTION_SCALE = 2;
+const BASE_WIDTH = 980;
+const BASE_HEIGHT = 1080;
+const EXPORT_WIDTH = BASE_WIDTH * RESOLUTION_SCALE;
+const EXPORT_HEIGHT = BASE_HEIGHT * RESOLUTION_SCALE;
+
+try {
+    // Import SWT classes
+    const Display = Java.type('org.eclipse.swt.widgets.Display');
+    const Shell = Java.type('org.eclipse.swt.widgets.Shell');
+    const Composite = Java.type('org.eclipse.swt.widgets.Composite');
+    const Canvas = Java.type('org.eclipse.swt.widgets.Canvas');
+    const Button = Java.type('org.eclipse.swt.widgets.Button');
+    const Label = Java.type('org.eclipse.swt.widgets.Label');
+    const SWT = Java.type('org.eclipse.swt.SWT');
+    const GridLayout = Java.type('org.eclipse.swt.layout.GridLayout');
+    const GridData = Java.type('org.eclipse.swt.layout.GridData');
+    const Font = Java.type('org.eclipse.swt.graphics.Font');
+    const FontData = Java.type('org.eclipse.swt.graphics.FontData');
+    const Color = Java.type('org.eclipse.swt.graphics.Color');
+    const RGB = Java.type('org.eclipse.swt.graphics.RGB');
+    const PaintListener = Java.type('org.eclipse.swt.events.PaintListener');
+    const SelectionAdapter = Java.type('org.eclipse.swt.events.SelectionAdapter');
+    
+    const display = Display.getCurrent();
+    if (!display) {
+        logOutput('ERROR: Could not get SWT Display');
+        closeLog();
+        exit();
+    }
+    
+    const shell = new Shell(display, SWT.SHELL_TRIM | SWT.RESIZE);
+    shell.setText('Business Model Canvas - The Visual Representation of Business Model');
+    shell.setSize(1700, 1100);
+    
+    const layout = new GridLayout(1, false);
+    layout.marginWidth = 10;
+    layout.marginHeight = 10;
+    layout.verticalSpacing = 5;
+    shell.setLayout(layout);
+    
+    // Title
+    const titleLabel = new Label(shell, SWT.CENTER);
+    titleLabel.setText('Business Model Canvas');
+    const titleFont = new Font(display, new FontData('Arial', 18, SWT.BOLD));
+    titleLabel.setFont(titleFont);
+    titleLabel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+    
+    // Canvas for drawing (with vertical scroll)
+    const canvas = new Canvas(shell, SWT.V_SCROLL | SWT.BORDER);
+    canvas.setLayoutData(new GridData(GridData.FILL_BOTH));
+    
+    // Set virtual size for scrolling
+    const totalCanvasWidth = 980;
+    const totalCanvasHeight = 1080;
+    
+    // Get scroll bar and set its maximum
+    const vScrollBar = canvas.getVerticalBar();
+    if (vScrollBar) {
+        vScrollBar.setMaximum(totalCanvasHeight);
+        vScrollBar.setThumb(300);
+        vScrollBar.setPageIncrement(100);
+    }
+    
+    // Track scroll position
+    let scrollY = 0;
+    
+    // Add scroll listener
+    if (vScrollBar) {
+        const ScrollBarListener = Java.type('org.eclipse.swt.events.SelectionAdapter');
+        const ScrollListener = Java.extend(ScrollBarListener, {
+            widgetSelected: function(e) {
+                scrollY = vScrollBar.getSelection();
+                canvas.redraw();
+            }
+        });
+        vScrollBar.addSelectionListener(new ScrollListener());
+    }
+    
+    // Colors
+    const bgColor = new Color(display, new RGB(255, 255, 255));
+    const borderColor = new Color(display, new RGB(0, 0, 0));
+    const partnerColor = new Color(display, new RGB(220, 240, 255));
+    const vpColor = new Color(display, new RGB(255, 240, 220));
+    const segmentColor = new Color(display, new RGB(240, 255, 220));
+    
+    canvas.setBackground(bgColor);
+    
+    // Paint BMC - using Java.extend to properly implement the PaintListener interface
+    const PaintListenerImpl = Java.extend(PaintListener, {
+        paintControl: function(event) {
+            const gc = event.gc;
+            gc.setForeground(borderColor);
+            gc.setBackground(bgColor);
+            
+            // Apply scroll offset
+            gc.setClipping(0, 0, event.width, event.height);
+            
+            // Margins
+            const marginX = 20;
+            const marginY = 20 - scrollY;  // Apply scroll offset
+            const cellWidth = 300;
+            const cellHeight = 340;
+            const spacing = 15;
+            
+            // Helper function to draw cell
+            function drawCell(x, y, width, height, title, items, bgColor) {
+                // Only draw if cell is visible
+                if (y + height < -50 || y > event.height + 50) return;
+                
+                gc.setBackground(bgColor);
+                gc.fillRectangle(x, y, width, height);
+                gc.setLineWidth(2);
+                gc.drawRectangle(x, y, width, height);
+                
+                if (title && title.length > 0) {
+                    const titleFont = new Font(display, new FontData('Arial', 10, SWT.BOLD));
+                    gc.setFont(titleFont);
+                    gc.setForeground(new Color(display, new RGB(0, 0, 0)));
+                    gc.drawText(title, x + 8, y + 5, true);
+                }
+                
+                const textFont = new Font(display, new FontData('Arial', 6, SWT.NORMAL));
+                gc.setFont(textFont);
+                const lineHeight = 9;
+                const contentWidth = width - 16;
+                
+                // Draw items in single column, filling full width
+                let itemIndex = 0;
+                for (let i = 0; i < items.length && itemIndex < 50; i++) {
+                    const text = '• ' + items[i];
+                    
+                    // Estimate text width and wrap if needed
+                    const textExtent = gc.textExtent(text);
+                    
+                    if (textExtent.x > contentWidth) {
+                        // Text is too long - truncate with ellipsis
+                        let truncated = items[i].substring(0, Math.floor(contentWidth / 5)) + '...';
+                        const displayText = '• ' + truncated;
+                        const yPos = y + 25 + (itemIndex * lineHeight);
+                        if (yPos + lineHeight > y + height - 5) break;
+                        gc.drawText(displayText, x + 8, yPos, true);
+                    } else {
+                        const yPos = y + 25 + (itemIndex * lineHeight);
+                        if (yPos + lineHeight > y + height - 5) break;
+                        gc.drawText(text, x + 8, yPos, true);
+                    }
+                    
+                    itemIndex++;
+                }
+            }
+            
+            // Draw BMC Layout (proper 3x3 grid - 9 cells, standard BMC layout)
+            // Top row: Key Partners | Key Activities | Key Resources
+            drawCell(marginX, marginY, cellWidth, cellHeight, 'Key Partners', bmcData.partners, partnerColor);
+            drawCell(marginX + cellWidth + spacing, marginY, cellWidth, cellHeight, 'Key Activities', bmcData.activities, new Color(display, new RGB(200, 240, 200)));
+            drawCell(marginX + 2*cellWidth + 2*spacing, marginY, cellWidth, cellHeight, 'Key Resources', bmcData.resources, new Color(display, new RGB(240, 200, 200)));
+            
+            // Middle row: Customer Segments | Value Propositions (center) | Channels
+            drawCell(marginX, marginY + cellHeight + spacing, cellWidth, cellHeight, 'Customer Segments', bmcData.customerSegments, segmentColor);
+            drawCell(marginX + cellWidth + spacing, marginY + cellHeight + spacing, cellWidth, cellHeight, 'Value Propositions', bmcData.valuePropositions, vpColor);
+            drawCell(marginX + 2*cellWidth + 2*spacing, marginY + cellHeight + spacing, cellWidth, cellHeight, 'Channels', bmcData.channels, new Color(display, new RGB(240, 220, 255)));
+            
+            // Bottom row: Cost Structure | Customer Relationships | Revenue Streams
+            drawCell(marginX, marginY + 2*(cellHeight + spacing), cellWidth, cellHeight, 'Cost Structure', bmcData.costStructure, new Color(display, new RGB(255, 220, 220)));
+            drawCell(marginX + cellWidth + spacing, marginY + 2*(cellHeight + spacing), cellWidth, cellHeight, 'Customer Relationships', bmcData.customerRelationships, new Color(display, new RGB(220, 220, 255)));
+            drawCell(marginX + 2*cellWidth + 2*spacing, marginY + 2*(cellHeight + spacing), cellWidth, cellHeight, 'Revenue Streams', bmcData.revenueStreams, new Color(display, new RGB(255, 255, 200)));
+        }
+    });
+    
+    canvas.addPaintListener(new PaintListenerImpl());
+    
+    // Button bar
+    const btnComp = new Composite(shell, SWT.NONE);
+    btnComp.setLayout(new GridLayout(2, false));
+    const btnCompData = new GridData(GridData.FILL_HORIZONTAL);
+    btnCompData.heightHint = 50;
+    btnComp.setLayoutData(btnCompData);
+    
+    // Export button - save PNG to temp directory
+    const exportBtn = new Button(btnComp, SWT.PUSH);
+    exportBtn.setText('Export as Image');
+    const exportBtnData = new GridData(GridData.FILL_BOTH);
+    exportBtnData.grabExcessHorizontalSpace = true;
+    exportBtn.setLayoutData(exportBtnData);
+    
+    // Close button
+    const closeBtn = new Button(btnComp, SWT.PUSH);
+    closeBtn.setText('Close');
+    const closeBtnData = new GridData(GridData.FILL_BOTH);
+    closeBtnData.grabExcessHorizontalSpace = true;
+    closeBtn.setLayoutData(closeBtnData);
+    
+    logOutput('[DEBUG] Creating export button listener...');
+    
+    // Export button listener - use same pattern as Close button
+    const SelectionAdapterExport = Java.extend(SelectionAdapter, {
+        widgetSelected: function(e) {
+            console.log('[LISTENER FIRED] Export button');
+            logOutput('\n=== EXPORT BUTTON CLICKED ===');
+            
+            try {
+                const System = Java.type('java.lang.System');
+                const File = Java.type('java.io.File');
+                const Image = Java.type('org.eclipse.swt.graphics.Image');
+                const GC = Java.type('org.eclipse.swt.graphics.GC');
+                const ImageLoader = Java.type('org.eclipse.swt.graphics.ImageLoader');
+                
+                const tmpDir = System.getProperty('java.io.tmpdir');
+                const fileName = 'BMC_' + System.currentTimeMillis() + '.png';
+                const exportFile = new File(tmpDir, fileName);
+                const exportPath = exportFile.getAbsolutePath();
+                
+                logOutput('Exporting to: ' + exportPath);
+                logOutput('Export resolution: ' + EXPORT_WIDTH + 'x' + EXPORT_HEIGHT + ' (HD @' + RESOLUTION_SCALE + 'x scale)');
+                
+                // Create off-screen image at HD resolution
+                const image = new Image(display, EXPORT_WIDTH, EXPORT_HEIGHT);
+                const gc = new GC(image);
+                
+                // Fill white background
+                gc.setBackground(new Color(display, new RGB(255, 255, 255)));
+                gc.fillRectangle(0, 0, EXPORT_WIDTH, EXPORT_HEIGHT);
+                
+                // Draw all 9 cells - scale all coordinates and sizes by RESOLUTION_SCALE
+                const mx = 20 * RESOLUTION_SCALE;
+                const my = 20 * RESOLUTION_SCALE;
+                const cw = 300 * RESOLUTION_SCALE;
+                const ch = 340 * RESOLUTION_SCALE;
+                const sp = 15 * RESOLUTION_SCALE;
+                
+                function drawCellToImage(x, y, w, h, title, items, bgColor) {
+                    gc.setBackground(bgColor);
+                    gc.fillRectangle(x, y, w, h);
+                    gc.setLineWidth(2 * RESOLUTION_SCALE);
+                    gc.setForeground(new Color(display, new RGB(0, 0, 0)));
+                    gc.drawRectangle(x, y, w, h);
+                    
+                    // Title - scaled font size
+                    if (title && title.length > 0) {
+                        const tf = new (Java.type('org.eclipse.swt.graphics.Font'))(display, new (Java.type('org.eclipse.swt.graphics.FontData'))('Arial', 10 * RESOLUTION_SCALE, 1));
+                        gc.setFont(tf);
+                        gc.drawText(title, x + 8 * RESOLUTION_SCALE, y + 5 * RESOLUTION_SCALE, true);
+                    }
+                    
+                    // Items - scaled font size
+                    const textFont = new (Java.type('org.eclipse.swt.graphics.Font'))(display, new (Java.type('org.eclipse.swt.graphics.FontData'))('Arial', 6 * RESOLUTION_SCALE, 0));
+                    gc.setFont(textFont);
+                    const lineHeight = 9 * RESOLUTION_SCALE;
+                    
+                    for (let i = 0; i < items.length && i < 50; i++) {
+                        const yPos = y + 25 * RESOLUTION_SCALE + (i * lineHeight);
+                        if (yPos + lineHeight > y + h - 5 * RESOLUTION_SCALE) break;
+                        gc.drawText('• ' + items[i], x + 8 * RESOLUTION_SCALE, yPos, true);
+                    }
+                }
+                
+                // Draw all 9 cells with their data
+                drawCellToImage(mx, my, cw, ch, 'Key Partners', bmcData.partners, new Color(display, new RGB(220, 240, 255)));
+                drawCellToImage(mx + cw + sp, my, cw, ch, 'Key Activities', bmcData.activities, new Color(display, new RGB(200, 240, 200)));
+                drawCellToImage(mx + 2*cw + 2*sp, my, cw, ch, 'Key Resources', bmcData.resources, new Color(display, new RGB(240, 200, 200)));
+                drawCellToImage(mx, my + ch + sp, cw, ch, 'Customer Segments', bmcData.customerSegments, new Color(display, new RGB(240, 255, 220)));
+                drawCellToImage(mx + cw + sp, my + ch + sp, cw, ch, 'Value Propositions', bmcData.valuePropositions, new Color(display, new RGB(255, 240, 220)));
+                drawCellToImage(mx + 2*cw + 2*sp, my + ch + sp, cw, ch, 'Channels', bmcData.channels, new Color(display, new RGB(240, 220, 255)));
+                drawCellToImage(mx, my + 2*(ch + sp), cw, ch, 'Cost Structure', bmcData.costStructure, new Color(display, new RGB(255, 220, 220)));
+                drawCellToImage(mx + cw + sp, my + 2*(ch + sp), cw, ch, 'Customer Relationships', bmcData.customerRelationships, new Color(display, new RGB(220, 220, 255)));
+                drawCellToImage(mx + 2*cw + 2*sp, my + 2*(ch + sp), cw, ch, 'Revenue Streams', bmcData.revenueStreams, new Color(display, new RGB(255, 255, 200)));
+                
+                logOutput('Painted all cells to image buffer');
+                
+                // Save as PNG
+                const loader = new ImageLoader();
+                loader.data = [image.getImageData()];
+                loader.save(exportPath, 4);  // 4 = PNG
+                
+                gc.dispose();
+                image.dispose();
+                
+                if (exportFile.exists()) {
+                    logOutput('✓ PNG exported successfully');
+                    logOutput('File: ' + exportPath);
+                    logOutput('Size: ' + exportFile.length() + ' bytes');
+                } else {
+                    logOutput('✗ Export failed - file not created');
+                }
+            } catch (err) {
+                logOutput('ERROR exporting: ' + err);
+                if (err.stack) logOutput('Stack: ' + err.stack);
+            }
+        }
+    });
+    exportBtn.addSelectionListener(new SelectionAdapterExport());
+    logOutput('[DEBUG] Export listener attached successfully');
+    
+    // Close button listener
+    const SelectionAdapterClose = Java.extend(SelectionAdapter, {
+        widgetSelected: function(e) {
+            console.log('[LISTENER FIRED] Close button');
+            logOutput('\n[DEBUG] Close button clicked');
+            shell.close();
+        }
+    });
+    closeBtn.addSelectionListener(new SelectionAdapterClose());
+    logOutput('[DEBUG] Close listener attached');
+    
+    // Explicitly lay out button composite
+    btnComp.layout();
+    
+    // Pack shell to calculate proper size
+    shell.pack();
+    
+    // Force desired size (pack shrinks it, so we need to reset it)
+    shell.setSize(1400, 1000);
+    
+    // Center shell on display
+    const bounds = display.getPrimaryMonitor().getBounds();
+    const shellBounds = shell.getBounds();
+    shell.setLocation(
+        bounds.x + (bounds.width - shellBounds.width) / 2,
+        bounds.y + (bounds.height - shellBounds.height) / 2
+    );
+    
+    shell.open();
+    
+    logOutput('BMC Graphic window opened successfully');
+    logOutput('Drawing Business Model Canvas with SWT Graphics...');
+    logOutput('[DEBUG] Export button created and listener attached');
+    logOutput('[DEBUG] Shell disposed before loop? ' + shell.isDisposed());
+    
+    // Keep event loop running
+    let loopCounter = 0;
+    while (!shell.isDisposed()) {
+        loopCounter++;
+        if (!display.readAndDispatch()) {
+            display.sleep();
+        }
+        if (loopCounter === 1) {
+            logOutput('[DEBUG] Event loop is running, iteration 1');
+        }
+    }
+    
+    logOutput('[DEBUG] Event loop exited after ' + loopCounter + ' iterations');
+    logOutput('BMC Graphic window closed');
+    logOutput('='.repeat(60));
+    
+} catch (err) {
+    logOutput('ERROR: ' + err);
+    logOutput('Stack: ' + err.stack);
+} finally {
+    closeLog();
+}

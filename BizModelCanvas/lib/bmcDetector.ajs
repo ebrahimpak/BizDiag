@@ -1,0 +1,393 @@
+/**
+ * Business Model Canvas Detector
+ *
+ * --------------------------------------------------------------------------
+ *
+ * BizDiag — Intelligent Enterprise Architecture & Digital Strategy Automation
+ *
+ * Copyright © 2026 Ebrahim Pak
+ *
+ * This file is part of BizDiag.
+ *
+ * BizDiag is free software distributed under the CeCILL-B Free Software License.
+ * See the LICENSE file in the project root for the full license text.
+ *
+ * SPDX-License-Identifier: CECILL-B
+ *
+ * @author Ebrahim Pak
+ */
+
+(function() {
+    "use strict";
+    
+    if (typeof globalThis !== "undefined" && typeof globalThis.bmcDetector !== "undefined") return;
+    
+    /**
+     * Business Model Canvas Detection Utility
+     * Finds and identifies Business Model Canvas diagrams in an ArchiMate model.
+     * The BMC can be located in any view, typically Phase A: Architecture Vision.
+     */
+    
+    const bmcDetector = {
+        
+        /**
+         * Find all Business Model Canvas diagrams in the model
+         * BMC is typically represented as a diagram or view with:
+         * - Name containing "Business Model Canvas" or "BMC"
+         * - Contains the 9 building blocks: VP, KA, KR, CH, CR, CS, KP, C$, R$
+         * - Located in views (typically Architecture Vision phase)
+         */
+        findBMCDiagrams: function() {
+            const bmcDiagrams = [];
+            const self = this; // Store reference to bmcDetector object
+            
+            try {
+                // Get all views - this may fail if model context is not set
+                const allViews = $("view");
+                
+                // Search for Business Model Canvas in all views
+                for (let i = 0; i < allViews.size(); i++) {
+                    try {
+                        const viewObj = allViews.get(i);
+                        if (!viewObj) continue;
+                        
+                        // Try to get name safely
+                        let name = "unknown";
+                        if (typeof viewObj.getName === "function") {
+                            name = viewObj.getName();
+                        }
+                        
+                        if (self.isBMCDiagram(viewObj)) {
+                            bmcDiagrams.push({
+                                diagram: viewObj,
+                                name: name,
+                                viewName: name,
+                                viewNumber: i + 1  // 1-based view number
+                            });
+                        }
+                    } catch (e) {
+                        // Silently skip - some items might not have all methods
+                    }
+                }
+            } catch (e) {
+                // Model context error - re-throw with better message
+                throw new Error("Could not access model views. Make sure a model is open and selected in Archi. Error: " + e);
+            }
+            
+            return bmcDiagrams;
+        },
+        
+        /**
+         * Check if a diagram is likely a Business Model Canvas
+         * Only matches by name to avoid false positives
+         */
+        isBMCDiagram: function(diagram) {
+            if (!diagram) {
+                return false;
+            }
+            
+            const name = diagram.getName ? diagram.getName() : "";
+            
+            // Only check name contains BMC-related keywords
+            // This avoids false positives from diagrams that happen to contain
+            // words like "Channel" or "Relationship" in their names or elements
+            return /business\s*model\s*canvas|BMC/i.test(name);
+        },
+        
+        /**
+         * Get the parent view/folder of a diagram
+         */
+        getParentView: function(diagram) {
+            // For canvas models, get the parent folder
+            return diagram.parent ? diagram.parent : diagram;
+        },
+        
+        /**
+         * Extract building blocks from a BMC diagram
+         * Returns an object with arrays for each of the 9 building blocks
+         * Each block element includes: element, name, type, and connections array
+         */
+        extractBuildingBlocks: function(bmcDiagram) {
+            const blocks = {
+                VP: [],   // Value Proposition
+                KA: [],   // Key Activities
+                KR: [],   // Key Resources
+                CH: [],   // Channels
+                CR: [],   // Customer Relationships
+                CS: [],   // Customer Segments
+                KP: [],   // Key Partners
+                'C$': [], // Cost Structure
+                'R$': []  // Revenue Streams
+            };
+            
+            // Mapping of block abbreviations to matching patterns
+            const blockPatterns = {
+                VP: /\[?VP\]?|VALUE\s*PROPOSITION|PROPOSITION/i,
+                KA: /\[?KA\]?|KEY\s*ACTIVIT|ACTIVIT/i,
+                KR: /\[?KR\]?|KEY\s*RESOURCE|RESOURCE/i,
+                CH: /\[?CH\]?|CHANNEL/i,
+                CR: /\[?CR\]?|CUSTOMER\s*RELATIONSHIP|CUSTOMER\s*RELATION|RELATION/i,
+                CS: /\[?CS\]?|CUSTOMER\s*SEGMENT|SEGMENT/i,
+                KP: /\[?KP\]?|KEY\s*PARTNER|PARTNER/i,
+                'C$': /\[?C\$\]?|COST\s*STRUCTURE|COST/i,
+                'R$': /\[?R\$\]?|REVENUE|INCOME|STREAM/i
+            };
+            
+            // Get children - could be canvas-model-block or regular elements
+            const elements = $(bmcDiagram).children();
+            
+            // Use safe indexed access instead of .each() for better GraalJS compatibility
+            for (let i = 0; i < elements.size(); i++) {
+                const element = elements.get(i);
+                if (!element) continue;
+                
+                // Safely get name - check if method exists
+                let name = "";
+                if (typeof element.getName === "function") {
+                    try {
+                        name = (element.getName() || "").toUpperCase();
+                    } catch (e) {
+                        name = "";
+                    }
+                }
+                
+                let type = "";
+                if (typeof element.getType === "function") {
+                    try {
+                        type = element.getType();
+                    } catch (e) {
+                        type = "";
+                    }
+                }
+                
+                // Try to match to a building block using improved patterns
+                for (const block in blockPatterns) {
+                    if (blockPatterns[block].test(name)) {
+                        blocks[block].push({
+                            element: element,
+                            name: name || "unknown",
+                            type: type
+                        });
+                        break;
+                    }
+                }
+            }
+            
+            return blocks;
+        },
+        
+        /**
+         * Extract actual connections between BMC building blocks from the diagram
+         * Searches for both model relationships and diagram visual connections
+         * Returns an array of connection objects: { sourceBlock, targetBlock, type }
+         */
+        extractBMCConnections: function(bmcDiagram, buildingBlocks) {
+            const connections = [];
+            
+            if (!bmcDiagram || !buildingBlocks) return connections;
+            
+            try {
+                // Build a map of elements to their block types for fast lookup
+                const elementToBlock = {};
+                for (let block in buildingBlocks) {
+                    for (let j = 0; j < buildingBlocks[block].length; j++) {
+                        const elem = buildingBlocks[block][j];
+                        if (elem.element) {
+                            // Try to use a unique identifier
+                            const elemKey = elem.element.id || elem.element.name || elem.element.toString();
+                            elementToBlock[elemKey] = block;
+                        }
+                    }
+                }
+                
+                console.log("  [DETECTOR] Built element-to-block map with " + Object.keys(elementToBlock).length + " entries");
+                
+                // Strategy 1: Look for model relationships between BMC elements
+                console.log("  [DETECTOR] Searching for explicit relationships...");
+                const relationships = $(bmcDiagram).children("relationship");
+                console.log("  [DETECTOR] Found " + relationships.size() + " total relationship(s) in diagram");
+                
+                for (let i = 0; i < relationships.size(); i++) {
+                    try {
+                        const rel = relationships.get(i);
+                        if (!rel) continue;
+                        
+                        const source = rel.getSource ? rel.getSource() : null;
+                        const target = rel.getTarget ? rel.getTarget() : null;
+                        
+                        if (!source || !target) continue;
+                        
+                        const sourceKey = source.id || source.name || source.toString();
+                        const targetKey = target.id || target.name || target.toString();
+                        
+                        const sourceBlock = elementToBlock[sourceKey];
+                        const targetBlock = elementToBlock[targetKey];
+                        
+                        if (sourceBlock && targetBlock && sourceBlock !== targetBlock) {
+                            connections.push({
+                                sourceBlock: sourceBlock,
+                                targetBlock: targetBlock,
+                                sourceElement: source,
+                                targetElement: target,
+                                relationship: rel,
+                                type: "model-relationship"
+                            });
+                            console.log("    ✓ Found: " + sourceBlock + " → " + targetBlock);
+                        }
+                    } catch (e) {
+                        // Skip problematic relationships
+                    }
+                }
+                
+                // Strategy 2: Look for diagram connections (visual connectors)
+                console.log("  [DETECTOR] Searching for diagram visual connections...");
+                try {
+                    const diagramConnections = $(bmcDiagram).children("diagram-connection");
+                    console.log("  [DETECTOR] Found " + diagramConnections.size() + " diagram connection(s)");
+                    
+                    for (let i = 0; i < diagramConnections.size(); i++) {
+                        try {
+                            const conn = diagramConnections.get(i);
+                            if (!conn) continue;
+                            
+                            // Try to get source and target from diagram connection
+                            let source = null;
+                            let target = null;
+                            
+                            // Different APIs depending on jArchi version
+                            if (typeof conn.getSource === "function") source = conn.getSource();
+                            else if (typeof conn.source === "function") source = conn.source();
+                            else if (conn.source) source = conn.source;
+                            
+                            if (typeof conn.getTarget === "function") target = conn.getTarget();
+                            else if (typeof conn.target === "function") target = conn.target();
+                            else if (conn.target) target = conn.target;
+                            
+                            if (!source || !target) continue;
+                            
+                            const sourceKey = source.id || source.name || source.toString();
+                            const targetKey = target.id || target.name || target.toString();
+                            
+                            const sourceBlock = elementToBlock[sourceKey];
+                            const targetBlock = elementToBlock[targetKey];
+                            
+                            if (sourceBlock && targetBlock && sourceBlock !== targetBlock) {
+                                connections.push({
+                                    sourceBlock: sourceBlock,
+                                    targetBlock: targetBlock,
+                                    sourceElement: source,
+                                    targetElement: target,
+                                    connection: conn,
+                                    type: "diagram-connection"
+                                });
+                                console.log("    ✓ Found: " + sourceBlock + " → " + targetBlock + " (visual)");
+                            }
+                        } catch (e) {
+                            // Skip problematic diagram connections
+                        }
+                    }
+                } catch (e) {
+                    // Diagram connections might not be available
+                }
+                
+                // Strategy 3: Infer from spatial proximity (if no explicit connections found)
+                if (connections.length === 0) {
+                    console.log("  [DETECTOR] No explicit connections found. Using spatial proximity heuristics...");
+                    connections.push.apply(connections, this.inferConnectionsFromProximity(bmcDiagram, buildingBlocks));
+                }
+                
+            } catch (e) {
+                console.log("  [DETECTOR] Error extracting connections: " + e);
+            }
+            
+            return connections;
+        },
+        
+        /**
+         * Infer likely connections between BMC blocks based on spatial proximity
+         * This is a heuristic approach for BMC diagrams that don't have explicit relationships
+         */
+        inferConnectionsFromProximity: function(bmcDiagram, buildingBlocks) {
+            const inferred = [];
+            
+            try {
+                // Standard BMC layout:
+                // Left column: KP, CH, KA (left-to-right flow inputs)
+                // Center: CS, VP, CR (customer focus)
+                // Right: R$ (revenue)
+                // Bottom: C$ (costs)
+                
+                // Get diagram children to analyze positioning
+                const allElements = $(bmcDiagram).children();
+                const blockPositions = {};
+                
+                // Analyze positions of each building block
+                for (let block in buildingBlocks) {
+                    if (buildingBlocks[block].length > 0) {
+                        const elem = buildingBlocks[block][0];
+                        if (elem.element) {
+                            try {
+                                let x = 0, y = 0;
+                                // Try to get bounds if available
+                                if (typeof elem.element.getBounds === "function") {
+                                    const bounds = elem.element.getBounds();
+                                    if (bounds) {
+                                        x = bounds.x || 0;
+                                        y = bounds.y || 0;
+                                    }
+                                }
+                                blockPositions[block] = { x: x, y: y, element: elem };
+                            } catch (e) {
+                                // Skip elements without position
+                            }
+                        }
+                    }
+                }
+                
+                console.log("    Analyzed " + Object.keys(blockPositions).length + " block positions");
+                
+                // Define standard BMC connection patterns
+                const bmcPatterns = [
+                    // Left side to center
+                    { from: "KP", to: "KA" },
+                    { from: "KP", to: "CH" },
+                    { from: "CH", to: "CS" },
+                    { from: "KA", to: "CH" },
+                    // Center relationships
+                    { from: "VP", to: "CS" },
+                    { from: "CR", to: "CS" },
+                    { from: "CS", to: "R$" },
+                    // Core to support
+                    { from: "VP", to: "KA" },
+                    { from: "CR", to: "R$" },
+                    { from: "KA", to: "KR" },
+                    { from: "KA", to: "KP" },
+                    { from: "KA", to: "C$" }
+                ];
+                
+                // Check which patterns are feasible (both blocks exist)
+                bmcPatterns.forEach(function(pattern) {
+                    if (buildingBlocks[pattern.from] && buildingBlocks[pattern.from].length > 0 &&
+                        buildingBlocks[pattern.to] && buildingBlocks[pattern.to].length > 0) {
+                        inferred.push({
+                            sourceBlock: pattern.from,
+                            targetBlock: pattern.to,
+                            sourceElement: buildingBlocks[pattern.from][0].element,
+                            targetElement: buildingBlocks[pattern.to][0].element,
+                            type: "inferred-proximity"
+                        });
+                        console.log("    ✓ Inferred: " + pattern.from + " → " + pattern.to);
+                    }
+                });
+                
+            } catch (e) {
+                console.log("    Error in proximity inference: " + e);
+            }
+            
+            return inferred;
+        }
+    };
+    
+    if (typeof globalThis !== "undefined") globalThis.bmcDetector = bmcDetector;
+    if (typeof module !== "undefined" && module.exports) module.exports = bmcDetector;
+})();
