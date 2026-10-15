@@ -1,6 +1,10 @@
 # BizDiag
 ## Intelligent Enterprise Architecture & Digital Strategy Automation
 
+<p align="center">
+  <img src="logo/BizDiag_Logo.png" alt="BizDiag Logo" width="300">
+</p>
+
 BizDiag™ is an open-source software suite that transforms ArchiMate® models into structured, analyzable data to support 
 Enterprise Architecture (EA) intelligence, Business–IT alignment analysis, and Business Model Canvas (BMC) synthesis and 
 visualization. BizDiag™ is composed of modules that perform Enterprise Architecture automation, architecture 
