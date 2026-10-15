@@ -1833,7 +1833,7 @@ console.show();
   });
 
   // ============= NEW STRATEGIC PLANNING ALIGNMENT CHECKS (STR.61-STR.67) =============
-  // From Research Paper 2: "Exploring Business Strategy Modelling with ArchiMate"
+  // From Research Paper 2
   // These checks validate strategic planning process completeness and driver-response alignment
 
   heading(getHeadingString("STR.61", "Vision exists but lacks supporting mission mapping"));
@@ -3279,7 +3279,7 @@ console.show();
   });
 
   // ============= OPERATIONAL BUSINESS-IT ALIGNMENT CHECKS (OB.68-OB.79) =============
-  // From Research Paper 4: "Assessing Operational Business-IT Alignment for Architecture Improvement"
+  // From Research Paper 4:
   // These checks validate operational alignment between business processes and application implementations
 
   heading(getHeadingString("OB.68", "Application Function Unused by Business (Orphaned IT Functionality)"));
