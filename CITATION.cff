@@ -9,7 +9,7 @@ authors:
 version: "1.0.0"
 date-released: "2026"
 license: CECILL-B
-repository-code: "https://github.com/YOUR-USERNAME/BizDiag"
+repository-code: "https://github.com/ebrahimpak/BizDiag"
 abstract: >
   BizDiag is an open-source software suite for intelligent enterprise
   architecture and digital strategy automation. It combines ArchiMate,
