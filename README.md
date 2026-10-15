@@ -157,7 +157,7 @@ Architecture model interaction from AI inference. It is organized around two cor
 │   ├── AI_REST_JSON.js
 │   ├── Ollama_Olalla.ajs
 │   ├── Mark_it_Down.ajs
-│   └── AI_REST_JSON_Netty.js (if you keep it)
+│
 │
 └── UML Subsystem
     ├── Application_View_to_UML.ajs
