@@ -124,7 +124,7 @@ const RETRY_DELAY = 6000;
  *
  * In this function, 'async' allows us to use 'await' for the network call, writing asynchronous code that reads like synchronous code.
  */
-async function sendToAI(prompt, element, isReplacement = false) {
+async function sendToAI(prompt, element, isReplacement = false, modelName) {
   let connection = null;
   console.log(
     "sendToAI invoked (prompt length:",
@@ -171,9 +171,9 @@ async function sendToAI(prompt, element, isReplacement = false) {
     connection.setDoOutput(true); // Enable request body writing
     connection.setRequestProperty("Content-Type", "application/json");
 
-    // Prepare JSON request body
+    // Prepare JSON request body. modelName may be provided by caller; fall back to existing default for compatibility.
     const body = JSON.stringify({
-      model: "llama3.1:latest",
+      model: modelName || "qwen2.5-coder:7b",
       prompt: prompt,
       stream: false, // Non-streaming mode for simpler response handling
     });
@@ -635,7 +635,8 @@ async function retryOperation(operation) {
  *     handled automatically.
  *     - This makes the API of this module simpler and more robust.
  */
-module.exports = function (prompt, element, isReplacement) {
-  console.log("AI wrapper invoked — delegating to retryOperation");
-  return retryOperation(() => sendToAI(prompt, element, isReplacement));
+// Exported wrapper: maintain backward compatibility but accept an optional 4th parameter 'modelName'.
+module.exports = function (prompt, element, isReplacement, modelName) {
+  console.log("AI wrapper invoked — delegating to retryOperation", modelName ? `model=${modelName}` : "(default model)");
+  return retryOperation(() => sendToAI(prompt, element, isReplacement, modelName));
 };

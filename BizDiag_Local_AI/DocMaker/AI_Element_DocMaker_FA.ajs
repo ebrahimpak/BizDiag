@@ -136,25 +136,127 @@ else if (updateDocumentation == "1") {
 0 isn't possible because the function adds 1 to all results. If Cancel is clicked (result = 3),
 it returns null, which doesn't match any conditions and effectively does nothing. */
 function kewud(message, options) {
+  // Enhanced dialog: supports optional models dropdown when caller passes a third parameter.
+  // Backwards-compatible signature: kewud(message, options) -> returns string as before.
+  // New signature: kewud(message, options, modelsArray) -> returns { choice: string|null, model: string }
+  const args = Array.prototype.slice.call(arguments);
+  const models = args.length >= 3 ? args[2] : null;
+
   const tmpShell = new org.eclipse.swt.widgets.Shell(
     shell,
     org.eclipse.swt.SWT.DIALOG_TRIM |
       org.eclipse.swt.SWT.APPLICATION_MODAL |
       org.eclipse.swt.SWT.RIGHT_TO_LEFT
   );
+  tmpShell.setText("تجزیه‌وتحلیل اِلمان انتخاب‌شده");
+  tmpShell.setLayout(new GridLayout(1, false));
 
-  var dialog = new org.eclipse.jface.dialogs.MessageDialog(
-    tmpShell, // parent global shell
-    "تجزیه‌وتحلیل اِلمان انتخاب‌شده", // dialog title
-    img, //SWT’s Image constructor treats relative paths relative to the JVM working directory, so we put it next to the script
-    message, // message to display
-    org.eclipse.jface.dialogs.MessageDialog.QUESTION, // dialog type (QUESTION == 3)
-    options.concat(["لغو"]), // buttons array
-    0 // default button index
-  );
+  // Message label
+  const msgLabel = new org.eclipse.swt.widgets.Label(tmpShell, SWT.WRAP);
+  msgLabel.setText(message);
+  msgLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 
-  var result = dialog.open();
-  return result == options.length ? null : (result + 1).toString();
+  // Model selector (optional)
+  let combo = null;
+  if (models && Array.isArray(models) && models.length > 0) {
+    const comboLabel = new org.eclipse.swt.widgets.Label(tmpShell, SWT.NONE);
+    comboLabel.setText("انتخاب مدل هوش مصنوعی:");
+    comboLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
+    combo = new org.eclipse.swt.widgets.Combo(tmpShell, SWT.DROP_DOWN | SWT.READ_ONLY);
+    combo.setItems(models);
+    combo.select(0);
+    combo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+  }
+
+  // Buttons area
+  const buttonComposite = new org.eclipse.swt.widgets.Composite(tmpShell, SWT.NONE);
+  buttonComposite.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
+  buttonComposite.setLayout(new GridLayout(options.length + 1, false));
+
+  // Create option buttons
+  const btns = [];
+  for (let i = 0; i < options.length; i++) {
+    const b = new Button(buttonComposite, SWT.PUSH);
+    b.setText(options[i]);
+    btns.push(b);
+  }
+  // Cancel button
+  const cancelBtn = new Button(buttonComposite, SWT.PUSH);
+  cancelBtn.setText("لغو");
+
+  // Result holders
+  let chosen = null;
+  let selectedModel = null;
+
+  const listener = new Listener({
+    handleEvent: function (e) {
+      for (let i = 0; i < btns.length; i++) {
+        if (e.widget === btns[i]) {
+          chosen = (i + 1).toString();
+          break;
+        }
+      }
+      if (e.widget === cancelBtn) chosen = null;
+
+      // Read combo selection BEFORE closing the shell to avoid "Widget is disposed" exceptions
+      if (combo) {
+        try {
+          const sel = combo.getSelectionIndex();
+          if (sel >= 0) selectedModel = combo.getItem(sel);
+        } catch (err) {
+          selectedModel = null;
+        }
+      }
+
+      tmpShell.close();
+    },
+  });
+
+  // Attach listeners
+  btns.forEach((b) => b.addListener(SWT.Selection, listener));
+  cancelBtn.addListener(SWT.Selection, listener);
+
+  tmpShell.pack();
+  tmpShell.open();
+  while (!tmpShell.isDisposed()) {
+    if (!display.readAndDispatch()) display.sleep();
+  }
+
+  if (models) {
+    return { choice: chosen, model: selectedModel };
+  }
+  return chosen;
+}
+
+/**
+ * Run `ollama list` on the host and return an array of model names (or null on failure).
+ */
+function getOllamaModels() {
+  try {
+    const ProcessBuilder = Java.type("java.lang.ProcessBuilder");
+    const InputStreamReader = Java.type("java.io.InputStreamReader");
+    const BufferedReader = Java.type("java.io.BufferedReader");
+    const pb = new ProcessBuilder("ollama", "list");
+    pb.redirectErrorStream(true);
+    const proc = pb.start();
+    const reader = new BufferedReader(new InputStreamReader(proc.getInputStream(), "UTF-8"));
+    const models = [];
+    let line;
+    while ((line = reader.readLine()) !== null) {
+      line = line.trim();
+      if (!line) continue;
+      if (/^name\b|^model\b|^-+$/i.test(line)) continue; // skip headers/separators
+      const token = line.split(/\s+/)[0];
+      if (token && models.indexOf(token) === -1) models.push(token);
+    }
+    reader.close();
+    try { proc.waitFor(); } catch (e) {}
+    return models.length > 0 ? models : null;
+  } catch (error) {
+    console.log("Error running ollama list:", error);
+    return null;
+  }
 }
 
 const dasView = $(selection).filter("archimate-diagram-model");
@@ -324,14 +426,33 @@ async function processComponents(components) {
       parag.documentation
     );
 
-    // First get the user's choice
+    // First get the user's choice (show model selector populated from Ollama)
     console.log("Showing initial dialog for user choice...");
-    var updateDocumentation = kewud(
+    let models = null;
+    try {
+      models = getOllamaModels();
+      console.log("Found Ollama models:", models);
+    } catch (err) {
+      console.log("Unable to fetch Ollama models:", err);
+      models = null;
+    }
+
+    const kewudResult = kewud(
       `\n\u202Bتجزیه‌وتحلیل برای اِلِمانِ:\n\u202C:${parag.name}`,
-      ["جایگزینی مستندات", "الحاق به مستندات", "ایجاد اِلِمان ارزیابی"]
+      ["جایگزینی مستندات", "الحاق به مستندات", "ایجاد اِلِمان ارزیابی"],
+      models
     );
 
-    console.log("User selected option:", updateDocumentation);
+    let updateDocumentation = null;
+    let selectedModel = null;
+    if (kewudResult && typeof kewudResult === "object") {
+      updateDocumentation = kewudResult.choice;
+      selectedModel = kewudResult.model;
+    } else {
+      updateDocumentation = kewudResult;
+    }
+
+    console.log("User selected option:", updateDocumentation, "model:", selectedModel);
 
     if (!updateDocumentation) {
       console.log("User cancelled - skipping this component");
@@ -351,7 +472,8 @@ async function processComponents(components) {
       parag,
       markdownContent,
       updateDocumentation === "1", // true if Replace Documentation was chosen.
-      components.length > 1 ? `${idx + 1}/${components.length}` : null
+      components.length > 1 ? `${idx + 1}/${components.length}` : null,
+      selectedModel
     );
 
     console.log("Analysis generated, length:", summary ? summary.length : 0);
@@ -474,7 +596,8 @@ function generateAnalysis(
     parag,
     theContext,
     isReplacement = false,
-    progressText = null
+    progressText = null,
+    modelName = null
 ) {
   let componentPrompt = `Component Name: \"${
       parag.name
@@ -520,14 +643,15 @@ function generateAnalysis(
   while (display.readAndDispatch()) {} // Process UI events to ensure the dialog is drawn immediately.
   // --- End of "Please Wait" dialog ---
 
-  try {
-    const result = ai(
+    try {
+      const result = ai(
         `${promptTemplate}, analyse ${componentPrompt} in the context of:\n ${theContext}`,
         parag,
-        isReplacement
-    ); // Sends the complete prompt to the AI service with proper isReplacement flag
-    return result;
-  } finally {
+        isReplacement,
+        modelName
+      ); // Sends the complete prompt to the AI service with proper isReplacement flag and optional model
+      return result;
+    } finally {
     // Ensure the wait dialog is closed even if an error occurs
     if (waitShell && !waitShell.isDisposed()) {
       waitShell.close();
