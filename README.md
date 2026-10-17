@@ -1,7 +1,7 @@
 # BizDiag
 ## Intelligent Enterprise Architecture & Digital Strategy Automation
 
-<p>
+<p align="center">
   <img src="logo/BizDiag_Logo.png" alt="BizDiag Logo" width="300">
 </p>
 
