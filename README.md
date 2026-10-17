@@ -233,7 +233,6 @@ directory management. The following are the jArchi scripts and JavaScript files 
 | `Mark_it_Down.ajs`           | Provides Markdown export functionality for selected Archi views and elements                                                                                                                   |
 | `Ollama_Olalla.ajs`          | Provides integration with the locally installed Ollama AI runtime                                                                                                                              |
 | `sendToAI.js`                | Simple HTTP client wrapper for querying Ollama (used by Application_View_to_UML.ajs only; independent of AI_REST_JSON.js)                                                                      |
-|
 
 ### Ollama model selection (interactive)
 
@@ -260,7 +259,7 @@ requirements.
 
 ```
 ================================================================================
-        `BizDiag_Local_AI`: High-Level Architectural Overview
+        BizDiag_Local_AI: High-Level Architectural Overview
 ================================================================================
 ```
 ```
