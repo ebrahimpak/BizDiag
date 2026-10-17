@@ -222,29 +222,25 @@ function kewud(message, options) {
         try {
           // Check widget disposed state first
           if (typeof combo.isDisposed === 'function') {
-            if (combo.isDisposed()) {
-              console.log('kewud: combo already disposed before reading selection');
-            } else {
-              const sel = combo.getSelectionIndex();
-              console.log('kewud: combo selection index =', sel);
-              if (sel >= 0) {
-                try {
-                  selectedModel = combo.getItem(sel);
-                  console.log('kewud: selectedModel =', selectedModel);
-                } catch (innerErr) {
-                  console.log('kewud: error reading combo item:', innerErr);
-                  selectedModel = null;
+              if (combo.isDisposed()) {
+                // combo disposed; skip reading
+              } else {
+                const sel = combo.getSelectionIndex();
+                if (sel >= 0) {
+                  try {
+                    selectedModel = combo.getItem(sel);
+                  } catch (innerErr) {
+                    selectedModel = null;
+                  }
                 }
               }
-            }
           } else {
             // Fallback: attempt to read safely
             const sel = combo.getSelectionIndex();
             if (sel >= 0) selectedModel = combo.getItem(sel);
           }
         } catch (err) {
-          // widget may already be disposed in rare race conditions; log and ignore
-          console.log('kewud: exception while reading combo selection:', err);
+          // widget may already be disposed in rare race conditions; ignore
           selectedModel = null;
         }
       }
