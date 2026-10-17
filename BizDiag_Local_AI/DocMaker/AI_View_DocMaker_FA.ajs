@@ -89,27 +89,122 @@ function forceRTL(text) {
     .join("\n");
 }
 
-// Dialog helper function
+// Enhanced dialog helper: supports optional models dropdown (RTL, backwards compatible)
+function getOllamaModels() {
+  try {
+    const ProcessBuilder = Java.type("java.lang.ProcessBuilder");
+    const InputStreamReader = Java.type("java.io.InputStreamReader");
+    const BufferedReader = Java.type("java.io.BufferedReader");
+    const pb = new ProcessBuilder("ollama", "list");
+    pb.redirectErrorStream(true);
+    const proc = pb.start();
+    const reader = new BufferedReader(new InputStreamReader(proc.getInputStream(), "UTF-8"));
+    const models = [];
+    let line;
+    while ((line = reader.readLine()) !== null) {
+      line = line.trim();
+      if (!line) continue;
+      if (/^name\b|^model\b|^-+$/i.test(line)) continue; // skip headers/separators
+      const token = line.split(/\s+/)[0];
+      if (token && models.indexOf(token) === -1) models.push(token);
+    }
+    reader.close();
+    try { proc.waitFor(); } catch (e) {}
+    return models.length > 0 ? models : null;
+  } catch (error) {
+    console.log("Error running ollama list:", error);
+    return null;
+  }
+}
+
 function kewud(message, options) {
+  // Backwards-compatible wrapper: if a third argument (models) is provided, return { choice, model }
+  const args = Array.prototype.slice.call(arguments);
+  const models = args.length >= 3 ? args[2] : null;
+
   const tmpShell = new org.eclipse.swt.widgets.Shell(
     shell,
     SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RIGHT_TO_LEFT
   );
 
   shell.setTextDirection(SWT.RIGHT_TO_LEFT);
+  tmpShell.setLayout(new GridLayout(1, false));
 
-  var dialog = new org.eclipse.jface.dialogs.MessageDialog(
-    tmpShell,
-    "مستندسازی نما",
-    null,
-    message,
-    3,
-    options.concat(["لغو"]),
-    0
-  );
+  const msgLabel = new org.eclipse.swt.widgets.Label(tmpShell, SWT.WRAP);
+  msgLabel.setText(message);
+  msgLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 
-  var result = dialog.open();
-  return result == options.length ? null : (result + 1).toString();
+  let combo = null;
+  if (models && Array.isArray(models) && models.length > 0) {
+    const comboLabel = new org.eclipse.swt.widgets.Label(tmpShell, SWT.NONE);
+    comboLabel.setText(forceRTL("انتخاب مدل هوش مصنوعی:"));
+    comboLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
+    combo = new org.eclipse.swt.widgets.Combo(tmpShell, SWT.DROP_DOWN | SWT.READ_ONLY);
+    combo.setItems(models);
+    combo.select(0);
+    combo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+  }
+
+  const buttonComposite = new org.eclipse.swt.widgets.Composite(tmpShell, SWT.NONE);
+  buttonComposite.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
+  buttonComposite.setLayout(new GridLayout(options.length + 1, false));
+
+  const btns = [];
+  for (let i = 0; i < options.length; i++) {
+    const b = new Button(buttonComposite, SWT.PUSH);
+    b.setText(options[i]);
+    btns.push(b);
+  }
+  const cancelBtn = new Button(buttonComposite, SWT.PUSH);
+  cancelBtn.setText("لغو");
+
+  let chosen = null;
+  let selectedModel = null;
+
+  const listener = new Listener({
+    handleEvent: function (e) {
+      for (let i = 0; i < btns.length; i++) {
+        if (e.widget === btns[i]) {
+          chosen = (i + 1).toString();
+          break;
+        }
+      }
+      if (e.widget === cancelBtn) chosen = null;
+
+      if (combo) {
+        try {
+          if (typeof combo.isDisposed === 'function') {
+            if (!combo.isDisposed()) {
+              const sel = combo.getSelectionIndex();
+              if (sel >= 0) {
+                try { selectedModel = combo.getItem(sel); } catch (innerErr) { selectedModel = null; }
+              }
+            }
+          } else {
+            const sel = combo.getSelectionIndex();
+            if (sel >= 0) selectedModel = combo.getItem(sel);
+          }
+        } catch (err) {
+          selectedModel = null;
+        }
+      }
+
+      tmpShell.close();
+    },
+  });
+
+  btns.forEach((b) => b.addListener(SWT.Selection, listener));
+  cancelBtn.addListener(SWT.Selection, listener);
+
+  tmpShell.pack();
+  tmpShell.open();
+  while (!tmpShell.isDisposed()) {
+    if (!display.readAndDispatch()) display.sleep();
+  }
+
+  if (models) return { choice: chosen, model: selectedModel };
+  return chosen;
 }
 
 // Generate documentation for a component
@@ -150,17 +245,44 @@ async function processView(view) {
   try {
     console.log(forceRTL("پردازش نمای: " + view.name));
 
-    // Ask user for confirmation
-    const choice = kewud(
-      forceRTL(
-        `نمای انتخاب‌شده: "${view.name}"\n\nآیا از مستندسازی نمای انتخابی مطمئن هستید؟`
-      ),
+    // Ask user for confirmation and optionally let them select an Ollama model
+    let selectedModel = null;
+    const basicChoice = kewud(
+      forceRTL(`نمای انتخاب‌شده: "${view.name}"\n\nآیا از مستندسازی نمای انتخابی مطمئن هستید؟`),
       ["بله"]
     );
 
-    if (choice !== "1") {
+    if (basicChoice !== "1") {
       console.log(forceRTL("عملیات لغو شد"));
       return;
+    }
+
+    // Try to fetch available Ollama models and show a model selection dialog (optional)
+    let models = null;
+    try {
+      models = getOllamaModels();
+      console.log("Found Ollama models:", models);
+    } catch (err) {
+      console.log("Unable to fetch Ollama models:", err);
+      models = null;
+    }
+
+    if (models && models.length > 0) {
+      const kewudResult = kewud(
+        forceRTL(`نمای انتخاب‌شده: "${view.name}"\n\nانتخاب مدل هوش مصنوعی (اختیاری):`),
+        ["ادامه"],
+        models
+      );
+      if (kewudResult && typeof kewudResult === "object") {
+        if (!kewudResult.choice) {
+          console.log(forceRTL("عملیات انتخاب مدل لغو شد. متوقف می‌شوم."));
+          return;
+        }
+        selectedModel = kewudResult.model;
+      } else if (!kewudResult) {
+        console.log(forceRTL("عملیات انتخاب مدل لغو شد. متوقف می‌شوم."));
+        return;
+      }
     }
 
     console.log(forceRTL("شروع مستندسازی نما..."));
@@ -205,7 +327,7 @@ async function processView(view) {
     // The underlying network I/O operation (HTTP request) happens in the background.
     // Once the Promise from the 'ai' function settles (resolves with a value or rejects with an error),
     // the execution of 'processView' resumes from this point.
-    const summary = await ai(viewPromptTemplate + viewPrompt, view, true);
+    const summary = await ai(viewPromptTemplate + viewPrompt, view, true, selectedModel);
 
     // Check for timeout error returned as a string from the AI module
     if (

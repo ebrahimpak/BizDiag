@@ -11,3 +11,6 @@
 # H2 diagnostic and lock files
 *.trace.db
 *.lock.db
+
+# Generated DocMaker documentation
+BizDiag_Local_AI/DocMaker/documentation/

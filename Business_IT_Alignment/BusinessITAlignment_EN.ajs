@@ -3279,7 +3279,7 @@ console.show();
   });
 
   // ============= OPERATIONAL BUSINESS-IT ALIGNMENT CHECKS (OB.68-OB.79) =============
-  // From Research Paper 4:
+  // From Research Paper 4
   // These checks validate operational alignment between business processes and application implementations
 
   heading(getHeadingString("OB.68", "Application Function Unused by Business (Orphaned IT Functionality)"));

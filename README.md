@@ -1,7 +1,7 @@
 # BizDiag
 ## Intelligent Enterprise Architecture & Digital Strategy Automation
 
-<p align="center">
+<p>
   <img src="logo/BizDiag_Logo.png" alt="BizDiag Logo" width="300">
 </p>
 
@@ -223,16 +223,36 @@ AI-assisted capabilities can be used to support tasks such as:
 The architecture workflow supports offline AI models. BizDiag_Local_AI uses Java NIO.2 for robust filesystem and 
 directory management. The following are the jArchi scripts and JavaScript files of this application:
 
-| Script                       | Description                                                                                                                                                                                            |
-|------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `AI_Element_DocMaker_EN.ajs` | Generates AI analysis for the selected element in Archi, in English                                                                                                                                    |
-| `AI_Element_DocMaker_FA.ajs` | Generates AI analysis for the selected element in Archi, in Persian                                                                                                                                    |
-| `AI_View_DocMaker_EN.ajs`    | Generates AI analysis for the selected view in Archi, in English                                                                                                                                       |
-| `AI_View_DocMaker_FA.ajs`    | Generates AI analysis for the selected view in Archi, in Persian                                                                                                                                       |
-| `AI_REST_JSON.js`            | Provides REST API communication with Ollama, handles JSON serialization/deserialization, manages element context tracking, and persists AI-generated documentation to files (used by DocMaker scripts) |
-| `Mark_it_Down.ajs`           | Provides Markdown export functionality for selected Archi views and elements                                                                                                                           |
-| `Ollama_Olalla.ajs`          | Provides integration with the locally installed Ollama AI runtime                                                                                                                                      |
-| `sendToAI.js`                | Simple HTTP client wrapper for querying Ollama (used by Application_View_to_UML.ajs only; independent of AI_REST_JSON.js)                                                                              |
+| Script                       | Description                                                                                                                                                                                    |
+|------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `AI_Element_DocMaker_EN.ajs` | Generates AI analysis for the selected element in Archi, in English                                                                                                                            |
+| `AI_Element_DocMaker_FA.ajs` | Generates AI analysis for the selected element in Archi, in Persian                                                                                                                            |
+| `AI_View_DocMaker_EN.ajs`    | Generates AI analysis for the selected view in Archi, in English                                                                                                                               |
+| `AI_View_DocMaker_FA.ajs`    | Generates AI analysis for the selected view in Archi, in Persian                                                                                                                               |
+| `AI_REST_JSON.js`            | Provides REST API communication with Ollama, handles JSON serialization/deserialization, manages element context tracking, and persists AI-generated documentation to files (used by DocMaker) |
+| `Mark_it_Down.ajs`           | Provides Markdown export functionality for selected Archi views and elements                                                                                                                   |
+| `Ollama_Olalla.ajs`          | Provides integration with the locally installed Ollama AI runtime                                                                                                                              |
+| `sendToAI.js`                | Simple HTTP client wrapper for querying Ollama (used by Application_View_to_UML.ajs only; independent of AI_REST_JSON.js)                                                                      |
+|
+
+### Ollama model selection (interactive)
+
+- The DocMaker scripts (Element and View variants, English & Persian) now include an interactive Ollama model selector.
+- When you run a DocMaker script, the initial confirmation dialog will show an optional dropdown listing the locally-installed Ollama models (discovered by running `ollama list`).
+- Choose an installed model to have the script use it for the AI request; the selected model is passed to the REST client (`AI_REST_JSON.js`) and included in the JSON request as `model: "<your-selected-model>"`.
+- If no models are detected, or you cancel selection, the scripts fall back to the previous default model — preserving backward compatibility.
+
+Files changed (DocMaker)
+- `BizDiag_Local_AI/DocMaker/AI_REST_JSON.js` — `sendToAI(prompt, element, isReplacement, modelName)` now accepts an optional `modelName` and uses it in the JSON request body; defaults to the previous model if omitted.
+- `BizDiag_Local_AI/DocMaker/AI_Element_DocMaker_EN.ajs`
+- `BizDiag_Local_AI/DocMaker/AI_Element_DocMaker_FA.ajs`
+- `BizDiag_Local_AI/DocMaker/AI_View_DocMaker_EN.ajs`
+- `BizDiag_Local_AI/DocMaker/AI_View_DocMaker_FA.ajs`
+
+Usage notes & caveats
+- Ollama must be installed and reachable from the Archi/JVM process PATH for model enumeration to work. If Archi is launched from a desktop shortcut, its environment PATH may differ from your PowerShell PATH — if models don't appear, try launching Archi from a terminal where `ollama list` works, or configure the full path to the `ollama` binary in a future update.
+- The current implementation parses the textual output of `ollama list`. If your Ollama supports JSON output (for example `ollama list --json`), we can switch to JSON parsing for more robust model enumeration.
+- Backwards compatibility: if no model is selected or none are found, the scripts continue to use the previous default model and behave the same as before.
 
 This allows organizations to select an AI deployment approach appropriate to their technical and information-security 
 requirements.

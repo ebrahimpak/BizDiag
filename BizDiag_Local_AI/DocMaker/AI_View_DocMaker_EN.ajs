@@ -82,27 +82,127 @@ service or device. IMPORTANT: DO NOT USE ANY OTHER LANGUAGE EXCEPT ENGLISH; WRIT
 IF YOU COULDN'T FIND ANY PROPER ENGLISH WORD OR PHRASE FOR IT, CHECK THE ONLINE INFORMATION TECHNOLOGY RESOURCES FOR IT.
 The summary will be retained against the component for future users.`;
 
-// Dialog helper function
+// Enhanced dialog helper: supports optional models dropdown (backwards compatible)
+function getOllamaModels() {
+  try {
+    const ProcessBuilder = Java.type("java.lang.ProcessBuilder");
+    const InputStreamReader = Java.type("java.io.InputStreamReader");
+    const BufferedReader = Java.type("java.io.BufferedReader");
+    const pb = new ProcessBuilder("ollama", "list");
+    pb.redirectErrorStream(true);
+    const proc = pb.start();
+    const reader = new BufferedReader(new InputStreamReader(proc.getInputStream(), "UTF-8"));
+    const models = [];
+    let line;
+    while ((line = reader.readLine()) !== null) {
+      line = line.trim();
+      if (!line) continue;
+      if (/^name\b|^model\b|^-+$/i.test(line)) continue; // skip headers/separators
+      const token = line.split(/\s+/)[0];
+      if (token && models.indexOf(token) === -1) models.push(token);
+    }
+    reader.close();
+    try { proc.waitFor(); } catch (e) {}
+    return models.length > 0 ? models : null;
+  } catch (error) {
+    console.log("Error running ollama list:", error);
+    return null;
+  }
+}
+
 function kewud(message, options) {
+  // Backwards-compatible wrapper: if a third argument (models) is provided, return { choice, model }
+  const args = Array.prototype.slice.call(arguments);
+  const models = args.length >= 3 ? args[2] : null;
+
   const tmpShell = new org.eclipse.swt.widgets.Shell(
     shell,
-    SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.LEFT_TO_RIGHT
+    org.eclipse.swt.SWT.DIALOG_TRIM |
+      org.eclipse.swt.SWT.APPLICATION_MODAL |
+      org.eclipse.swt.SWT.LEFT_TO_RIGHT
   );
+  tmpShell.setText("Analyzing the Selected View");
+  tmpShell.setLayout(new GridLayout(1, false));
 
-  shell.setTextDirection(SWT.LEFT_TO_RIGHT);
+  // Message label
+  const msgLabel = new org.eclipse.swt.widgets.Label(tmpShell, SWT.WRAP);
+  msgLabel.setText(message);
+  msgLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 
-  var dialog = new org.eclipse.jface.dialogs.MessageDialog(
-    tmpShell,
-    "Generating Documentation for the Selected View",
-    null,
-    message,
-    3,
-    options.concat(["Cancel"]),
-    0
-  );
+  // Optional model selector
+  let combo = null;
+  if (models && Array.isArray(models) && models.length > 0) {
+    const comboLabel = new org.eclipse.swt.widgets.Label(tmpShell, SWT.NONE);
+    comboLabel.setText("Select AI Model:");
+    comboLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 
-  var result = dialog.open();
-  return result == options.length ? null : (result + 1).toString();
+    combo = new org.eclipse.swt.widgets.Combo(tmpShell, SWT.DROP_DOWN | SWT.READ_ONLY);
+    combo.setItems(models);
+    combo.select(0);
+    combo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+  }
+
+  // Buttons area
+  const buttonComposite = new org.eclipse.swt.widgets.Composite(tmpShell, SWT.NONE);
+  buttonComposite.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
+  buttonComposite.setLayout(new GridLayout(options.length + 1, false));
+
+  const btns = [];
+  for (let i = 0; i < options.length; i++) {
+    const b = new Button(buttonComposite, SWT.PUSH);
+    b.setText(options[i]);
+    btns.push(b);
+  }
+  const cancelBtn = new Button(buttonComposite, SWT.PUSH);
+  cancelBtn.setText("Cancel");
+
+  let chosen = null;
+  let selectedModel = null;
+
+  const listener = new Listener({
+    handleEvent: function (e) {
+      for (let i = 0; i < btns.length; i++) {
+        if (e.widget === btns[i]) {
+          chosen = (i + 1).toString();
+          break;
+        }
+      }
+      if (e.widget === cancelBtn) chosen = null;
+
+      // Read combo selection safely before closing
+      if (combo) {
+        try {
+          if (typeof combo.isDisposed === 'function') {
+            if (!combo.isDisposed()) {
+              const sel = combo.getSelectionIndex();
+              if (sel >= 0) {
+                try { selectedModel = combo.getItem(sel); } catch (innerErr) { selectedModel = null; }
+              }
+            }
+          } else {
+            const sel = combo.getSelectionIndex();
+            if (sel >= 0) selectedModel = combo.getItem(sel);
+          }
+        } catch (err) {
+          selectedModel = null;
+        }
+      }
+
+      tmpShell.close();
+    },
+  });
+
+  btns.forEach((b) => b.addListener(SWT.Selection, listener));
+  cancelBtn.addListener(SWT.Selection, listener);
+
+  tmpShell.pack();
+  tmpShell.open();
+  while (!tmpShell.isDisposed()) {
+    if (!display.readAndDispatch()) display.sleep();
+  }
+
+  if (models) return { choice: chosen, model: selectedModel };
+  return chosen;
 }
 
 // Generate documentation for a component
@@ -161,15 +261,37 @@ async function processView(view) {
   try {
     console.log("Analyzing the view: " + view.name);
 
-    // Ask user for confirmation
-    const choice = kewud(
-        `Selected View: "${view.name}"\n\nAre you sure you want documenting the selected view?`,
-      ["Yes"]
-    );
-
-    if (choice !== "1") {
+    // Ask user for confirmation and optionally let them select an Ollama model
+    let selectedModel = null;
+    // First get a basic confirmation
+    const basicChoice = kewud(`Selected View: "${view.name}"\n\nAre you sure you want documenting the selected view?`, ["Yes"]);
+    if (basicChoice !== "1") {
       console.log("The operation is cancelled.");
       return;
+    }
+
+    // Try to fetch available Ollama models and show a model selection dialog (optional)
+    let models = null;
+    try {
+      models = getOllamaModels();
+      console.log("Found Ollama models:", models);
+    } catch (err) {
+      console.log("Unable to fetch Ollama models:", err);
+      models = null;
+    }
+
+    if (models && models.length > 0) {
+      const kewudResult = kewud(`Selected View: "${view.name}"\n\nChoose AI Model (optional):`, ["Proceed"], models);
+      if (kewudResult && typeof kewudResult === "object") {
+        if (!kewudResult.choice) {
+          console.log("User cancelled model selection. Aborting.");
+          return;
+        }
+        selectedModel = kewudResult.model;
+      } else if (!kewudResult) {
+        console.log("User cancelled model selection. Aborting.");
+        return;
+      }
     }
 
     console.log("Beginning documenting the view.");
@@ -213,7 +335,7 @@ async function processView(view) {
     // JavaScript event loop. The underlying network I/O operation (HTTP request) happens in the background. Once the
     // Promise from the 'ai' function settles (resolves with a value or rejects with an error), the execution of
     // 'processView' resumes from this point.
-    const summary = await ai(viewPromptTemplate + viewPrompt, view, true);
+    const summary = await ai(viewPromptTemplate + viewPrompt, view, true, selectedModel);
 
     // Check for timeout error returned as a string from the AI module
     if (
