@@ -99,6 +99,22 @@ const StandardCharsets = Java.type("java.nio.charset.StandardCharsets");
 const JThread = Java.type("java.lang.Thread");
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 6000;
+// Read default model from environment variable AI_MODEL if present, otherwise keep existing default
+const System = Java.type("java.lang.System");
+// Resolve default model from environment if available. If we cannot read the environment
+// safely return null so callers can decide whether to include a model field in the
+// request. Avoid hardcoding a model that may not exist on the user's Ollama server.
+const DEFAULT_MODEL = (function () {
+  try {
+    const env = System.getenv("AI_MODEL");
+    return env && env.trim() ? env.trim() : null;
+  } catch (e) {
+    // If getenv fails for any reason, do not force a baked-in model; return null
+    // so the request can omit the model field and let the server default or
+    // callers can prompt the user.
+    return null;
+  }
+})();
 
 /**
  * Asynchronous Function and Promise Handling
@@ -171,12 +187,19 @@ async function sendToAI(prompt, element, isReplacement = false, modelName) {
     connection.setDoOutput(true); // Enable request body writing
     connection.setRequestProperty("Content-Type", "application/json");
 
-    // Prepare JSON request body. modelName may be provided by caller; fall back to existing default for compatibility.
-    const body = JSON.stringify({
-      model: modelName || "qwen2.5-coder:7b",
+    // Prepare JSON request body. Use the explicit modelName if supplied by the caller,
+    // otherwise use DEFAULT_MODEL if available. If neither is present, omit the
+    // model field so the server's default behavior is used instead of sending a
+    // hardcoded model name that may not exist on the user's server.
+    const chosenModel = modelName || DEFAULT_MODEL;
+    const bodyObj = {
       prompt: prompt,
       stream: false, // Non-streaming mode for simpler response handling
-    });
+    };
+    if (chosenModel) {
+      bodyObj.model = chosenModel;
+    }
+    const body = JSON.stringify(bodyObj);
 
     /**
      * Output Stream Handling and Character Encoding
@@ -255,7 +278,19 @@ async function sendToAI(prompt, element, isReplacement = false, modelName) {
         errorBuilder.append(line);
       }
       errorReader.close();
-      return "Error: HTTP " + responseCode + ": " + errorBuilder.toString();
+      const errStr = errorBuilder.toString();
+
+      // If the server indicates the model is not available, provide a helpful hint
+      if (/model\s+not\s+found|unknown\s+model|model\s+not\s+installed/i.test(errStr)) {
+        const missingModel = chosenModel || "(no model specified)";
+        const hint =
+          "Model '" + missingModel + "' is not available on the local server. " +
+          "Please install the model on your inference server or set the AI_MODEL environment variable to an available model.";
+        console.log(hint);
+        return "Error: HTTP " + responseCode + ": " + errStr + " — " + hint;
+      }
+
+      return "Error: HTTP " + responseCode + ": " + errStr;
     }
 
     // Read successful response with buffering for performance
