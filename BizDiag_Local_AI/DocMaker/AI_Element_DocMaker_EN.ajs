@@ -55,7 +55,12 @@ const imgPath = new File(scriptDir, "labelPic.jpg").getAbsolutePath();
 const img = new Image(display, imgPath);
 const color = Java.type("org.eclipse.swt.graphics.Color");
 const rgb = Java.type("org.eclipse.swt.graphics.RGB");
+const ProcessBuilder = Java.type("java.lang.ProcessBuilder");
+const InputStreamReader = Java.type("java.io.InputStreamReader");
+const BufferedReader = Java.type("java.io.BufferedReader");
 
+// Constants
+const pb = new ProcessBuilder("ollama", "list");
 const promptTemplate =
   "As an expert English-Speaking Enterprise Architect trained in TOGAF, model-driven Enterprise Architecture, and " +
     "ArchiMate, using pure American English language which can be understood by the business in pure English, analyze " +
@@ -91,10 +96,6 @@ const ai = require("./AI_REST_JSON.js");
  */
 function getOllamaModels() {
   try {
-    const ProcessBuilder = Java.type("java.lang.ProcessBuilder");
-    const InputStreamReader = Java.type("java.io.InputStreamReader");
-    const BufferedReader = Java.type("java.io.BufferedReader");
-    const pb = new ProcessBuilder("ollama", "list");
     pb.redirectErrorStream(true);
     const proc = pb.start();
     const reader = new BufferedReader(new InputStreamReader(proc.getInputStream(), "UTF-8"));

@@ -55,6 +55,10 @@ const imgPath = new File(scriptDir, "labelPic.jpg").getAbsolutePath();
 const img = new Image(display, imgPath);
 const color = Java.type("org.eclipse.swt.graphics.Color");
 const rgb = Java.type("org.eclipse.swt.graphics.RGB");
+const ProcessBuilder = Java.type("java.lang.ProcessBuilder");
+const InputStreamReader = Java.type("java.io.InputStreamReader");
+const BufferedReader = Java.type("java.io.BufferedReader");
+const pb = new ProcessBuilder("ollama", "list");
 
 const promptTemplate =
   "As a friendly Farsi-Speaking Enterprise Architect trained in TOGAF, model-driven Enterprise Architecture, and " +
@@ -249,10 +253,6 @@ function kewud(message, options) {
  */
 function getOllamaModels() {
   try {
-    const ProcessBuilder = Java.type("java.lang.ProcessBuilder");
-    const InputStreamReader = Java.type("java.io.InputStreamReader");
-    const BufferedReader = Java.type("java.io.BufferedReader");
-    const pb = new ProcessBuilder("ollama", "list");
     pb.redirectErrorStream(true);
     const proc = pb.start();
     const reader = new BufferedReader(new InputStreamReader(proc.getInputStream(), "UTF-8"));

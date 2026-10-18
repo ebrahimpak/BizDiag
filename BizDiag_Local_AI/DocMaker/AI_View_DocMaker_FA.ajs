@@ -55,8 +55,12 @@ const tableItem = Java.type("org.eclipse.swt.widgets.TableItem");
 const tableColumn = Java.type("org.eclipse.swt.widgets.TableColumn");
 const color = Java.type("org.eclipse.swt.graphics.Color");
 const rgb = Java.type("org.eclipse.swt.graphics.RGB");
+const ProcessBuilder = Java.type("java.lang.ProcessBuilder");
+const InputStreamReader = Java.type("java.io.InputStreamReader");
+const BufferedReader = Java.type("java.io.BufferedReader");
 
 // Constants
+const pb = new ProcessBuilder("ollama", "list");
 const guise = `As an expert Enterprise Architect trained in TOGAF, ArchiMate, model-driven enterprise architecture, and digital transformation`;
 const viewPromptTemplate = `${guise}, provide a clear and concise summary of the following ArchiMate view. 
 The summary must be written entirely in Persian, using professional and business-friendly language.
@@ -92,10 +96,6 @@ function forceRTL(text) {
 // Enhanced dialog helper: supports optional models dropdown (RTL, backwards compatible)
 function getOllamaModels() {
   try {
-    const ProcessBuilder = Java.type("java.lang.ProcessBuilder");
-    const InputStreamReader = Java.type("java.io.InputStreamReader");
-    const BufferedReader = Java.type("java.io.BufferedReader");
-    const pb = new ProcessBuilder("ollama", "list");
     pb.redirectErrorStream(true);
     const proc = pb.start();
     const reader = new BufferedReader(new InputStreamReader(proc.getInputStream(), "UTF-8"));
