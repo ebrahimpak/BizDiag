@@ -247,9 +247,7 @@ try {
     ollamaAvailable = false;
 }
 
-// If Ollama is available, attempt to enumerate installed models and let the user
-// pick one via a small modal dialog. This mirrors the behavior in the DocMaker
-// scripts so the user can choose which local model to use for analysis.
+// If Ollama is available, attempt to enumerate installed AI models and let the user pick one via a small modal dialog.
 try {
     if (ollamaAvailable) {
         // Import SWT/IO types used by the selection dialog
@@ -516,13 +514,10 @@ function isStructuralContainerObject(object) {
 }
 
 function getUmlConceptMetadata(concept) {
-    // Retrieves semantic family and UML mapping information for an ArchiMate concept.
-    // This function enables the "derivative-style UML representation" by mapping
-    // ArchiMate concepts to UML-compatible semantic families and stereotypes.
-    //
+    // Retrieves semantic family and UML mapping information for an ArchiMate concept. This function enables the
+    // "derivative-style UML representation" by mapping ArchiMate concepts to UML-compatible semantic families and stereotypes.
     // Parameters:
     //   concept: jArchi concept object with .type property
-    //
     // Returns:
     //   Object with properties:
     //     - family: semantic family (component, interface, service, behavior, data, event)
@@ -531,9 +526,9 @@ function getUmlConceptMetadata(concept) {
     //     - packageGroup: logical grouping for organizational purposes
     //     - relationshipBias: preferred relationship semantic role (structural, dependency, etc.)
     //
-    // The function follows the ArchiMate Layer principle: each ArchiMate concept is
-    // mapped to a UML-equivalent visualization based on its semantic role, not its
-    // syntactic ArchiMate name. This is the key innovation of derivative-style UML.
+    // The function follows the ArchiMate Layer principle: each ArchiMate concept is mapped to a UML-equivalent
+    // visualization based on its semantic role, not its syntactic ArchiMate name. This is the key innovation of
+    // derivative-style UML.
     
     if (!concept || !concept.type) {
         return {
@@ -558,21 +553,18 @@ function getUmlConceptMetadata(concept) {
 }
 
 function getRelationshipMetadata(relationship) {
-    // Retrieves semantic role and styling information for an ArchiMate relationship.
-    // This function maps ArchiMate relationship types to UML-compatible styles.
-    //
+    // Retrieves semantic role and styling information for an ArchiMate relationship. This function maps ArchiMate
+    // relationship types to UML-compatible styles.
     // Parameters:
     //   relationship: jArchi relationship concept object with .type property
-    //
     // Returns:
     //   Object with properties:
     //     - umlStyle: UML connector style (composition, aggregation, association, etc.)
     //     - semanticRole: architectural semantic role (structural, dependency, behavior, etc.)
     //     - label: human-readable relationship label
     //
-    // The semantic role determines the visual styling (color, line width) via the
-    // RELATIONSHIP_ROLE_COLORS mapping, enabling visual differentiation of relationship
-    // types in the generated UML-style diagram.
+    // The semantic role determines the visual styling (color, line width) via the RELATIONSHIP_ROLE_COLORS mapping,
+    // enabling visual differentiation of relationship types in the generated UML-style diagram.
     
     if (!relationship || !relationship.type) {
         return {
@@ -591,25 +583,16 @@ function getRelationshipMetadata(relationship) {
 }
 
 function applySemantticFamilyStyling(diagramObject, concept) {
-    // Applies semantic family-based visual styling to a diagram element.
-    // This is the visual manifestation of the "derivative-style UML" concept.
-    //
+    // Applies semantic family-based visual styling to a diagram element. This is the visual manifestation of the
+    // "derivative-style UML" concept.
     // Parameters:
     //   diagramObject: jArchi diagram model object created by view.add()
     //   concept: ArchiMate concept that the diagram object represents
-    //
     // Behavior:
     //   1. Retrieves the semantic family of the concept via getUmlConceptMetadata()
     //   2. Looks up the color scheme from SEMANTIC_FAMILY_COLORS
     //   3. Applies fillColor, fontColor, and lineColor to the diagram object
     //   4. Silently continues on any styling errors (robustness)
-    //
-    // Note on jArchi Styling API:
-    //   - jArchi diagram objects do not support direct CSS-style properties
-    //   - fillColor, fontColor, lineColor are EMF/Archi color properties
-    //   - Color values must be hex strings (#RRGGBB format)
-    //   - Not all diagram object types support all color properties
-    //   - Try-catch wrapping prevents styling failures from breaking diagram creation
     
     if (!diagramObject || !concept) {
         return;
@@ -620,9 +603,8 @@ function applySemantticFamilyStyling(diagramObject, concept) {
     const colorScheme = SEMANTIC_FAMILY_COLORS[family] || SEMANTIC_FAMILY_COLORS["default"];
 
     try {
-        // Apply colors to the diagram object
-        // Each property is checked for existence before setting to avoid errors
-        // on object types that don't support all color properties
+        // Apply colors to the diagram object. Each property is checked for existence before setting to avoid errors on
+        // object types that don't support all color properties
         if (diagramObject.fillColor !== undefined) {
             diagramObject.fillColor = colorScheme.fillColor;
         }
@@ -633,31 +615,23 @@ function applySemantticFamilyStyling(diagramObject, concept) {
             diagramObject.lineColor = colorScheme.lineColor;
         }
     } catch (e) {
-        // Silently ignore styling errors to not break element creation
-        // The diagram will still be created even if colors cannot be applied
+        // Silently ignore styling errors to not break element creation. The diagram will still be created even if
+        // colors cannot be applied
     }
 }
 
 function applyRelationshipRoleStyling(connectionLine, relationship) {
-    // Applies semantic role-based visual styling to a diagram connection line.
-    // This provides visual feedback about the semantic nature of relationships.
-    //
+    // Applies semantic role-based visual styling to a diagram connection line. This provides visual feedback about the
+    // semantic nature of relationships.
     // Parameters:
     //   connectionLine: jArchi diagram connection object created by view.add(relationship, ...)
     //   relationship: ArchiMate relationship concept that the line represents
-    //
     // Behavior:
     //   1. Retrieves the semantic role via getRelationshipMetadata()
     //   2. Looks up the line styling from RELATIONSHIP_ROLE_COLORS
     //   3. Applies lineColor and lineWidth to the connection object
     //   4. Silently continues on any styling errors (robustness)
-    //
-    // Note on jArchi Connection Styling API:
-    //   - Connection objects support lineColor and lineWidth properties
-    //   - lineColor values are hex strings (#RRGGBB format)
-    //   - lineWidth is a numeric value (typically 1-3 for visibility)
-    //   - Some Archi versions may not support lineWidth; try-catch handles this
-    
+
     if (!connectionLine || !relationship) {
         return;
     }
@@ -675,8 +649,8 @@ function applyRelationshipRoleStyling(connectionLine, relationship) {
             connectionLine.lineWidth = colorScheme.lineWidth;
         }
     } catch (e) {
-        // Silently ignore styling errors to not break relationship creation
-        // The connection will still be created even if styles cannot be applied
+        // Silently ignore styling errors to not break relationship creation .The connection will still be created even
+        // if styles cannot be applied
     }
 }
 
@@ -829,9 +803,8 @@ const UML_CONCEPT_MAP = {
 
 // Supported relationship types for diagram connections
 // ============================================================================
-// ArchiMate defines multiple relationship types that represent different kinds
-// of dependencies and connections between concepts. This mapping classifies them
-// by their semantic role for UML-style visualization.
+// ArchiMate defines multiple relationship types that represent different kinds of dependencies and connections between
+// concepts. This mapping classifies them by their semantic role for UML-style visualization.
 //
 // RELATIONSHIP SEMANTICS IN ARCHIMATE:
 // ArchiMate relationships fall into three main categories:
@@ -948,8 +921,8 @@ const RELATIONSHIP_TYPES = {
 
 // Grid layout parameters for diagram element positioning
 // ============================================================================
-// When creating a new UML-style view, elements need to be positioned in the
-// diagram. This script uses a simple grid-based layout algorithm:
+// When creating a new UML-style view, elements need to be positioned in the diagram. This script uses a simple
+// grid-based layout algorithm:
 //
 //   1. Elements are placed in a grid with GRID_SPACING_X and GRID_SPACING_Y
 //   2. Elements start at (START_X, START_Y)
@@ -976,13 +949,11 @@ const START_Y = 50;              // Starting Y coordinate (pixels from top)
 
 // Semantic family color scheme for UML-style visualization
 // ============================================================================
-// This color scheme implements the "derivative-style UML representation" concept
-// from the Open Group's "How to Use the ArchiMate Language" white paper.
+// This color scheme implements the "derivative-style UML representation" concept from the Open Group's "How to Use the
+// ArchiMate Language" white paper.
 //
-// Instead of converting ArchiMate concepts to "real UML" (which is impossible),
-// we create a UML-like notation view that is a derived representation of the
-// ArchiMate model, preserving source semantics while offering UML-friendly
-// visual structure.
+// Instead of converting ArchiMate concepts to real UML, we create a UML-like notation view that is a derived
+// representation of the ArchiMate model, preserving source semantics while offering UML-friendly visual structure.
 //
 // The semantic families group ArchiMate types by their architectural role:
 //  - COMPONENT: Structural building blocks (components, collaborations, services)
@@ -1051,9 +1022,8 @@ const SEMANTIC_FAMILY_COLORS = {
 
 // Semantic role-based styling for relationships
 // ============================================================================
-// Relationships (connections between elements) are classified by their semantic
-// role in the architecture, following the Open Group UML/ArchiMate interoperability
-// guidelines. This allows visual differentiation of relationship types:
+// Relationships (connections between elements) are classified by their semantic role in the architecture, following the
+// Open Group UML/ArchiMate interoperability guidelines. This allows visual differentiation of relationship types:
 //
 // STRUCTURAL: Composition and aggregation relationships
 //   - Indicates "part-of" or hierarchical containment
@@ -1245,8 +1215,7 @@ try {
         }
     });
 } catch (e) {
-    // Connections may not exist in this view; silently continue
-    // The view may contain only elements with no relationships
+    // Connections may not exist in this view, but continue. The view may contain only elements without relationships
 }
 
 /* ============================================================================

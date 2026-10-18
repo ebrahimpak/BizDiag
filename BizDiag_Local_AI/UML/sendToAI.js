@@ -37,26 +37,44 @@
   const OutputStreamWriter = Java.type("java.io.OutputStreamWriter");
   const StringBuilder = Java.type("java.lang.StringBuilder");
 
-  function sendToAI(prompt) {
+  // AI Model Selection Option: accepts optional modelName (string). If modelName is omitted the request will not
+  // include a model field (safer fallback). Returns the assistant content string on success, or null on failures so
+  // callers can detect and handle Ollama unavailability.
+  function sendToAI(prompt, modelName) {
     const url = new URL("http://localhost:11434/v1/chat/completions");
     const connection = url.openConnection();
     connection.setRequestMethod("POST");
     connection.setDoOutput(true);
     connection.setRequestProperty("Content-Type", "application/json");
 
-    const body = JSON.stringify({
-      model: "llama3.1:latest",
+    const bodyObj = {
       messages: [{ role: "user", content: prompt }],
       max_tokens: 1024,
-    });
+    };
+    if (modelName) {
+      bodyObj.model = modelName;
+    }
 
-    const writer = new OutputStreamWriter(connection.getOutputStream(), "UTF-8");
-    writer.write(body);
-    writer.close();
+    const body = JSON.stringify(bodyObj);
 
-    const responseCode = connection.getResponseCode();
+    try {
+      const writer = new OutputStreamWriter(connection.getOutputStream(), "UTF-8");
+      writer.write(body);
+      writer.close();
+    } catch (e) {
+      // Unable to write request (likely connection issue)
+      return null;
+    }
+
+    let responseCode;
+    try {
+      responseCode = connection.getResponseCode();
+    } catch (e) {
+      return null;
+    }
+
     if (responseCode !== HttpURLConnection.HTTP_OK) {
-      return "Error: HTTP " + responseCode;
+      return null;
     }
 
     const reader = new BufferedReader(
@@ -74,11 +92,16 @@
       .replace(/^[\u200E\u200F\uFEFF\u2060\u00A0]+/, "")
       .trim();
 
-    const responseJson = JSON.parse(cleanedJson);
-    if (responseJson.choices && responseJson.choices.length > 0) {
-      return responseJson.choices[0].message.content;
+    try {
+      const responseJson = JSON.parse(cleanedJson);
+      if (responseJson.choices && responseJson.choices.length > 0) {
+        return responseJson.choices[0].message.content;
+      }
+    } catch (e) {
+      return null;
     }
-    return "No response from LLaMA model";
+
+    return null;
   }
 
   if (typeof globalThis !== "undefined") {
