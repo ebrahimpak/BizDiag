@@ -207,6 +207,8 @@ let sendToAI = null;
 let ollamaAvailable = false;
 let ollamaFailureCount = 0;
 let ollamaFailureThreshold = 3; // Disable AI after 3 consecutive failures
+// Selected AI model (optional) — set via a model-selection dialog if Ollama models are found
+let selectedAiModel = null;
 
 try {
     // Load sendToAI from current directory
@@ -245,6 +247,123 @@ try {
     ollamaAvailable = false;
 }
 
+// If Ollama is available, attempt to enumerate installed models and let the user
+// pick one via a small modal dialog. This mirrors the behavior in the DocMaker
+// scripts so the user can choose which local model to use for analysis.
+try {
+    if (ollamaAvailable) {
+        // Import SWT/IO types used by the selection dialog
+        const ProcessBuilder = Java.type("java.lang.ProcessBuilder");
+        const InputStreamReader = Java.type("java.io.InputStreamReader");
+        const BufferedReader = Java.type("java.io.BufferedReader");
+        const SWT = Java.type("org.eclipse.swt.SWT");
+        const GridLayout = Java.type("org.eclipse.swt.layout.GridLayout");
+        const GridData = Java.type("org.eclipse.swt.layout.GridData");
+        const Button = Java.type("org.eclipse.swt.widgets.Button");
+        const Display = Java.type("org.eclipse.swt.widgets.Display");
+        const Listener = Java.type("org.eclipse.swt.widgets.Listener");
+
+        // Reuse the same ProcessBuilder pattern used in DocMaker scripts
+        function getOllamaModels() {
+            try {
+                const pb = new ProcessBuilder("ollama", "list");
+                pb.redirectErrorStream(true);
+                const proc = pb.start();
+                const reader = new BufferedReader(new InputStreamReader(proc.getInputStream(), "UTF-8"));
+                const models = [];
+                let line;
+                while ((line = reader.readLine()) !== null) {
+                    line = line.trim();
+                    if (!line) continue;
+                    if (/^name\b|^model\b|^-+$/i.test(line)) continue; // skip headers/separators (case-insensitive)
+                    const token = line.split(/\s+/)[0];
+                    if (token && models.indexOf(token) === -1) models.push(token);
+                }
+                reader.close();
+                try { proc.waitFor(); } catch (e) {}
+                return models.length > 0 ? models : null;
+            } catch (err) {
+                console.log("[𐓙] Error enumerating Ollama models: " + err);
+                return null;
+            }
+        }
+
+        function promptSelectModel(models) {
+            if (!models || !Array.isArray(models) || models.length === 0) return null;
+            const display = Display.getDefault();
+            const tmpShell = new org.eclipse.swt.widgets.Shell(
+                shell,
+                org.eclipse.swt.SWT.DIALOG_TRIM | org.eclipse.swt.SWT.APPLICATION_MODAL | org.eclipse.swt.SWT.LEFT_TO_RIGHT
+            );
+            tmpShell.setText("Select 𐓙 Model for Analysis");
+            tmpShell.setLayout(new GridLayout(1, false));
+
+            const msgLabel = new org.eclipse.swt.widgets.Label(tmpShell, SWT.WRAP);
+            msgLabel.setText("Choose a locally-installed Ollama model to use for 𐓙 enrichment (optional):");
+            msgLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
+            const comboLabel = new org.eclipse.swt.widgets.Label(tmpShell, SWT.NONE);
+            comboLabel.setText("Model:");
+            comboLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
+            const combo = new org.eclipse.swt.widgets.Combo(tmpShell, SWT.DROP_DOWN | SWT.READ_ONLY);
+            combo.setItems(models);
+            combo.select(0);
+            combo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
+            const buttonComposite = new org.eclipse.swt.widgets.Composite(tmpShell, SWT.NONE);
+            buttonComposite.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
+            buttonComposite.setLayout(new GridLayout(2, false));
+
+            const okBtn = new Button(buttonComposite, SWT.PUSH);
+            okBtn.setText("OK");
+            const cancelBtn = new Button(buttonComposite, SWT.PUSH);
+            cancelBtn.setText("Cancel");
+
+            let chosen = null;
+            const listener = new Listener({
+                handleEvent: function (e) {
+                    if (e.widget === okBtn) {
+                        try {
+                            const sel = combo.getSelectionIndex();
+                            if (sel >= 0) chosen = combo.getItem(sel);
+                        } catch (inner) {
+                            chosen = null;
+                        }
+                    }
+                    tmpShell.close();
+                }
+            });
+
+            okBtn.addListener(SWT.Selection, listener);
+            cancelBtn.addListener(SWT.Selection, listener);
+
+            tmpShell.pack();
+            tmpShell.open();
+            while (!tmpShell.isDisposed()) {
+                if (!display.readAndDispatch()) display.sleep();
+            }
+
+            return chosen;
+        }
+
+        const models = getOllamaModels();
+        if (models) {
+            const picked = promptSelectModel(models);
+            if (picked) {
+                selectedAiModel = picked;
+                console.log("[𐓙] Selected 𐓙 model: " + selectedAiModel);
+            } else {
+                console.log("[𐓙] No 𐓙 model selected; using default behavior (no explicit model).");
+            }
+        } else {
+            console.log("[𐓙] No Ollama models detected or error listing models.");
+        }
+    }
+} catch (dialogErr) {
+    console.log("[𐓙] Model selection dialog failed: " + dialogErr);
+}
+
 /**
  * Analyze an element via Ollama to generate a UML-appropriate stereotype.
  * Returns a string (stereotype) or null if analysis unavailable.
@@ -263,7 +382,7 @@ function analyzeElementWithAI(elementName, elementType, elementDoc) {
         
         console.log("[𐓙] PROMPT for '" + elementName + "': " + prompt.substring(0, 60) + "...");
         
-        const response = sendToAI(prompt);
+        const response = sendToAI(prompt, selectedAiModel);
         
         // Check for null response (API error or connection failure)
         if (response === null) {
@@ -311,7 +430,7 @@ function generateElementDescriptionWithAI(elementName, elementType) {
         
         console.log("[𐓙] DESCRIPTION PROMPT for '" + elementName + "': " + prompt.substring(0, 50) + "...");
         
-        const response = sendToAI(prompt);
+        const response = sendToAI(prompt, selectedAiModel);
         
         // Check for null response (API error)
         if (response === null) {
@@ -1331,9 +1450,9 @@ Object.keys(concepts).forEach(function(conceptId) {
 
 console.log("Diagram objects created: " + elementsAdded);
 if (aiAnalysisCount > 0) {
-    console.log("✓ Elements enriched with AI analysis: " + aiAnalysisCount);
+    console.log("✓ Elements enriched with 𐓙 analysis: " + aiAnalysisCount);
 } else if (ollamaAvailable) {
-    console.log("⚠ Ollama available but no AI stereotypes were generated");
+    console.log("⚠ Ollama available but no 𐓙 stereotypes were generated");
 }
 
 //5. Create diagram connections for relationships
