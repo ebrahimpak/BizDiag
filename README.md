@@ -139,15 +139,15 @@ The Business-IT Alignment module implements a five-phase Enterprise Architecture
 
 ```javascript
 {
-elementId: “arch-123”,   //Unique identifier
-elementName: “Order Processing”,   //Display name
-elementType: “BusinessProcess”,   //ArchiMate type
-code: “B.13”,   //Symptom code
-severity: “HIGH”,   //Severity level
-aspect: “Business”,   //EA layer
-desc: “Process without application support”,   //Symptom description
-detail: “No Application Service linked”,   //Context
+elementId: "arch-123",   //Unique identifier
+elementName: "Order Processing",   //Display name
+elementType: "BusinessProcess",   //ArchiMate type
+code: "B.13",   //Symptom code
+severity: "HIGH",   //Severity level
+desc: "Process without application support",   //Symptom description
+documentation: "No Application Service linked",   //Context
 analyzable: true,   //Structurally detectable
+aspect: "derivedAspect", //EA Layer
 }
 ```
 
