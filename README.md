@@ -67,6 +67,16 @@ Strategic & Operational Insights
 BizDiag is designed as a modular suite. Individual capabilities can be used independently, while multiple components can 
 be combined to create organization-specific Enterprise Architecture workflows.
 
+**What Makes BizDiag Different?**
+
+BizDiag is a research-driven software suite designed to empower enterprise architects by translating academic 
+research, authoritative white papers, and author's original ideas into practical tools and methods for enterprise 
+architecture analysis, modeling, diagnostics, and decision support. Rather than focusing solely on automating 
+operations on ArchiMate models, BizDiag brings together multiple research-informed capabilities that address 
+different aspects of enterprise architecture practice. By combining established theoretical foundations with 
+original contributions and executable open-source solutions, BizDiag seeks to bridge the gap between academic 
+knowledge and the practical challenges faced by enterprise architects.
+
 ---
 
 ## Research Foundation 
