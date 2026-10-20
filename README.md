@@ -1303,6 +1303,17 @@ interpreted in the context of the organization's architecture, business objectiv
 
 BizDiag does not replace professional Enterprise Architecture judgment or organizational decision-making.
 
+---
+
+## Author and Affiliation
+
+**Author:** Ebrahim Pak  
+
+**Affiliation:** Digital Magic Software Co. Ltd.,
+
+**Website:** [Digital Magic Software](http://digitalmagic.ir/)
+
+---
 
 ## References
 
