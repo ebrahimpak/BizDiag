@@ -1,6 +1,11 @@
-# BizDiag
-## Intelligent Enterprise Architecture & Digital Strategy Automation
+<div align="center">
 
+<h1>BizDiag</h1>
+
+<h2>Research-Driven Enterprise Architecture Intelligence and Diagnostics</h2>
+
+</div>
+<br/>
 <p align="center">
   <img src="logo/BizDiag_Logo.png" alt="BizDiag Logo" width="300">
 </p>
@@ -64,16 +69,33 @@ be combined to create organization-specific Enterprise Architecture workflows.
 
 ---
 
+## Research Foundation 
+
+BizDiag builds on established academic research in Enterprise Architecture, software architecture, and Design 
+Science Research. Its Business–IT Alignment module, UML module, and BizModelCanvas operationalize these 
+foundations through an original, research-driven assessment methodology developed by the author. A forthcoming 
+academic paper will elaborate on the methodology and its research contributions.
+
+---
+
 ## Key Capabilities
 
 
 ### 1. **Business_IT_Alignment**: A Business–IT Alignment/Misalignment Analysis
 
 BizDiag's Business_IT_Alignment subsystem includes analysis capabilities intended to help architects investigate
-relationships between business and IT architecture.
+relationships between business and IT architecture. This module has leveraged the previously-conducted studies on
+the Business–IT alignment research methodology, mostly the studies by Őri and Szabó. However, my analysis and 
+utilized technology stack drastically differ from those used by the mentioned researchers. Unlike approaches that
+rely on Schematron/XPath-style rule-based validation, BizDiag’s Business–IT Alignment module employs a five-stage
+analysis methodology implemented using jArchi, GraalJS, and JSON-based rules. Its methodology draws on the three 
+cycles of Hevner et al.’s Design Science Research framework: the **Relevance Cycle**, which connects the 
+assessment to practical EA alignment concerns; the **Design Cycle**, which supports the development and 
+application of a literature-informed catalogue of misalignment symptoms; and the **Rigor Cycle**, which grounds 
+symptom selection and classification in established academic literature. Together, these cycles inform the 
+module’s systematic identification, classification, and assessment of Business–IT misalignments.
 
-The analysis can identify structural conditions that may indicate potential Business–IT alignment issues.
-
+The analysis can identify structural conditions that may indicate potential Business–IT alignment issues. 
 Detected conditions can be classified according to configurable severity levels such as:
 
 - Low
@@ -83,10 +105,9 @@ Detected conditions can be classified according to configurable severity levels 
 
 These classifications should be interpreted as analytical indicators rather than automatic business judgments.
 
-BizDiag does not claim that an automatically detected condition is necessarily a business problem. Its purpose is to 
-identify conditions that architects and decision-makers can investigate further.
-
-This approach can help architecture teams systematically examine areas such as:
+BizDiag does not claim that an automatically detected condition is necessarily a business problem. Its purpose is
+to identify conditions that architects and decision-makers can investigate further. This approach can help 
+architecture teams systematically examine areas such as:
 
 - Business capabilities and supporting applications
 - Business services and application services
@@ -94,6 +115,31 @@ This approach can help architecture teams systematically examine areas such as:
 - Technology dependencies
 - Missing or weak architectural relationships
 - Potentially unsupported business structures
+
+
+#### Business-IT Alignment Research Methodology
+
+The Business-IT Alignment module implements a five-phase Enterprise Architecture (EA) assessment process, conceptually based on extensive conducted research. This module is grounded in original research conducted by the Ebrahim Pak (2026). A paper presenting the prior literature review, research methodology, and study findings is forthcoming. In the meanwhile, the five main phases are as follow:
+1.	Preliminary Review: Examines six EA aspects, Strategy (S.01-S.10, STR.61-STR.67); Business Process (B.11-B.20); Data Governance (D.21-D.30); Application Portfolio (A.31-A.40); Technology Infrastructure (T.41-T.48); and Cross-Layer Alignment (X.49-X.60), to identify potential misalignments.
+2.	Malfunctioning Area Analysis: Detects and codes misalignments using aspect-based identifiers. During this phase, each detected misalignment is coded in a bipartite system: [ASPECT].[NUMBER], e.g., S.01 Strategy: Goal without Outcome/KPI.
+3.	Symptom Categorization: Classifies findings by EA aspect; severity (CRITICAL, HIGH, MEDIUM, LOW); description; and analyzability.
+4.	Non-Analyzable Filtering: Separates structurally detectable misalignments from metadata-completeness issues that require contextual judgment.
+5.	Severity-Based Assessment & Reporting: Prioritizes findings by severity and EA aspect, using color-coded reports and element properties to support decision-making.
+      Each finding is represented as a structured JSON object containing the affected element’s identity and type, symptom code, severity, EA aspect, description, contextual details, and analyzability status. A sample of such a JSON object would be similar to the following example:
+
+```javascript
+{
+elementId: “arch-123”,   //Unique identifier
+elementName: “Order Processing”,   //Display name
+elementType: “BusinessProcess”,   //ArchiMate type
+code: “B.13”,   //Symptom code
+severity: “HIGH”,   //Severity level
+aspect: “Business”,   //EA layer
+desc: “Process without application support”,   //Symptom description
+detail: “No Application Service linked”,   //Context
+analyzable: true,   //Structurally detectable
+}
+```
 
 
 ### 2. **DB_Log**: A Database Logging Component
@@ -177,6 +223,14 @@ latest version of this script uses Ollama through `sendToAI.js` to semantically 
 informed UML stereotypes and enriched documentation. It reads a user-selected source view—typically a Phase C - 
 Information Systems Architecture view—extracts application-layer concepts and relationships, and creates a new Archi 
 view using UML-style diagram notation enhanced with AI-generated semantic classifications.
+
+#### UML Module Research Methodology
+
+The UML module is based on Kruchten’s 4+1 View Model of Software Architecture, mapping UML 2 diagrams to five 
+architectural views: Logical, Implementation, Process, Deployment, and Use Case. It also draws on Desfray’s UML 
+Profiles technique to extend UML metaclasses using stereotypes and tagged values, enabling standardized 
+UML/ArchiMate integration.
+
 
 2- **DocMaker Subsystem**
 This application consists of `AI_View_DocMaker_EN.ajs`, `AI_Element_DocMaker_FA.ajs`, `AI_Element_DocMaker_EN.ajs`,
@@ -1238,3 +1292,6 @@ Outputs generated by automated analyses or AI-assisted functionality should be r
 interpreted in the context of the organization's architecture, business objectives, and available information.
 
 BizDiag does not replace professional Enterprise Architecture judgment or organizational decision-making.
+
+
+## References
