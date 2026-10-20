@@ -1295,3 +1295,37 @@ BizDiag does not replace professional Enterprise Architecture judgment or organi
 
 
 ## References
+
+- The Open Group, ArchiMate® 3.2 Specification, Berkshire: The Open group, 2022, p. 183.
+
+- J. C. Henderson and H. Venkatraman, "Strategic Alignment: Leveraging Information Technology for Transforming Organizations," IBM Systems Journal, vol. 38, no. 2.3, pp. 472 - 484, 31 December 1999.
+
+- P. Andre, A. Benjilany, H. Bruneliere and D. Tamzalit, "Assessing Operational Business-IT Alignment for Architecture Improvement," Advances in Information Systems Development: Exploring New Horizons and Opportunities, vol. Cham: Springer Nature Switzerland, pp. 231-253, 2025.
+
+- A. Osterwalder, Y. Pigneur, G. Bernarda and A. Smith, Value proposition design: How to create products and services customers want, John Wiley & Sons, 2015.
+
+- Z. Szabó and D. Őri, "Information Strategy Challenges in the Digital Era, How Enterprise Architecture Management Can Support Strategic IS Planning," in 11th International Conference on Software, Knowledge, Information Management and Applications (SKIMA), 2017.
+
+- D. Őri, "An Artifact-Based Framework for Business-IT Misalignment Symptom Detection," in IFIP International Federation for Information Processing, 2016.
+
+- J. C. Henderson and N. Venkatraman, "Strategic Alignment: Leveraging Information Technology," IBM System Journal, vol. 32, no. 1, pp. 4-16, 1993.
+
+- E. Walters, "Modeling the Business Model Canvas with the ArchiMate Specification, Using the ArchiMate 3.1 Specification to model the building blocks of the Business Model Canvas," The Open Group, February 2020. [Online]. Available: https://publications.opengroup.org/w195.
+
+- T. O. Group, Director, The Advantages of Combining the ArchiMate®, UML®, and BPMN™ Modeling Standards. [Film]. Modeliosoft, 2016.
+
+- C. Armstrong, J. D. Baker, I. Band, S. Courtney, H. Jonkers, V. Muchandi and M. Owen, "How to Use the ArchiMate® Language with UML®," September 2013. [Online]. Available: https://publications.opengroup.org/w134.
+
+- P. Kruchten, "Architectural Blueprints—The “4+1” View Model of Software Architecture," IEEE Software, vol. 12, no. 6, pp. 42-50, November 1995.
+
+- A. S. Bueno, M. Eisele and N. Vinto, Applied AI for Enterprise Java Development, Leveraging Generative AI, LLMs, and Machine Learning in the Java Enterprise, S. Calin, M. Potter and G. Hyman, Eds., Santa Rosa, California: O’Reilly Media, Inc.,, 2026.
+
+- A. R. Hevner, S. T. March, J. Park and S. Ram, "Design Science in Information Systems Research," MIS Quarterly, vol. 28, no. 1, pp. 75-106, 2004.
+
+- J. Recker, Scientific Research in Information Systems: A Beginner's Guide, Cham: Springer Nature Switzerland, 2021.
+
+- Modeliosoft, "[Modelio 3.6] Getting Started with ArchiMate," Modeliosoft, [Online]. Available: https://www.youtube.com/watch?v=Ka16dax5Qa4.
+
+- P. Beauvoir and . J.-B. Sarrodie, "Archi, ArchiMate Modeling," Archi, 2026. [Online]. Available: https://www.archimatetool.com/faq/.
+
+- J. Luftman, "Assessing Business-IT Alignment Maturity," Communications of the Association for Information Systems, vol. 4, no. 14, December 2000.
