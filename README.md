@@ -56,6 +56,7 @@ ArchiMate Model
         ├── GraalJS NIOLoggerServer
         ├── GraalJS REST Logger
         ├── Java DBLogger Server
+        ├── Capability Based Planning
         │
         ▼
 Architecture Intelligence
@@ -799,6 +800,38 @@ a known endpoint. The server can accept bursts of client data, queue it up, and 
 managed batch process, preventing resource lock issues.
 
 
+### 9. Capability Based Planning
+
+The Capability Based Planning module is designed to transform an existing ArchiMate model into a strategic 
+planning view centered on business capabilities. Instead of treating architecture as a collection of disconnected 
+objects, this module identifies the capability-related elements already present in the model, groups them into a 
+coherent capability map, and links them to value delivery, maturity, and action planning concerns. In practice, it
+helps enterprise architects turn model evidence into a structured planning narrative that is easier to discuss 
+with business stakeholders and decision-makers.
+
+The script follows the seven-step capability-based planning logic described in the related methodology: it frames 
+the planning context, discovers actual capabilities from the model, arranges them into a capability map, connects 
+them to value realization, summarizes the maturity and strategic importance assessment, translates capabilities 
+into people-process-technology actions, and concludes with a capability portfolio summary. This sequence makes 
+the generated view more than a simple diagram; it reflects a planning reasoning process that supports 
+prioritization, target-state definition, and change governance across the organization. A recapitulation of these 
+seven steps are as follows:
+
+- Step 1: create the planning frame
+- Step 2: discover capabilities from the model/selection
+- Step 3: place capabilities in the capability map
+- Step 4: connect capabilities to value delivery
+- Step 5: assessment / maturity-strategic context
+- Step 6: translate each capability into action items
+- Step 7: present the portfolio summary
+
+This module is especially useful when the enterprise architecture team wants to move from descriptive modeling to 
+strategic transformation planning. By grounding the view in actual capability elements and by structuring the 
+output around value delivery and action portfolios, the resulting diagram supports discussions of capability gaps, 
+investment priorities, and phased improvement roadmaps. In BizDiag, this capability-based planning view is 
+therefore a bridge between the repository of ArchiMate knowledge in the model and the practical work of 
+enterprise change management.
+
 ---
 
 ## Why ArchiMate & jArchi?
@@ -1350,3 +1383,5 @@ BizDiag does not replace professional Enterprise Architecture judgment or organi
 - P. Beauvoir and . J.-B. Sarrodie, "Archi, ArchiMate Modeling," Archi, 2026. [Online]. Available: https://www.archimatetool.com/faq/.
 
 - J. Luftman, "Assessing Business-IT Alignment Maturity," Communications of the Association for Information Systems, vol. 4, no. 14, December 2000.
+
+- A. Aldea, I. E. Maria, M. Lankhorst, D. Quartel and B. Wimsatt, "Capability-Based Planning, The Link between Strategy and Enterprise Architecture," November 2016. [Online]. Available: https://publications.opengroup.org/d183.
