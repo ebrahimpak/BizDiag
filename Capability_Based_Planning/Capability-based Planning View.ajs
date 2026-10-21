@@ -388,9 +388,9 @@ console.show();
     ensureRelationship("serving-relationship", capabilityMap, valueIntent);
     ensureRelationship("triggering-relationship", maturitySummary, actionSummary);
 
-    // Step 2 — discover actual capability-related elements from the current model or selection.
-    // This is the evidence-based capability identification step: The actual concepts in the Archi model have been incorporated,
-    // rather than synthetic placeholders, so the map is grounded in business reality.
+    // Step 2 — Discover capability-related elements in the current model or selection. This evidence-based
+    // identification step derives the capability map from actual ArchiMate model elements, rather than synthetic
+    // placeholders, grounding the resulting map in the organization's existing architectural context.
     const capabilityElements = discoverCapabilities();
     const capCount = capabilityElements.length;
     const layoutCols = capCount > 6 ? 4 : (capCount > 3 ? 3 : 2);
