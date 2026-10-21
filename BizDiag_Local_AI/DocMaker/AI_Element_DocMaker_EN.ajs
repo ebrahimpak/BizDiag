@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright © 2026 Ebrahim Pak
  *
  * SPDX-License-Identifier: CECILL-B
@@ -31,6 +31,7 @@
  * Version 2.0
  *
  */
+
 console.show();
 console.clear();
 console.log("Generate AI Summary");

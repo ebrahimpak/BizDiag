@@ -1,4 +1,4 @@
-/*
+/**
  * nio_interop_client.js
  *
  * GraalJS NIO client for the BizDiag NIO interoperability example.

@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright © 2026 Ebrahim Pak
  *
  * SPDX-License-Identifier: CECILL-B
@@ -63,7 +63,7 @@ import javax.swing.table.DefaultTableModel;
 
 import com.formdev.flatlaf.FlatLightLaf;
 
-/*
+/**
  * Reads the archi_model_dump.json file and performs updates on an external
  * database using standard JDBC.
  *

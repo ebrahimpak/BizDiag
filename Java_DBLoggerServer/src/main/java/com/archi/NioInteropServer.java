@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright © 2026 Ebrahim Pak
  *
  * SPDX-License-Identifier: CECILL-B
