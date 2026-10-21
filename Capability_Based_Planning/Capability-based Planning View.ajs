@@ -389,7 +389,7 @@ console.show();
     ensureRelationship("triggering-relationship", maturitySummary, actionSummary);
 
     // Step 2 — discover actual capability-related elements from the current model or selection.
-    // This is the evidence-based capability identification step: we use actual concepts already in the Archi model,
+    // This is the evidence-based capability identification step: The actual concepts in the Archi model have been incorporated,
     // rather than synthetic placeholders, so the map is grounded in business reality.
     const capabilityElements = discoverCapabilities();
     const capCount = capabilityElements.length;
@@ -412,7 +412,7 @@ console.show();
         ensureRelationship("serving-relationship", cap, valueIntent);
     }
 
-    // Step 5 — summarize the maturity and strategic assessment context for the capability portfolio.
+    // Step 5 — Evaluating the maturity and strategic assessment context for the capability portfolio.
     // This reflects the planning phase where capability maturity and strategic importance are evaluated as a basis for improvement priorities.
     if (capabilityElements.length > 0) {
         const assessmentLabel = findOrCreateElement("business-object", "Capability assessment");
