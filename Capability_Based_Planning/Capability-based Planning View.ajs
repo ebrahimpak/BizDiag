@@ -396,6 +396,15 @@ console.show();
     const layoutCols = capCount > 6 ? 4 : (capCount > 3 ? 3 : 2);
     const layout = layoutProperties(capabilityElements, 260, 180, layoutCols, 180, 90, 20, 20);
 
+    // Prevent the script from continuing to create a planning view whose essential input is missing.
+    if (capabilityElements.length === 0) {
+        logWarn(
+            "No actual Capability elements were found in the current selection " +
+            "or active model. No planning view was generated."
+        );
+        return;
+    }
+
     // Step 3 — place the discovered capabilities into the capability map and relate them to the map itself.
     // This step creates the capability landscape structure by arranging the capabilities as a coherent, governed map.
     for (let i = 0; i < capabilityElements.length; i++) {
