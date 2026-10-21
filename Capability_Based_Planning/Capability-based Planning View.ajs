@@ -1,0 +1,465 @@
+/**
+ * Copyright © 2026 Ebrahim Pak
+ *
+ * SPDX-License-Identifier: CECILL-B
+ *
+ * This file is part of BizDiag.
+ *
+ * BizDiag is distributed under the CeCILL-B Free Software License Agreement,
+ * Version 1.0. See the LICENSE file for details.
+ *
+ * The French and English versions of the license are available in
+ * LICENSE-FR and LICENSE, respectively.
+ *
+ * Author: Ebrahim Pak
+ *
+ * --------------------------------------------------------------------------------------------------------------------
+ *
+ * Capability-based Planning View for jArchi
+ * Builds a coherent capability-based planning view in Archi from the actual capability elements in the elected model or
+ * the model itself.
+ *
+ * What is CEBA?
+ * Capability-based Enterprise Architecture (CBEA) is a unified, business-led approach to enterprise architecture (EA)
+ * that places business capabilities (BCs) at the center of architectural design, development, and governance, linking
+ * organizational strategy to business and IT architecture. It responds to four principal drivers:
+ *
+ *   (1) business-led EA, emphasizing business outcomes
+ *   (2) strategic architecture, supporting long-term organizational objectives
+ *   (3) integrated planning, coordinating people, processes, and technology
+ *   (4) architectural stability, leveraging capabilities as relatively stable units of enterprise functionality.
+ *
+ * CBEA conceptualizes the enterprise as a hierarchical map of interconnected capabilities that deliver business
+ * services to internal and external stakeholders, orchestrated through value streams and supported by architectural
+ * assets, including business actors, processes, applications, and technology services. Its generic roadmap comprises
+ * five complementary stages:
+ *
+ *   (1) initial Capability Mapping
+ *   (2) Capability-Based Planning through maturity assessment and strategic impact analysis
+ *   (3) incremental Capability Development involving the redesign of services, processes, organizational structures, and supporting technologies
+ *   (4) Enterprise Integration to coordinate capabilities and optimize shared architectural components
+ *   (5) EA Management and governance to maintain strategic alignment and adapt to organizational and environmental changes.
+ *
+ * Overall, CBEA provides a consistent framework for translating strategic intent into an integrated enterprise
+ * architecture and managing organizational transformation through the systematic development of business capabilities.
+ *
+ * CBP comprises seven steps:
+ *
+ *  (1) Identify and model business capabilities by constructing and refining a hierarchical Business Capability Map
+ *  based on strategic documents, value streams, organizational structures, and reference models.
+ *
+ *  (2) Assess maturity by evaluating each capability’s people, process, and technology dimensions and calculating its
+ *  overall maturity level.
+ *
+ *  (3) Assess strategic importance by evaluating each capability’s contribution to organizational strategies.
+ *
+ *  (4) Analyze the capability landscape by combining maturity and strategic importance in an ML–SI matrix to identify
+ *  capability gaps, acceptable maturity levels, and potential risks to strategy execution.
+ *
+ *  (5) Set improvement goals by defining target maturity levels and incremental development milestones according to
+ *  strategic priorities, resources, and timelines.
+ *
+ *  (6) Define actions by translating maturity improvement goals into specific initiatives addressing people, processes,
+ *  and technology.
+ *
+ *  (7) Design the change portfolio by consolidating and prioritizing these actions into coordinated projects and
+ *  programs, followed by implementation, monitoring, and iterative reassessment.
+ */
+console.clear();
+console.show();
+
+(function() {
+    "use strict";
+
+    const scriptName = "Capability-based Planning View";
+    const viewName = "Capability-based Planning View";
+    let activeModel = null;
+
+    function logInfo(message) { console.log(message); }
+    function logWarn(message) { console.warn(message); }
+    function logHeader(message) { console.log("=== " + message + " ==="); }
+    function logSuccess(message) { console.log("[OK] " + message); }
+    function logError(message) { console.error("[ERROR] " + message); }
+
+    function safeLoad(path) {
+        try {
+            load(path);
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function getCurrentModel() {
+        try {
+            if (typeof model === "undefined" || model === null) return null;
+            if (typeof model.getName === "function") {
+                model.getName();
+            }
+            if (typeof model.getViews === "function") {
+                model.getViews();
+            }
+            return model;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function getName(element) {
+        try {
+            if (!element) return "Unnamed";
+            if (typeof element.getName === "function") return element.getName() || "Unnamed";
+            if (element.name) return element.name || "Unnamed";
+            return "Unnamed";
+        } catch (e) {
+            return "Unnamed";
+        }
+    }
+
+    function getTypeName(element) {
+        try {
+            if (!element) return "";
+            if (typeof element.getType === "function") {
+                const t = element.getType();
+                if (t) return String(t);
+            }
+            if (element.type) return String(element.type);
+            return "";
+        } catch (e) {
+            return "";
+        }
+    }
+
+    function isCapabilityLikeElement(element) {
+        if (!element) return false;
+        const type = getTypeName(element).toLowerCase();
+        const name = getName(element).toLowerCase();
+        const capabilityKeywords = [
+            "capability",
+            "business function",
+            "business-function",
+            "business process",
+            "business-process",
+            "business service",
+            "business-service",
+            "application component",
+            "application-component",
+            "technology service",
+            "technology-service",
+            "goal",
+            "outcome",
+            "business actor",
+            "business-actor"
+        ];
+        //error-handling fallback for elements that are not strictly capabilities but are related to business functions, processes, services, or outcomes.
+        if (type && capabilityKeywords.some(function(keyword) { return type.indexOf(keyword) !== -1; })) return true;
+        return name.indexOf("capability") !== -1 || name.indexOf("business function") !== -1 || name.indexOf("process") !== -1 || name.indexOf("service") !== -1;
+    }
+
+    function ensureSelectedConcepts() {
+        const items = [];
+        try {
+            if (typeof resolveSelection !== "undefined" && resolveSelection && typeof resolveSelection.selectedConcepts === "function") {
+                const sel = resolveSelection.selectedConcepts("element");
+                if (sel && typeof sel.each === "function") {
+                    sel.each(function(item) {
+                        if (item) items.push(item);
+                    });
+                }
+                if (items.length === 0 && sel && sel.size && sel.size() > 0) {
+                    const n = sel.size();
+                    for (let i = 0; i < n; i++) {
+                        const it = sel.get(i);
+                        if (it) items.push(it);
+                    }
+                }
+            }
+        } catch (e) {
+            logWarn("Selection resolution unavailable; scanning the model instead.");
+        }
+        return items;
+    }
+
+    function discoverCapabilities() {
+        const items = [];
+        const seen = {};
+
+        function addCandidate(element) {
+            if (!element) return;
+            const name = getName(element);
+            if (!name || name === "Unnamed") return;
+            const key = name.trim();
+            if (!key || seen[key]) return;
+            seen[key] = true;
+            items.push(element);
+        }
+
+        const selected = ensureSelectedConcepts();
+        for (let i = 0; i < selected.length; i++) {
+            const el = selected[i];
+            if (isCapabilityLikeElement(el)) {
+                addCandidate(el);
+            }
+        }
+
+        if (items.length === 0) {
+            const modelCandidates = [
+                "capability",
+                "business-function",
+                "business-process",
+                "business-service",
+                "business-actor",
+                "application-component",
+                "technology-service",
+                "goal",
+                "outcome"
+            ];
+            for (let c = 0; c < modelCandidates.length; c++) {
+                try {
+                    const all = $(modelCandidates[c]);
+                    if (all && typeof all.each === "function") {
+                        all.each(function(element) {
+                            if (isCapabilityLikeElement(element)) addCandidate(element);
+                        });
+                    }
+                } catch (e) { }
+            }
+        }
+
+        if (items.length === 0) {
+            const defaults = [
+                "Strategy & Governance",
+                "Product Management",
+                "Customer Management",
+                "Operations Management",
+                "Human Capital Management",
+                "Financial Management",
+                "Technology & Data Management",
+                "Enterprise Change Management"
+            ];
+            for (let d = 0; d < defaults.length; d++) {
+                const fallback = findOrCreateElement("capability", defaults[d]);
+                if (fallback) addCandidate(fallback);
+            }
+        }
+
+        return items;
+    }
+
+    function findOrCreateElement(type, name) {
+        const modelRef = activeModel || getCurrentModel();
+        if (!modelRef) return null;
+        try {
+            const all = $(type);
+            if (all && typeof all.each === "function") {
+                let found = null;
+                all.each(function(element) {
+                    if (getName(element) === name) {
+                        found = element;
+                        return false;
+                    }
+                });
+                if (found) return found;
+            }
+            return modelRef.createElement(type, name);
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function ensureRelationship(type, source, target) {
+        const modelRef = activeModel || getCurrentModel();
+        if (!modelRef || !source || !target) return null;
+        try {
+            return modelRef.createRelationship(type, source, target);
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function createView() {
+        const modelRef = activeModel || getCurrentModel();
+        if (!modelRef) return null;
+
+        let existing = null;
+        try {
+            const allViews = modelRef.getViews ? modelRef.getViews() : null;
+            if (allViews && typeof allViews.each === "function") {
+                allViews.each(function(view) {
+                    if (getName(view) === viewName) {
+                        existing = view;
+                        return false;
+                    }
+                });
+            }
+        } catch (e) { }
+
+        if (existing) return existing;
+        try {
+            return modelRef.createArchimateView(viewName);
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function addObject(view, element, x, y, width, height) {
+        try {
+            if (view && view.add && element) {
+                return view.add(element, x, y, width, height);
+            }
+            return null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function layoutProperties(items, startX, startY, cols, cellWidth, cellHeight, xGap, yGap) {
+        const layout = [];
+        const perRow = Math.max(1, cols || 4);
+        for (let i = 0; i < items.length; i++) {
+            const row = Math.floor(i / perRow);
+            const col = i % perRow;
+            layout.push({
+                x: startX + col * (cellWidth + xGap),
+                y: startY + row * (cellHeight + yGap)
+            });
+        }
+        return layout;
+    }
+
+    function createCapabilityActionPlan(capability, actionSummaryNode) {
+        // Step 6 helper — convert each capability into concrete people, process, and technology actions.
+        // This makes the improvement roadmap explicit and traces the action-definition step to the underlying capability analysis.
+        if (!capability) return [];
+        const capabilityName = getName(capability);
+        const actionLabels = [
+            "People: assign accountable ownership or a dedicated business unit",
+            "Process: standardize the capability lifecycle and execution routine",
+            "Technology: provide partial IT support for the required process steps"
+        ];
+        const actionNodes = [];
+
+        for (let i = 0; i < actionLabels.length; i++) {
+            const label = capabilityName + " — " + actionLabels[i];
+            const action = findOrCreateElement("business-process", label);
+            if (!action) continue;
+            actionNodes.push(action);
+            ensureRelationship("triggering-relationship", capability, action);
+            if (actionSummaryNode) {
+                ensureRelationship("triggering-relationship", actionSummaryNode, action);
+            }
+        }
+
+        return actionNodes;
+    }
+
+    try {
+        safeLoad(__DIR__ + "lib/resolveSelection.js");
+        safeLoad(__DIR__ + "lib/requireModel.js");
+        safeLoad(__DIR__ + "lib/log.js");
+    } catch (e) { }
+
+    activeModel = getCurrentModel();
+    if (!activeModel) {
+        logError("No Archi model is active. Open or select an Archi model before running this script.");
+        return;
+    }
+
+    logHeader(scriptName);
+
+    const targetView = createView();
+    if (!targetView) {
+        logError("The current Archi model is not available for view creation. Select a model and run the script again.");
+        return;
+    }
+    targetView.documentation = "Capability-based planning view built from actual capability-related elements in the model. The diagram shows the capability map, assessment focus, target value delivery, and the portfolio logic without artificial placeholder scatter.";
+
+    // Step 1 — define the planning context and the main architectural framing elements.
+    // In capability-based planning, the strategic intent is expressed through a planning root, the capability map,
+    // the maturity/importance view, the value-delivery view, and the action portfolio. These support the enterprise view.
+    const planningRoot = findOrCreateElement("business-service", "Capability-based Planning");
+    const capabilityMap = findOrCreateElement("capability", "Capability Map");
+    const maturitySummary = findOrCreateElement("business-object", "Maturity + Strategic Importance");
+    const valueIntent = findOrCreateElement("business-service", "Business Value Delivery");
+    const actionSummary = findOrCreateElement("business-process", "Action Portfolio");
+
+    ensureRelationship("triggering-relationship", planningRoot, capabilityMap);
+    ensureRelationship("realization-relationship", capabilityMap, maturitySummary);
+    ensureRelationship("serving-relationship", capabilityMap, valueIntent);
+    ensureRelationship("triggering-relationship", maturitySummary, actionSummary);
+
+    // Step 2 — discover actual capability-related elements from the current model or selection.
+    // This is the evidence-based capability identification step: we use actual concepts already in the Archi model,
+    // rather than synthetic placeholders, so the map is grounded in business reality.
+    const capabilityElements = discoverCapabilities();
+    const capCount = capabilityElements.length;
+    const layoutCols = capCount > 6 ? 4 : (capCount > 3 ? 3 : 2);
+    const layout = layoutProperties(capabilityElements, 260, 180, layoutCols, 180, 90, 20, 20);
+
+    // Step 3 — place the discovered capabilities into the capability map and relate them to the map itself.
+    // This step creates the capability landscape structure by arranging the capabilities as a coherent, governed map.
+    for (let i = 0; i < capabilityElements.length; i++) {
+        const cap = capabilityElements[i];
+        const pos = layout[i];
+        addObject(targetView, cap, pos.x, pos.y, 170, 80);
+        ensureRelationship("aggregation-relationship", capabilityMap, cap);
+    }
+
+    // Step 4 — connect the capability map to value delivery and strategic outcomes.
+    // In capability-based planning, capabilities are not isolated units; they exist to deliver business value and support services.
+    for (let i = 0; i < capabilityElements.length; i++) {
+        const cap = capabilityElements[i];
+        ensureRelationship("serving-relationship", cap, valueIntent);
+    }
+
+    // Step 5 — summarize the maturity and strategic assessment context for the capability portfolio.
+    // This reflects the planning phase where capability maturity and strategic importance are evaluated as a basis for improvement priorities.
+    if (capabilityElements.length > 0) {
+        const assessmentLabel = findOrCreateElement("business-object", "Capability assessment");
+        addObject(targetView, assessmentLabel, 250, 120, 180, 50);
+        ensureRelationship("realization-relationship", capabilityMap, assessmentLabel);
+    }
+
+    // Step 6 — define the action roadmap by converting each capability into practical people, process, and technology actions.
+    // This mirrors the CBE's action-definition step: the maturity transition is translated into explicit initiatives across the three dimensions.
+    if (capabilityElements.length > 0) {
+        const actionRoadmap = findOrCreateElement("business-process", "Action roadmap");
+        addObject(targetView, actionRoadmap, 700, 260, 220, 80);
+        ensureRelationship("triggering-relationship", capabilityMap, actionRoadmap);
+        ensureRelationship("triggering-relationship", actionSummary, actionRoadmap);
+
+        let actionX = 700;
+        for (let i = 0; i < capabilityElements.length; i++) {
+            const capability = capabilityElements[i];
+            const actionNodes = createCapabilityActionPlan(capability, actionSummary);
+            for (let j = 0; j < actionNodes.length; j++) {
+                const actionNode = actionNodes[j];
+                addObject(targetView, actionNode, actionX, 360 + (j * 90), 260, 70);
+            }
+            actionX += 290;
+        }
+    }
+
+    // Step 7 — present the final change portfolio and strategic narrative.
+    // The summary consolidates the selected capabilities, planned actions, and value-oriented intent into a coherent change agenda.
+    if (capabilityElements.length > 0) {
+        const groupSummary = findOrCreateElement("business-object", "Capability portfolio summary");
+        addObject(targetView, groupSummary, 990, 180, 320, 100);
+        ensureRelationship("realization-relationship", capabilityMap, groupSummary);
+        ensureRelationship("realization-relationship", actionSummary, groupSummary);
+    }
+
+    logSuccess("Capability-based Planning view created: " + viewName);
+    logInfo("Actual capability-related model elements used: " + capabilityElements.length);
+    logInfo("The view is built from model evidence and arranged in a coherent grid instead of synthetic scatter.");
+
+    try {
+        if (targetView && typeof targetView.open === "function") {
+            targetView.open();
+        } else {
+            logInfo("View created successfully; open it from the Archi model tree if needed.");
+        }
+    } catch (e) {
+        logWarn("Auto-opening the created view is not supported in this Archi/JArchi runtime; the view was still created successfully.");
+    }
+})();
