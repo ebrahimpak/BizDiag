@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright © 2026 Ebrahim Pak
  *
  * SPDX-License-Identifier: CECILL-B
@@ -13,28 +13,28 @@
  *
  * Author: Ebrahim Pak
  *
- * ---------------------------------------------------------------------------------------------------------------------
-* Research-Driven Business–IT Alignment Assessment for jArchi: English Version
-* Based on EA-based Misalignment Symptom Detection methodology
-*
-* Key Features:
-* - Symptom Catalogue: Organized by aspect (Strategy, Business, Data, IT, Cross-layer)
-* - Severity Framework: CRITICAL, HIGH, MEDIUM, LOW (focus on enterprise-level issues)
-* - Context-Aware Detection: Heuristics based on model structure and relationships
-* - Non-Analyzable Filtering: Excludes trivial misalignments, focuses on strategic issues
-* - Tags elements with misalignment codes and notes
-* - Exports CSV and Excel-compatible reports
-*
-* Methodology:
-* 1. Preliminary review: catalog of influential areas to review
-* 2. Malfunctioning area analysis: translate to symptom codes
-* 3. Symptom categorization: assess against analytical framework
-* 4. Non-analyzable filtering: exclude elements without sufficient context
-* 5. Final assessment: severity-based reporting
-*
-* Usage: Select the ArchiMate model, in the 'Models' View, and then run this script in the jArchi environment within Archi.
-*
-*/
+ * --------------------------------------------------------------------------------------------------------------------
+ * Research-Driven Business–IT Alignment Assessment for jArchi: English Version
+ * Based on EA-based Misalignment Symptom Detection methodology
+ *
+ * Key Features:
+ * - Symptom Catalogue: Organized by aspect (Strategy, Business, Data, IT, Cross-layer)
+ * - Severity Framework: CRITICAL, HIGH, MEDIUM, LOW (focus on enterprise-level issues)
+ * - Context-Aware Detection: Heuristics based on model structure and relationships
+ * - Non-Analyzable Filtering: Excludes trivial misalignments, focuses on strategic issues
+ * - Tags elements with misalignment codes and notes
+ * - Exports CSV and Excel-compatible reports
+ *
+ * Methodology:
+ * 1. Preliminary review: catalog of influential areas to review
+ * 2. Malfunctioning area analysis: translate to symptom codes
+ * 3. Symptom categorization: assess against analytical framework
+ * 4. Non-analyzable filtering: exclude elements without sufficient context
+ * 5. Final assessment: severity-based reporting
+ *
+ * Usage: Select the ArchiMate model, in the 'Models' View, and then run this script in the jArchi environment within Archi.
+ *
+ */
 
 console.clear();
 console.show();

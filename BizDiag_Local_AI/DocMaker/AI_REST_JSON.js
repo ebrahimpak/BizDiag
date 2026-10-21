@@ -1,25 +1,27 @@
-/*
- * Provides REST API communication with the AI service using JSON data exchange. It is served as the AI Support package s
- * for Archi with JSON exchange format.
+/**
+ * Copyright © 2026 Ebrahim Pak
+ *
+ * SPDX-License-Identifier: CECILL-B
+ *
+ * This file is part of BizDiag.
+ *
+ * BizDiag is distributed under the CeCILL-B Free Software License Agreement,
+ * Version 1.0. See the LICENSE file for details.
+ *
+ * The French and English versions of the license are available in
+ * LICENSE-FR and LICENSE, respectively.
+ *
+ * Author: Ebrahim Pak
+ *
+ ---------------------------------------------------------------------------------------------------------------------
+ *
+ * This script provides REST API communication with the AI service using JSON data exchange. It is served as the AI
+ * Support package for Archi with JSON exchange format.
  *
  * Requires LLaMA3.1:latest API & 'AI_REST_JSON.js'
  *
  * Version: 2.0
  *
- * --------------------------------------------------------------------------
- *
- * BizDiag — Intelligent Enterprise Architecture & Digital Strategy Automation
- *
- * Copyright © 2026 Ebrahim Pak
- *
- * This file is part of BizDiag.
- *
- * BizDiag is free software distributed under the CeCILL-B Free Software License.
- * See the LICENSE file in the project root for the full license text.
- *
- * SPDX-License-Identifier: CECILL-B
- *
- * @author Ebrahim Pak
  */
 
 console.log("Loading AI Support package with JSON storage (v2.0)");
