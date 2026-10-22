@@ -42,9 +42,11 @@ function main(args) {
   }
 
   let payload;
+  let payloadBytes;
 
   try {
-    payload = new JavaString(Base64.getDecoder().decode(encodedPayload), "UTF-8");
+    payloadBytes = Base64.getDecoder().decode(encodedPayload);
+    payload = new JavaString(payloadBytes, "UTF-8");
     console.log("Payload received from log_click.ajs:");
     console.log(payload);
   } catch (e) {
@@ -62,7 +64,7 @@ function main(args) {
     sc.connect(addr);
     console.log("Connection successful. Sending payload.");
 
-    const data = ByteBuffer.wrap(payload.getBytes("UTF-8"));
+    const data = ByteBuffer.wrap(payloadBytes);
 
     while (data.hasRemaining()) sc.write(data);
 
@@ -79,5 +81,6 @@ function main(args) {
   }
 }
 
-const hostArgs = Polyglot.import("host.arguments") || [];
-main(hostArgs);
+
+main(arguments);
+

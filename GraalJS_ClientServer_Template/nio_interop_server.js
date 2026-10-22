@@ -71,25 +71,55 @@ function startServer(port = 9999) {
       const key = selectedKeys.next();
 
       // When the key is acceptable, a client is attempting to connect.
+
       if (key.isAcceptable()) {
         const sc = key.channel().accept();
-        if (sc) {
-          // Prepare the buffer: clear it (position=0), write the
-          // current time as a Java `long`, then flip for reading by the
-          // channel's write method.
-          buffer.clear();
-          buffer.putLong(java.lang.System.currentTimeMillis());
-          buffer.flip();
 
-          // Write the entire buffer to the client and close the socket.
-          // Note: `sc.write(buffer)` may perform a partial write. For a
-          // simple one-shot message like this the window is small and
-          // the client will typically receive all bytes; robust servers
-          // should loop until `buffer.hasRemaining()` is false.
-          sc.write(buffer);
+        if (sc) {
+          sc.configureBlocking(false);
+
+          // Each accepted client gets its own input buffer.
+          const clientBuffer = ByteBuffer.allocate(8192);
+
+          // Register the client for incoming data.
+          sc.register(selector, SelectionKey.OP_READ, clientBuffer);
+
+          console.log("Client connected; waiting for payload.");
+        }
+      } else if (key.isReadable()) {
+        const sc = key.channel();
+        const clientBuffer = key.attachment();
+
+        let bytesRead;
+
+        try {
+          bytesRead = sc.read(clientBuffer);
+        } catch (e) {
+          console.error("Client read error:", e);
+          sc.close();
+          continue;
+        }
+
+        if (bytesRead === -1) {
+          // The client closed its output stream.
+          clientBuffer.flip();
+
+          const bytes = Java.type("java.util.Arrays")
+              .copyOf(clientBuffer.array(), clientBuffer.remaining());
+
+          const payload = new (Java.type("java.lang.String"))(
+              bytes,
+              "UTF-8"
+          );
+
+          console.log("Received payload: " + payload);
+          sc.close();
+        } else if (!clientBuffer.hasRemaining()) {
+          console.error("Payload exceeded the 8192-byte buffer limit.");
           sc.close();
         }
       }
+
 
       // It's important to remove the processed key from the selected set
       // or it will be processed again on the next `select()`.

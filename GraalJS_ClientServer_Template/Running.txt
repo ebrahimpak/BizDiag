@@ -1,0 +1,12 @@
+Configuration Note:
+Before running log_click.ajs, ensure that GraalJS with JVM interoperability is installed on your system. Update the graaljsExecutable variable in the script to point to your local GraalJS JVM distribution's bin/js.exe executable. The path shown in the source code is environment-specific and must be adjusted accordingly.
+
+Running the Server:
+Open PowerShell, navigate to the directory containing nio_interop_server.js, and execute the script using the GraalJS JVM distribution's bin/js.exe launcher. Replace the executable path below with the path to your local installation:
+
+& "<GRAALJS_HOME>\bin\js.exe" ".\nio_interop_server.js"
+
+The server listens on TCP port 9999 by default. Ensure that the port is available and that any firewall rules permit the required local or network connections.
+
+Running the Client:
+Open Archi, and navigate to GraalJS_ClientServer_Template and select log_click.ajs in the Script Manage; right-click log_click.ajs and then click Run.
