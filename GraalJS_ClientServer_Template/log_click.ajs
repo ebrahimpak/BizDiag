@@ -1,0 +1,98 @@
+﻿const Paths = Java.type("java.nio.file.Paths");
+
+// --- 1. Core Java Imports ---
+var System = Java.type("java.lang.System");
+var Runtime = Java.type("java.lang.Runtime");
+var BufferedReader = Java.type("java.io.BufferedReader");
+var InputStreamReader = Java.type("java.io.InputStreamReader");
+var Base64 = Java.type("java.util.Base64"); // For reliable command-line argument passing
+var JavaString = Java.type("java.lang.String");
+
+console.show();
+console.clear();
+console.log("--- Starting Element Log Script ---");
+
+// --- 2. Get the selected element ---
+var selection = $(selection);
+var element = selection.length === 1 ? selection[0] : null;
+
+if (!element) {
+  // Using console.log as console.warn is often missing
+  console.log("WARNING: Please select exactly one element to log.");
+} else {
+  // --- 3. Prepare the Base64 Data Payload ---
+  var currentUserName = System.getProperty("user.name");
+
+  var payloadObject = {
+    elementId: element.id,
+    elementName: element.name,
+    type: element.type,
+    user: currentUserName,
+    timestamp: new Date().toString(), // For UTC (ISO format): timestamp: new Date().toISOString(),
+  };
+
+  var payload = JSON.stringify(payloadObject);
+
+  // Base64 Encode the JSON string to ensure safe transmission via command line
+  var encoder = Base64.getEncoder();
+  var encodedPayload = encoder.encodeToString(
+    new JavaString(payload).getBytes()
+  );
+
+  // The final argument is the encoded string, with no quotes/escaping
+  var finalPayloadArgument = encodedPayload;
+
+  console.log("JSON Payload (Base64) to send: " + finalPayloadArgument);
+
+  // --- 4. Define the paths and command ---
+  const basePath = Paths.get(__DIR__);
+  var graaljsExecutable = java.lang.System.getenv("GRAALJS_HOME") + "\\bin\\js.exe";
+  var clientScript = basePath + "\\nio_interop_client.ajs"; // Path to my client file
+
+  var serverPort = "9999";
+
+  var commandArray = [
+    graaljsExecutable,
+    clientScript,
+    "--",
+    "9999",
+    finalPayloadArgument
+  ];
+
+  console.log("Executing external client via Java Runtime...");
+
+  // --- 5. EXECUTION and Report Results via Java Runtime ---
+  var process = null;
+  try {
+    process = Runtime.getRuntime().exec(commandArray);
+    var exitCode = process.waitFor();
+
+    // Read Error Output
+    var errorReader = new BufferedReader(
+      new InputStreamReader(process.getErrorStream())
+    );
+    var stdError = "";
+    var line;
+    while ((line = errorReader.readLine()) != null) {
+      stdError += line + "\n";
+    }
+
+    // --- Report Results ---
+    if (exitCode === 0) {
+      console.log("Element logging successful. Data sent to server.");
+    } else {
+      console.error(
+        "Element logging FAILED. Client exit code: " +
+          exitCode +
+          "\nError (stderr):\n" +
+          stdError
+      );
+    }
+  } catch (e) {
+    console.error("Failed to run external Java process: " + e);
+  } finally {
+    if (process) {
+      process.destroy();
+    }
+  }
+}
