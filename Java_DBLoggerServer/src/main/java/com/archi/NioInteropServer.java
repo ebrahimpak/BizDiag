@@ -1,23 +1,15 @@
 /**
  * Copyright © 2026 Ebrahim Pak
- *
  * SPDX-License-Identifier: CECILL-B
- *
  * This file is part of BizDiag.
- *
  * BizDiag is distributed under the CeCILL-B Free Software License Agreement,
  * Version 1.0. See the LICENSE file for details.
- *
  * The French and English versions of the license are available in
  * LICENSE-FR and LICENSE, respectively.
- *
  * Author: Ebrahim Pak
- *
  * ---------------------------------------------------------------------------------------------------------------------
- *
  * NioInteropServer.java
  * version2.0
- *
  * This a vanilla Java server, running as a standalone java program, outside Archi and jArchi environment. I used this
  * particular architecture, for use-cases, like corporate internal regulations, that mandate the use of pure Java
  * programs, rather than using runtime implementations, e.g., GraalJs.
