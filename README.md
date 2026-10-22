@@ -30,6 +30,64 @@ as structured data for analysis, automation, decision support, and strategy.
 
 ---
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Research Foundation](#research-foundation)
+- [Key Capabilities](#key-capabilities)
+    - [1. Business_IT_Alignment: A Business–IT Alignment/Misalignment Analysis](#1-business_it_alignment-a-businessit-alignmentmisalignment-analysis)
+    - [2. DB_Log: A Database Logging Component](#2-db_log-a-database-logging-component)
+    - [3. BizDiag Local AI: An AI REST API for Smart Enterprise Architecture Operations](#3-bizdiag-local-ai-an-ai-rest-api-for-smart-enterprise-architecture-operations)
+        - [UML Subsystem](#uml-subsystem)
+      - [DocMaker Subsystem](#docmaker-subsystem)
+    - [4. GraalJS_ClientServer_Template: A GraalJS ClientServer Blueprint](#4-graaljs_clientserver_template-a-graaljs-clientserver-blueprint)
+    - [5. BizModelCanvas: A Business Model Canvas Generation & Analysis](#5-bizmodelcanvas-a-business-model-canvas-generation--analysis)
+    - [6. GraalJS_ClientServer_Template](#6-graaljs_clientserver_template)
+    - [7. GraalJS_NIOLoggerServer: A Client/Server/Dumper](#7-graaljs_niologgerserver-a-clientserverdumper-in-graaljs-jarchi-dialectgraaljs-vanilla-graaljsjavascript)
+    - [8. Java DBLoggerServer: A jArchi Client/JavaScript Adapter/Java Server](#8-java-dbloggerserver-a-jarchi-clientjavascript-adapterjava-server)
+    - [9. Capability Based Planning](#9-capability-based-planning)
+- [Why ArchiMate & jArchi?](#why-archimate--jarchi)
+- [Technology Stack](#technology-stack)
+- [Data Flow](#data-flow)
+- [Modular Architecture](#modular-architecture)
+- [Extensibility](#extensibility)
+- [Client / Server Capabilities](#client--server-capabilities)
+- [Intended Users](#intended-users)
+- [Example Use Cases](#example-use-cases)
+    - [Enterprise Architecture Assessment](#enterprise-architecture-assessment)
+    - [Business–IT Alignment](#businessit-alignment)
+    - [Architecture Data Analysis](#architecture-data-analysis)
+    - [AI-Assisted Documentation](#ai-assisted-documentation)
+    - [Business Model to Architecture](#business-model-to-architecture)
+    - [Architecture Reporting](#architecture-reporting)
+    - [Custom Architecture Automation](#custom-architecture-automation)
+- [Installation](#installation)
+- [Model Input](#model-input)
+- [Repository Structure](#repository-structure)
+- [Open Source & Commercial Services](#open-source--commercial-services)
+- [Design Principles](#design-principles)
+    - [Model as Data](#model-as-data)
+    - [Automation First](#automation-first)
+    - [Open Architecture](#open-architecture)
+    - [Practical Intelligence](#practical-intelligence)
+    - [Human-in-the-Loop](#human-in-the-loop)
+    - [Modular Design](#modular-design)
+    - [Technology Independence](#technology-independence)
+- [Current Scope](#current-scope)
+- [Roadmap](#roadmap)
+- [Contributing](#contributing)
+    - [APA](#apa)
+    - [MLA](#mla)
+    - [Chicago](#chicago)
+- [License](#license)
+- [Project](#project)
+- [Related Documentation](#related-documentation)
+- [Disclaimer](#disclaimer)
+- [Author and Affiliation](#author-and-affiliation)
+- [References](#references)
+
+---
+
 ## **Overview**
 
 Enterprise Architecture models often contain a significant amount of valuable organizational knowledge, but that 
@@ -221,7 +279,7 @@ Architecture model interaction from AI inference. It is organized around two cor
     └── sendToAI.js
 ```
 
-1- **UML Subsystem**
+#### **UML Subsystem**
 The first BizDiag Local AI capability is `Application_View_to_UML.ajs`, a jArchi script that transformed the selected 
 application-layer views into new views using UML-like notation instead of ArchiMate notation. It is an AI-enhanced 
 UML-like view  generation script designed for architectural transformation and semantic enrichment. The script does not 
@@ -235,7 +293,7 @@ informed UML stereotypes and enriched documentation. It reads a user-selected so
 Information Systems Architecture view—extracts application-layer concepts and relationships, and creates a new Archi 
 view using UML-style diagram notation enhanced with AI-generated semantic classifications.
 
-#### UML Module Research Methodology
+**UML Module Research Methodology**
 
 The UML module is based on Kruchten’s 4+1 View Model of Software Architecture, mapping UML 2 diagrams to five 
 architectural views: Logical, Implementation, Process, Deployment, and Use Case. It also draws on Desfray’s UML 
@@ -243,7 +301,7 @@ Profiles technique to extend UML metaclasses using stereotypes and tagged values
 UML/ArchiMate integration.
 
 
-2- **DocMaker Subsystem**
+#### **DocMaker Subsystem**
 This application consists of `AI_View_DocMaker_EN.ajs`, `AI_Element_DocMaker_FA.ajs`, `AI_Element_DocMaker_EN.ajs`,
 `AI_Element_DocMaker_FA.ajs`, `AI_REST_JSON.js`, `Ollama_Olalla.ajs`, and `Mark_it_Down.ajs`.
 The DocMaker subsystem within BizDiag Local AI is organized into three principal layers. First, the jArchi layer 
@@ -299,7 +357,7 @@ directory management. The following are the jArchi scripts and JavaScript files 
 | `Ollama_Olalla.ajs`          | Provides integration with the locally installed Ollama AI runtime                                                                                                                              |
 | `sendToAI.js`                | Simple HTTP client wrapper for querying Ollama (used by Application_View_to_UML.ajs only; independent of AI_REST_JSON.js)                                                                      |
 
-### Ollama model selection (interactive)
+**Ollama model selection (interactive)**
 
 - The DocMaker scripts (Element and View variants, English & Persian) now include an interactive Ollama model selector.
 - When you run a DocMaker script, the initial confirmation dialog will show an optional dropdown listing the locally-installed Ollama models (discovered by running `ollama list`).
@@ -734,7 +792,24 @@ to mend your business model canvas, periodically, and run this script suite agai
 changes lead to a different BMC. After all, if you take care of your business model, your business model will take care 
 of you!
 
-### 6. **GraalJS_NIOLoggerServer**: A Client/Server/Dumper in (GraalJS: jArchi dialect)/(GraalJS: vanilla GraalJS)/(JavaScript)
+
+### 6. **GraalJS_ClientServer_Template**
+
+The NIO-Based TCP Server provides the server-side component of the client–server communication module, enabling 
+BizDiag's external scripts to transmit element-related data to a dedicated server process. Built around Java's 
+non-blocking I/O (NIO) architecture, it uses a `ServerSocketChannel` to accept incoming TCP connections and a `Selector`
+to monitor connection events. This event-driven design allows the server to manage client connections through a single 
+event loop, without requiring a separate thread for each client.
+
+Upon accepting a connection, the server registers the client channel for read operations and allocates a buffer to 
+receive the incoming payload. Once the client finishes transmitting and closes its connection, the server decodes the 
+received bytes as UTF-8 text and prints the payload to the console. In the BizDiag workflow, this mechanism enables data 
+collected by the client script to be delivered to the server for subsequent processing or integration with other 
+components. The implementation also provides a practical foundation for exploring event-driven network programming, 
+connection management, and the evolution of lightweight TCP-based integration mechanisms.
+
+
+### 7. **GraalJS_NIOLoggerServer**: A Client/Server/Dumper in (GraalJS: jArchi dialect)/(GraalJS: vanilla GraalJS)/(JavaScript)
 
 This module of BizDiag supports exporting element information into formats suitable for further analysis and integration.
 `GraalJS_NIOLoggerServer` has a click-dumper client, `nio_interop_client.js`, which receives click events on elements in
@@ -769,35 +844,16 @@ Briefly, the architecture of thus subsystem could be summarized like this:
 `log_click.ajs` dumps → `nio_interop_client.js` → `nio_interop_server.js` → [H2 + JSONL] for analytics.
 
 
-### 7. **GraalJS_ClientServer_Template**: A Client/Server in (GraalJS: jArchi dialect)/(GraalJS: vanilla GraalJS)
+### 8. **Java DBLoggerServer**: A jArchi Client/JavaScript Adapter/Java Server
 
-This is a GraalJS-based REST server that receives HTTP requests, in form of clicking an element, from the jArchi 
-environment, and subsequently logs them to both an H2 and a JSONL file. The REST server can be used to log chosen 
-element's information. For running this, you should first run the server outside Archi. Then, click the ArchiMate 
-element you are interested in. Now, stop the server. Your element is dumped in an H2 database record and in a JSONL file.
-Please note that you only need to interact with The nio_interop_server.js, which is a plain .js file, living outside 
-Archi/jArchi, and the log_click.ajs, which is a jArchi script, living inside Archi/jArchi. The rest of the files are 
-just libraries, and you don't need to interact with them directly. The server is a GraalJS application, with JavaScript 
-outer structure, and Java inner structure. As a template application this is a REST server application. This provides a 
-clean architecture, while both client and server are written both in GraalJS, the clientside code is the jArchi dialect 
-of GraalJS, while the serverside code is vanilla GraalJS. 
-
-The H2 record and JSONL file can be used for further processing, including AI-assisted analysis, or integration with 
-external tools. 
-
-
-### 8. Java DBLoggerServer
-
-The functionality of Java_DBLoggerServer is similar to GraalJS_Element_RESTLogger. NioInteropServer.java runs as a 
-standalone Java server, outside Archi. While running, it receives HTTP requests from the jArchi environment, in form of 
-clicking ay Archi element of choice, storing its data in a JSONL file and in an H2 database simultaneously.
-
-While having the same functionality as GraalJS_Element_RESTLogger, the Java_DBLoggerServer is a pure Java application. 
-This kind of application is sometimes preferred, as The server can validate the incoming JSONL payload, sanitize user 
-inputs, apply security rules, and authenticate the client before writing anything to a shared corporate database or log. 
-Besides, The jArchi client doesn't need to know how the data is saved (database, cloud, file); it just sends a packet to 
-a known endpoint. The server can accept bursts of client data, queue it up, and write it to the log/database in a slower,
-managed batch process, preventing resource lock issues.
+This is a vanilla Java server, running as a standalone java program, outside Archi and jArchi environment. I leveraged  
+this special architecture, for special case of adherence to a default tech stack, that mandate the use of pure Java
+programs, rather than using runtime implementations, e.g., GraalJs.
+On the other side, there are log_click.ajs and nio_interop_client.js. The former script sends selected element's metadata 
+as Base64 to the external server. It runs inside Archi, and uses Base64 and Java Runtime for maximum reliability. The
+latter, nio_interop_client.js is a transport client (aka bridge/adapter) in the logging pipeline. It takes the payload 
+handed off by log_click.ajs, decodes it, then sends it over a TCP socket to NioInteropServer.java. It connects two parts 
+of the application, and makes an outbound socket connection.
 
 
 ### 9. Capability Based Planning
