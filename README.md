@@ -882,18 +882,33 @@ for valid target states.
 7. **Design the change portfolio:** group actions into projects by increment and project name, then order projects by
 declared priority.
 
-The script creates a capability profile view, maturity and strategic-importance heatmaps, an ML-SI matrix with
-improvement goals, an actions and change portfolio view, and an overview. Both heatmaps display a colored five-band
-legend for absolute scores from 0 to 4, rather than a ranking relative to other capabilities. Generated relationships
-connect the relevant concepts within these views; they distinguish planning traceability from relationships asserted by
-the source architecture.
+The paper's moves are an architecture-and-planning method. The script operationalizes the parts that can be represented 
+as explicit model inputs and repeatable checks. It cannot replace the human analysis that creates and governs those 
+inputs.
+
+| Move | EA purpose in the paper | What the script does | What remains a human responsibility |
+|---|---|---|---|
+| **1. Identify and model business capabilities** | Build and refine a capability map from strategy, value streams, organization, and reference models; profile the capabilities and check coverage and granularity. | Uses Capability concepts in scope, shows profile properties and accepted existing hierarchy links, and can seed review-required candidates from Business Functions, Processes, or Services. | Discovering capabilities from strategy and value streams, assuring completeness, agreeing scope/granularity, validating definitions, and approving candidates. The script does not infer the map from strategy documents. |
+| **2. Assess maturity** | Assess each Capability's People, Process, and Technology maturity and calculate an overall maturity using a weighted mean; display a maturity heatmap. | Reads three 0–4 ratings, applies optional positive weights, calculates the weighted mean, writes `CBP.Result.Maturity`, and displays the nearest integer band. | Assigning defensible ratings using the paper's dimension rubrics and choosing weights. Ratings are not inferred from process counts, applications, or model structure. |
+| **3. Assess strategic importance** | Evaluate how each Capability contributes to the enterprise's strategies; consolidate and normalize impacts; display strategic importance. | Reads impact scores on explicitly tagged strategy concepts, applies optional strategy weights, normalizes the weighted average to 0–4, writes `CBP.Result.StrategicImportance`, and creates a heatmap. | Selecting relevant strategies, deciding their weights, and judging every Capability/strategy impact pair. The code's score is only as sound as those inputs. |
+| **4. Analyze the capability landscape** | Combine maturity and importance in an ML-SI matrix; interpret gaps, comfort, and an acceptance band. | Plots fully assessed concepts in rounded matrix cells, classifies using exact score difference and tolerance, and records `CBP.Result.Zone` and `CBP.Result.Gap`. | Interpreting strategic risk, deciding what constitutes acceptable capability risk, and validating that the threshold suits the enterprise. |
+| **5. Set improvement goals** | Define target maturity and staged increments, informed by strategy, resources, timelines, and management judgment. | Validates supplied overall and dimension targets, progression, weighted consistency, and the final target relative to strategic importance; creates a Goal per valid increment. | Choosing targets, timelines, resource feasibility, and which capabilities should be improved. The paper explicitly treats goal setting as contextual, not a rigid algorithm. |
+| **6. Define actions** | Translate each planned dimension-level maturity transition into concrete People, Process, and Technology actions. | For every dimension whose target rises, requires an action description, project name, and priority. Validated records become traceable Work Package concepts and links. | Defining actions that are sufficient, feasible, sequenced, owned, resourced, and appropriate to the actual capability. Text is supplied by the architect; the script does not invent it. |
+| **7. Design the change portfolio** | Consolidate actions into coordinated projects/programs using capability-based, dimension-based, or hybrid grouping and organizational context. | Groups actions by increment and entered project name, requires a consistent priority within a project/year, sorts lower priorities first, creates project Work Packages, and displays containment links. | Selecting a grouping strategy, resolving dependencies, capacity and budget trade-offs, preparing charters, and governing implementation. |
+
+
+The `Capability-based Planning View.ajs`script creates a capability profile view, maturity and strategic-importance 
+heatmaps, an ML-SI matrix with improvement goals, an actions and change portfolio view, and an overview. Both heatmaps 
+display a colored five-band legend for absolute scores from 0 to 4, rather than a ranking relative to other capabilities. 
+Generated relationships connect the relevant concepts within these views; they distinguish planning traceability from 
+relationships asserted by the source architecture.
 
 The calculations depend on assessed inputs maintained in the Archi model, and Move 1 still requires human validation of
 the capability map and its evidence, as some factors could be missing in the EA model, in the first place, such as 
 Business Model Canvas, Value Chain Model, or strategic formulations and analytics. The script's overview documents the 
 model-property contract, and since the source code of `Capability-based Planning View.ajs` is already self-documented, 
-by means of systematic comments I have inserted before key snippets and each of the seven Move, depicting the 
-implementation steps of the capability-based planning approach.
+by means of systematic and details comments I have inserted before key snippets and each of the seven Move, depicting 
+the implementation steps of the capability-based planning approach.
 
 ---
 
