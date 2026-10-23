@@ -858,35 +858,42 @@ of the application, and makes an outbound socket connection.
 
 ### 9. Capability Based Planning
 
-The Capability Based Planning module is designed to transform an existing ArchiMate model into a strategic 
-planning view centered on business capabilities. Instead of treating architecture as a collection of disconnected 
-objects, this module identifies the capability-related elements already present in the model, groups them into a 
-coherent capability map, and links them to value delivery, maturity, and action planning concerns. In practice, it
-helps enterprise architects turn model evidence into a structured planning narrative that is easier to discuss 
-with business stakeholders and decision-makers.
+The Capability-Based Planning (CBP) module implements the seven moves as extracted from "Capability-Based Planning, The
+Link between Strategy and Enterprise Architecture", and described in "Capability-based Planning in 7 moves!" through the
+jArchi script [`Capability-based Planning View.ajs`](Capability_Based_Planning/Capability-based%20Planning%20View.ajs).
+It uses explicit model properties as assessment and planning inputs; it does not infer maturity ratings, strategic
+impact, targets, actions, or priorities from element names or counts.
 
-The script follows the seven-step capability-based planning logic described in the related methodology: it frames 
-the planning context, discovers actual capabilities from the model, arranges them into a capability map, connects 
-them to value realization, summarizes the maturity and strategic importance assessment, translates capabilities 
-into people-process-technology actions, and concludes with a capability portfolio summary. This sequence makes 
-the generated view more than a simple diagram; it reflects a planning reasoning process that supports 
-prioritization, target-state definition, and change governance across the organization. A recapitulation of these 
-seven steps are as follows:
+The seven moves are implemented as follows:
 
-- Step 1: create the planning frame
-- Step 2: discover capabilities from the model/selection
-- Step 3: place capabilities in the capability map
-- Step 4: connect capabilities to value delivery
-- Step 5: assessment / maturity-strategic context
-- Step 6: translate each capability into action items
-- Step 7: present the portfolio summary
+1. **Identify and model capabilities:** show modeled Capability concepts, their available profiles, and existing
+structural relationships. If the scope contains no Capability concepts, the script creates provenance-linked candidates
+from eligible Business Functions, Business Processes, and Business Services. Candidates are marked `ReviewRequired` and
+excluded from assessment until an architect reviews and approves them.
+2. **Assess maturity:** calculate a weighted overall score from People, Process, and Technology ratings, and present the
+result in a maturity heatmap.
+3. **Assess strategic importance:** calculate weighted impact from strategy elements explicitly marked
+`CBP.Role=Strategy`, then present the normalized score in a strategic-importance heatmap.
+4. **Analyze the landscape:** plot capabilities with complete assessments in the Maturity-Level/Strategic-Importance
+(ML-SI) matrix and classify their position using the configured acceptance tolerance.
+5. **Set improvement goals:** validate overall and dimension-level targets across configured increments and create Goals
+for valid target states.
+6. **Define actions:** create traceable Work Packages for explicitly described dimension improvements.
+7. **Design the change portfolio:** group actions into projects by increment and project name, then order projects by
+declared priority.
 
-This module is especially useful when the enterprise architecture team wants to move from descriptive modeling to 
-strategic transformation planning. By grounding the view in actual capability elements and by structuring the 
-output around value delivery and action portfolios, the resulting diagram supports discussions of capability gaps, 
-investment priorities, and phased improvement roadmaps. In BizDiag, this capability-based planning view is 
-therefore a bridge between the repository of ArchiMate knowledge in the model and the practical work of 
-enterprise change management.
+The script creates a capability profile view, maturity and strategic-importance heatmaps, an ML-SI matrix with
+improvement goals, an actions and change portfolio view, and an overview. Both heatmaps display a colored five-band
+legend for absolute scores from 0 to 4, rather than a ranking relative to other capabilities. Generated relationships
+connect the relevant concepts within these views; they distinguish planning traceability from relationships asserted by
+the source architecture.
+
+The calculations depend on assessed inputs maintained in the Archi model, and Move 1 still requires human validation of
+the capability map and its evidence, as some factors could be missing in the EA model, in the first place, such as 
+Business Model Canvas, Value Chain Model, or strategic formulations and analytics. The script's overview documents the 
+model-property contract, and since the source code of `Capability-based Planning View.ajs` is already self-documented, 
+by means of systematic comments I have inserted before key snippets and each of the seven Move, depicting the 
+implementation steps of the capability-based planning approach.
 
 ---
 
