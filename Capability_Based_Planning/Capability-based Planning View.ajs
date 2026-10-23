@@ -69,6 +69,14 @@
 console.clear();
 console.show();
 
+/**
+ * Orchestrates CBP analysis and view generation for the active Archi model.
+ *
+ * Resolves model scope, validates planning settings, assesses capabilities, materializes
+ * the seven move records, rebuilds the supporting views, reports gaps, and opens the
+ * overview. Existing model evidence and user-supplied planning properties remain
+ * authoritative; missing assessments and portfolio decisions are not inferred.
+ */
 (function() {
     "use strict";
 
@@ -295,7 +303,11 @@ console.show();
 
     /**
      * Discovers supported CBP concepts from the selection, or scans the model when needed.
-     * Deduplicates by model ID and excludes script-generated artifacts from the source scope.
+     *
+     * A supported selection narrows the scope; when the selection is empty or contains no
+     * supported concepts, the function scans the model for the supported type set. Elements
+     * are deduplicated by model ID, and known generated artifacts are excluded so results
+     * from previous runs are not mistaken for source architecture.
      * @returns {Object[]} Distinct planning-scope elements.
      */
     function discoverPlanningElements() {
@@ -363,8 +375,10 @@ console.show();
     /**
      * Seeds Move 1 with review-required Capability hypotheses when the scope has none.
      *
-     * Candidates preserve source provenance and require architect approval; source concepts
-     * and their relationships are not converted or modified.
+     * Business functions, processes, and services can seed candidates. Existing candidates
+     * are reused by source ID; missing ones are created with source provenance and
+     * ReviewRequired status. The source concepts and relationships remain unchanged, and
+     * candidates must be explicitly approved before assessment.
      * @param {Object[]} sourceElements Elements in the selected planning scope.
      * @returns {Object[]} Existing or newly created review-required Capability candidates.
      */
@@ -415,8 +429,12 @@ console.show();
     /**
      * Collects accepted structural links for the overview's capability hierarchy.
      *
-     * Behavioral, dependency, serving, and motivation relationships remain in the model
-     * but are not reinterpreted as parent-child structure.
+     * Only composition, aggregation, and specialization relationships between included
+     * elements participate. Composition and aggregation retain source-to-target parentage;
+     * specific-to-general specialization is reversed for layout only. The original
+     * relationship object is retained for drawing in its actual model direction. Links that
+     * would introduce a second parent or cycle are omitted; behavioral, dependency, serving,
+     * and motivation relationships are not interpreted as hierarchy.
      * @param {Object[]} elements Elements included in the overview.
      * @returns {Object} Hierarchy maps and the accepted source relationships.
      */
@@ -426,8 +444,9 @@ console.show();
         const parentByChild = {};
         const childrenByParent = {};
         const selectedRelationships = [];
-        // Composition, aggregation, and specialization can express map structure; only existing
-        // links are reused, so the script does not invent a capability taxonomy.
+        // Composition and aggregation point from whole to part. Specialization points from
+        // specific to general, so its layout parent/child order must be reversed below.
+        // Only existing links are reused; the script does not invent a capability taxonomy.
         const hierarchyTypes = {
             "composition-relationship": true,
             "aggregation-relationship": true,
@@ -471,23 +490,29 @@ console.show();
                     return;
                 }
 
+                // Specialization is directed from specific to general, unlike composition
+                // and aggregation. Reverse it for the hierarchy layout without changing the
+                // source relationship or its direction in the model/view.
+                const parentId = type === "specialization-relationship" ? targetId : sourceId;
+                const childId = type === "specialization-relationship" ? sourceId : targetId;
+
                 // Keep one parent per child and reject cycles to avoid a tangled layout.
-                if (parentByChild[targetId]) {
+                if (parentByChild[childId]) {
                     omittedRelationshipCount++;
                     return;
                 }
 
-                const sourceRoot = findRoot(sourceId);
-                const targetRoot = findRoot(targetId);
-                if (sourceRoot === targetRoot) {
+                const parentRoot = findRoot(parentId);
+                const childRoot = findRoot(childId);
+                if (parentRoot === childRoot) {
                     omittedRelationshipCount++;
                     return;
                 }
 
-                sets[targetRoot] = sourceRoot;
-                parentByChild[targetId] = sourceId;
-                childrenByParent[sourceId].push({
-                    id: targetId,
+                sets[childRoot] = parentRoot;
+                parentByChild[childId] = parentId;
+                childrenByParent[parentId].push({
+                    id: childId,
                     relationship: relationship,
                     sourceId: sourceId,
                     targetId: targetId
@@ -506,7 +531,12 @@ console.show();
     }
 
     /**
-     * Calculates a readable tree layout without implying priority or organizational meaning.
+     * Calculates a readable forest layout without implying priority or organizational meaning.
+     *
+     * Measures each tree by leaf span and depth, distributes roots into up to five columns
+     * by current column height, and positions children beneath their parent while centering
+     * each parent over its descendants. Unrelated elements remain independent roots; the
+     * returned coordinates are presentation only.
      * @param {Object[]} elements Elements to position.
      * @param {Object} childrenByParent Hierarchy child lists keyed by parent ID.
      * @param {Object} parentByChild Parent IDs keyed by child ID.
@@ -812,16 +842,26 @@ console.show();
     /**
      * Calculates one capability's maturity, strategic importance, goals, and improvement actions.
      *
-     * Missing or invalid evidence blocks dependent results instead of being guessed.
+     * Unapproved generated candidates return as review-required without scoring. For other
+     * capabilities, stale derived properties are cleared; maturity is the weighted mean of
+     * all three dimension ratings, and strategic importance is the weighted mean of every
+     * declared strategy impact normalized to 0-4. Exact scores determine the ML-SI zone using
+     * the configured tolerance. Each increment is checked for complete, consistent targets,
+     * monotonic progression, and final alignment with strategic importance. Valid targets
+     * generate Goals; actual dimension increases additionally require explicit action text,
+     * project assignment, and priority. Missing or invalid evidence blocks dependent results
+     * instead of being guessed.
      * @param {Object} capability Capability being assessed.
      * @param {Object[]} strategies Validated strategy elements and weights.
      * @param {string[]} increments Consecutive planning years.
      * @param {number} tolerance Acceptance-band tolerance for the ML-SI comparison.
-     * @returns {Object} Assessment results, generated goals/actions, and input errors.
+     * @returns {Object} Capability, nullable scores and gap, classified zone, validated
+     *   increment Goals and actions, and input errors.
      */
     function calculateCapability(capability, strategies, increments, tolerance) {
         const candidateStatus = getProperty(capability, "CBP.CandidateStatus");
-        if (candidateStatus && candidateStatus.toLowerCase() !== "approved") {
+        // Candidate provenance requires explicit approval; a missing status is not approval.
+        if (isCapabilityCandidate(capability) && candidateStatus.toLowerCase() !== "approved") {
             return {
                 capability: capability,
                 errors: [
@@ -1095,9 +1135,10 @@ console.show();
                 );
                 result.goals.push(target);
             }
-            for (let d = 0; d < dimensions.length; d++) {
-                const dimension = dimensions[d];
-                if (target.dimensions[dimension] !== undefined) {
+            // Advance the baseline only after this increment's targets pass validation.
+            if (target.dimensionsMatchOverall && target.progressionValid) {
+                for (let d = 0; d < dimensions.length; d++) {
+                    const dimension = dimensions[d];
                     previousDimensions[dimension] = target.dimensions[dimension];
                 }
             }
@@ -1227,6 +1268,11 @@ console.show();
 
     /**
      * Builds the Move 1 view of capabilities, profile evidence, and candidate review status.
+     *
+     * Rebuilds the named view with each Capability beside a generated profile card and an
+     * Association link between them. Cards display the user-supplied profile properties,
+     * identify missing values, and show candidate provenance/status when applicable.
+     * Profile information is presented as supplied; it is not inferred from related elements.
      * @param {Object[]} capabilities Capabilities included in the planning scope.
      * @returns {Object} Created or rebuilt profile view.
      */
@@ -1637,13 +1683,19 @@ console.show();
     }
 
     /**
-     * Implements Move 6 by turning validated dimension transitions into Work Package concepts.
+     * Implements Move 6 and prepares the prioritized Move 7 project portfolio.
      *
-     * Each action retains its Capability, dimension, increment, start/target levels, and supplied
-     * description. The actions are then grouped into project packages and prioritized for Move 7.
-     * Endpoint-identical model relationships are reused so reruns do not create duplicate links.
+     * Materializes only validated dimension transitions as action Work Packages, retaining
+     * the Capability, dimension, increment, start/target levels, and supplied description.
+     * Actions are grouped by increment and supplied project name, so same-named projects in
+     * different increments remain distinct. Conflicting priorities within one group are
+     * reported and the conflicting action is excluded. Each accepted action realizes its
+     * Capability, and its project contains it through composition; existing endpoint-
+     * identical relationships are reused on reruns. Projects are ordered by increment,
+     * declared numeric priority (lower first), then project name.
      * @param {Object[]} results Capability assessment results containing generated actions.
-     * @returns {Object} Ordered projects, action records, and portfolio validation errors.
+     * @returns {Object} Portfolio containing ordered project groups and actions, flat action
+     *   records with their model elements, and input conflicts requiring correction.
      */
     function buildPortfolio(results) {
         const projects = {};
@@ -1731,9 +1783,12 @@ console.show();
     /**
      * Presents the Move 6 Work Packages and their Move 7 prioritized project packages.
      *
-     * The diagram exposes both planning relationships: project composition groups actions,
-     * and action realization traces the intended change to its Capability. Incomplete inputs
-     * and capabilities requiring no improvement are shown as distinct status cases.
+     * Rebuilds the portfolio view with each project, its action Work Packages, and the
+     * affected Capabilities. Composition shows project membership; realization traces each
+     * action to its intended Capability. Portfolio conflicts, incomplete Move 6-7 inputs,
+     * and capabilities needing no maturity uplift appear as distinct status cases. This
+     * presents the supplied plan; it does not choose projects, estimate resources, or
+     * schedule dependencies.
      * @param {Object} portfolio Bundled and ordered portfolio output.
      * @param {Object[]} results Capability assessment results for status reporting.
      * @returns {Object} Created or rebuilt portfolio view.
@@ -1900,6 +1955,11 @@ console.show();
 
     /**
      * Updates the seven workflow concepts with per-move completion counts and outstanding human tasks.
+     *
+     * Counts complete profiles, maturity and importance assessments, plotted ML-SI pairs,
+     * valid Goals, actions, and projects, then records a concise status on each methodology
+     * Business Process. The documentation also distinguishes automated results from human
+     * responsibilities such as source research and stakeholder validation.
      * @param {Object[]} methodElements Workflow concepts representing the seven CBP moves.
      * @param {Object[]} results Capability assessment results.
      * @param {Object} portfolio Grouped project/action output.
