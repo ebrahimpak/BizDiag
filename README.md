@@ -43,7 +43,7 @@ as structured data for analysis, automation, decision support, and strategy.
         - [2.3) GraalJS_Element_RESTLogger](#clientserver-db-graaljs-element-restlogger)
         - [2.4) GraalJS_NIOLoggerServer](#clientserver-db-graaljs-niologgerserver)
         - [2.5) Java_DBLoggerServer](#clientserver-db-java-dbloggerserver)
-    - [3. BizDiag Local AI: An AI REST API for Smart Enterprise Architecture Operations](#3-bizdiag-local-ai-an-ai-rest-api-for-smart-enterprise-architecture-operations)
+    - [3. BizDiag Local AI: Leveraging AI REST API for Smart Enterprise Architecture Operations](#bizdiag-local-ai)
         - [3.1) UML Subsystem](#uml-subsystem)
         - [3.2) DocMaker Subsystem](#docmaker-subsystem)
         - [3.3) CBP Subsystem](#cbp-subsystem)
@@ -310,6 +310,7 @@ and sends it over TCP to `NioInteropServer.java`. The server runs outside Archi 
 providing a deployment option for environments that require a pure-Java server rather than a GraalJS runtime.
 
 
+<a id="bizdiag-local-ai"></a>
 ### 3. **BizDiag Local AI**: Leveraging AI REST API for Smart Enterprise Architecture Operations
 
 The BizDiag Local AI subsystem follows a layered, microservice-inspired architecture that separates Enterprise 
@@ -774,7 +775,7 @@ inputs.
 | **6. Define actions** | Translate each planned dimension-level maturity transition into concrete People, Process, and Technology actions. | For every dimension whose target rises, requires an action description, project name, and priority. Validated records become traceable Work Package concepts and links. | Defining actions that are sufficient, feasible, sequenced, owned, resourced, and appropriate to the actual capability. Text is supplied by the architect; the script does not invent it. |
 | **7. Design the change portfolio** | Consolidate actions into coordinated projects/programs using capability-based, dimension-based, or hybrid grouping and organizational context. | Groups actions by increment and entered project name, requires a consistent priority within a project/year, sorts lower priorities first, creates project Work Packages, and displays containment links. | Selecting a grouping strategy, resolving dependencies, capacity and budget trade-offs, preparing charters, and governing implementation. |
 
-#### AI Input Completion Companion
+#### CBP AI Input Completion Companion
 
 [`CBP AI Input Completion.ajs`](BizDiag_Local_AI/Capability_Based_Planning/CBP%20AI%20Input%20Completion.ajs) is an optional
 companion to the seven-move script. It fills missing or invalid Move 2 maturity ratings and Move 3 strategy impacts for
@@ -798,6 +799,14 @@ The calculations depend on assessed inputs maintained in the Archi model. Move 1
 capability map and its evidence, as relevant business models, value chains, or strategic formulations may be absent from
 the EA model. The script's overview documents the model-property contract, and its source comments describe the
 implementation steps of the seven-move approach.
+
+
+_Why Ollama?_
+
+I have, again, utilized Ollama as the on-premises AI runtime instead of requiring a cloud-based AI service and an 
+external API key. As a Digital Business Practitioner, I wanted AI-assisted CBP input completion to provide 
+greater control over potentially sensitive data because even anonymizing the EA model and delivering it to a 
+cloud-based AI service could not yield any semantically meaningful outputs.
 
 
 <a id="bizmodelcanvas"></a>
