@@ -310,7 +310,7 @@ and sends it over TCP to `NioInteropServer.java`. The server runs outside Archi 
 providing a deployment option for environments that require a pure-Java server rather than a GraalJS runtime.
 
 
-### 3. **BizDiag Local AI**: An AI REST API for Smart Enterprise Architecture Operations
+### 3. **BizDiag Local AI**: Leveraging AI REST API for Smart Enterprise Architecture Operations
 
 The BizDiag Local AI subsystem follows a layered, microservice-inspired architecture that separates Enterprise 
 Architecture model interaction from AI inference. It is organized around three capabilities:
@@ -337,6 +337,38 @@ BizDiag_Local_AI/
     ├── Application_View_to_UML.ajs
     └── sendToAI.js
 ```
+
+
+_The Scripts_
+
+AI-assisted capabilities can be used to support tasks such as:
+
+- Architecture documentation
+- Element description generation
+- Architecture information enrichment
+- Analysis assistance
+- Natural-language interaction with architecture information
+- Generation of structured architecture-related content
+- Leveraging locally-installed Ollama, together with local AI Models
+
+The architecture workflow supports offline AI models. BizDiag_Local_AI uses Java NIO.2 for robust filesystem and
+directory management. The following are the jArchi scripts and JavaScript files of this application:
+
+| Script                                                                          | Description                                                                                                                                                                                    |
+|---------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `BizDiag_Local_AI/DocMaker/AI_Element_DocMaker_EN.ajs`                                                    | Generates AI analysis for the selected element in Archi, in English                                                                                                                            |
+| `BizDiag_Local_AI/DocMaker/AI_Element_DocMaker_FA.ajs`                                                    | Generates AI analysis for the selected element in Archi, in Persian                                                                                                                            |
+| `BizDiag_Local_AI/DocMaker/AI_View_DocMaker_EN.ajs`                                                       | Generates AI analysis for the selected view in Archi, in English                                                                                                                               |
+| `BizDiag_Local_AI/DocMaker/AI_View_DocMaker_FA.ajs`                                                       | Generates AI analysis for the selected view in Archi, in Persian                                                                                                                               |
+| `BizDiag_Local_AI/DocMaker/AI_REST_JSON.js`                                                               | Provides REST API communication with Ollama, handles JSON serialization/deserialization, manages element context tracking, and persists AI-generated documentation to files (used by DocMaker) |
+| `BizDiag_Local_AI/DocMaker/Mark_it_Down.ajs`                                    | Provides Markdown export functionality for selected Archi views and elements                                                                                                                   |
+| `BizDiag_Local_AI/DocMaker/Ollama_Olalla.ajs`                                   | Provides integration with the locally installed Ollama AI runtime                                                                                                                              |
+| `BizDiag_Local_AI/UML/sendToAI.js`                                              | Simple HTTP client wrapper for querying Ollama (used by Application_View_to_UML.ajs only; independent of AI_REST_JSON.js)                                                                      |
+| `BizDiag_Local_AI/Capability_Based_Planning/Capability-based Planning View.ajs` | Generates CBP profile, assessment, matrix, goal, action, portfolio, and overview views |
+| `BizDiag_Local_AI/Capability_Based_Planning/CBP Ollama Worker.js`        | Completes missing Move 2 maturity and Move 3 strategic-impact inputs using a user-selected local Ollama model |
+| `BizDiag_Local_AI/Capability_Based_Planning/CBP Ollama Worker.js`               | Lists installed Ollama models and sends bounded asynchronous Java HTTP/JSON requests for the CBP companion |
+
+
 
 <a id="uml-subsystem"></a>
 #### 3.1) UML Subsystem
@@ -381,134 +413,6 @@ operational cost, offline functionality, and extensibility, allowing organizatio
 language variants, or integrate alternative AI runtimes without modifying the core enterprise architecture extraction 
 logic.
 
-<a id="cbp-subsystem"></a>
-#### 3.3) CBP Subsystem
-
-The Capability-Based Planning (CBP) module implements the seven moves described in "Capability-Based Planning, The Link
-between Strategy and Enterprise Architecture" and "Capability-based Planning in 7 moves!" through the jArchi script
-[`Capability-based Planning View.ajs`](BizDiag_Local_AI/Capability_Based_Planning/Capability-based%20Planning%20View.ajs).
-It uses explicit model properties as assessment and planning inputs; it does not infer maturity ratings, strategic
-impact, targets, actions, or priorities from element names or counts.
-
-The seven moves are implemented as follows:
-
-1. **Identify and model capabilities:** show modeled Capability concepts, their available profiles, and existing
-structural relationships. If the scope contains no Capability concepts, the script creates provenance-linked candidates
-from eligible Business Functions, Business Processes, and Business Services. Candidates are marked `ReviewRequired` and
-excluded from assessment until an architect reviews and approves them.
-2. **Assess maturity:** calculate a weighted overall score from People, Process, and Technology ratings, and present the
-result in a maturity heatmap.
-3. **Assess strategic importance:** calculate weighted impact from strategy elements explicitly marked
-`CBP.Role=Strategy`, then present the normalized score in a strategic-importance heatmap.
-4. **Analyze the landscape:** plot capabilities with complete assessments in the Maturity-Level/Strategic-Importance
-(ML-SI) matrix and classify their position using the configured acceptance tolerance.
-5. **Set improvement goals:** validate overall and dimension-level targets across configured increments and create Goals
-for valid target states.
-6. **Define actions:** create traceable Work Packages for explicitly described dimension improvements.
-7. **Design the change portfolio:** group actions into projects by increment and project name, then order projects by
-declared priority.
-
-The paper's moves are an architecture-and-planning method. The script operationalizes the parts that can be represented
-as explicit model inputs and repeatable checks. It cannot replace the human analysis that creates and governs those
-inputs.
-
-| Move | EA purpose in the paper | What the script does | What remains a human responsibility |
-|---|---|---|---|
-| **1. Identify and model business capabilities** | Build and refine a capability map from strategy, value streams, organization, and reference models; profile the capabilities and check coverage and granularity. | Uses Capability concepts in scope, shows profile properties and accepted existing hierarchy links, and can seed review-required candidates from Business Functions, Processes, or Services. | Discovering capabilities from strategy and value streams, assuring completeness, agreeing scope/granularity, validating definitions, and approving candidates. The script does not infer the map from strategy documents. |
-| **2. Assess maturity** | Assess each Capability's People, Process, and Technology maturity and calculate an overall maturity using a weighted mean; display a maturity heatmap. | Reads three 0–4 ratings, applies optional positive weights, calculates the weighted mean, writes `CBP.Result.Maturity`, and displays the nearest integer band. | Assigning defensible ratings using the paper's dimension rubrics and choosing weights. Ratings are not inferred from process counts, applications, or model structure. |
-| **3. Assess strategic importance** | Evaluate how each Capability contributes to the enterprise's strategies; consolidate and normalize impacts; display strategic importance. | Reads impact scores on explicitly tagged strategy concepts, applies optional strategy weights, normalizes the weighted average to 0–4, writes `CBP.Result.StrategicImportance`, and creates a heatmap. | Selecting relevant strategies, deciding their weights, and judging every Capability/strategy impact pair. The code's score is only as sound as those inputs. |
-| **4. Analyze the capability landscape** | Combine maturity and importance in an ML-SI matrix; interpret gaps, comfort, and an acceptance band. | Plots fully assessed concepts in rounded matrix cells, classifies using exact score difference and tolerance, and records `CBP.Result.Zone` and `CBP.Result.Gap`. | Interpreting strategic risk, deciding what constitutes acceptable capability risk, and validating that the threshold suits the enterprise. |
-| **5. Set improvement goals** | Define target maturity and staged increments, informed by strategy, resources, timelines, and management judgment. | Validates supplied overall and dimension targets, progression, weighted consistency, and the final target relative to strategic importance; creates a Goal per valid increment. | Choosing targets, timelines, resource feasibility, and which capabilities should be improved. The paper explicitly treats goal setting as contextual, not a rigid algorithm. |
-| **6. Define actions** | Translate each planned dimension-level maturity transition into concrete People, Process, and Technology actions. | For every dimension whose target rises, requires an action description, project name, and priority. Validated records become traceable Work Package concepts and links. | Defining actions that are sufficient, feasible, sequenced, owned, resourced, and appropriate to the actual capability. Text is supplied by the architect; the script does not invent it. |
-| **7. Design the change portfolio** | Consolidate actions into coordinated projects/programs using capability-based, dimension-based, or hybrid grouping and organizational context. | Groups actions by increment and entered project name, requires a consistent priority within a project/year, sorts lower priorities first, creates project Work Packages, and displays containment links. | Selecting a grouping strategy, resolving dependencies, capacity and budget trade-offs, preparing charters, and governing implementation. |
-
-#### AI Input Completion Companion
-
-[`CBP AI Input Completion.ajs`](BizDiag_Local_AI/Capability_Based_Planning/CBP%20AI%20Input%20Completion.ajs) is an optional
-companion to the seven-move script. It fills missing or invalid Move 2 maturity ratings and Move 3 strategy impacts for
-`INPUT REQUIRED` cards in the two existing heatmaps, then calculates the displayed scores using the CBP formulas. It does
-not rerun the seven-move workflow, approve candidates, or create views.
-
-The companion loads [`CBP Ollama Worker.js`](BizDiag_Local_AI/Capability_Based_Planning/CBP%20Ollama%20Worker.js), which
-calls the local Ollama REST API using Java's asynchronous HTTP client. Ensure Ollama is running with one or more models
-installed; the script lists installed model tags and asks the operator to choose one before making assessment requests.
-Requests use small batches and have bounded timeouts, while the worker pumps SWT events so Archi can process UI events
-during inference. Review AI-generated ratings and rationales before saving the model. Strategic importance remains
-unresolved when the model contains no strategy elements marked `CBP.Role=Strategy`.
-
-The `Capability-based Planning View.ajs` script creates a capability profile view, maturity and strategic-importance
-heatmaps, an ML-SI matrix with improvement goals, an actions and change portfolio view, and an overview. Both heatmaps
-display a colored five-band legend for absolute scores from 0 to 4, rather than a ranking relative to other capabilities.
-Generated relationships connect relevant concepts within these views; they distinguish planning traceability from
-relationships asserted by the source architecture.
-
-The calculations depend on assessed inputs maintained in the Archi model. Move 1 still requires human validation of the
-capability map and its evidence, as relevant business models, value chains, or strategic formulations may be absent from
-the EA model. The script's overview documents the model-property contract, and its source comments describe the
-implementation steps of the seven-move approach.
-
-_Why Ollama?_
-
-Ollama was chosen as the local AI runtime instead of requiring a cloud-based AI service and an external API key. As a 
-Digital Business Practitioner, I wanted AI-assisted documentation to provide greater control over potentially sensitive 
-Enterprise Architecture information and reduce dependency on external services.
-
-Other considerations, including operational cost, performance, local execution, and the ability to work without an 
-Internet connection, also motivated the development of an offline documentation generator. The project builds upon the 
-broader concept of AI-assisted ArchiMate documentation generation, while providing a distinct local-AI implementation 
-based on Ollama.
-
-_The Scripts_
-
-AI-assisted capabilities can be used to support tasks such as:
-
-- Architecture documentation
-- Element description generation
-- Architecture information enrichment
-- Analysis assistance
-- Natural-language interaction with architecture information
-- Generation of structured architecture-related content
-- Leveraging locally-installed Ollama, together with local AI Models
-
-The architecture workflow supports offline AI models. BizDiag_Local_AI uses Java NIO.2 for robust filesystem and 
-directory management. The following are the jArchi scripts and JavaScript files of this application:
-
-| Script                       | Description                                                                                                                                                                                    |
-|------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `AI_Element_DocMaker_EN.ajs` | Generates AI analysis for the selected element in Archi, in English                                                                                                                            |
-| `AI_Element_DocMaker_FA.ajs` | Generates AI analysis for the selected element in Archi, in Persian                                                                                                                            |
-| `AI_View_DocMaker_EN.ajs`    | Generates AI analysis for the selected view in Archi, in English                                                                                                                               |
-| `AI_View_DocMaker_FA.ajs`    | Generates AI analysis for the selected view in Archi, in Persian                                                                                                                               |
-| `AI_REST_JSON.js`            | Provides REST API communication with Ollama, handles JSON serialization/deserialization, manages element context tracking, and persists AI-generated documentation to files (used by DocMaker) |
-| `Mark_it_Down.ajs`           | Provides Markdown export functionality for selected Archi views and elements                                                                                                                   |
-| `Ollama_Olalla.ajs`          | Provides integration with the locally installed Ollama AI runtime                                                                                                                              |
-| `sendToAI.js`                | Simple HTTP client wrapper for querying Ollama (used by Application_View_to_UML.ajs only; independent of AI_REST_JSON.js)                                                                      |
-| `BizDiag_Local_AI/Capability_Based_Planning/Capability-based Planning View.ajs` | Generates CBP profile, assessment, matrix, goal, action, portfolio, and overview views |
-| `BizDiag_Local_AI/Capability_Based_Planning/CBP AI Input Completion.ajs` | Completes missing Move 2 maturity and Move 3 strategic-impact inputs using a user-selected local Ollama model |
-| `BizDiag_Local_AI/Capability_Based_Planning/CBP Ollama Worker.js` | Lists installed Ollama models and sends bounded asynchronous Java HTTP/JSON requests for the CBP companion |
-
-**Ollama model selection (interactive)**
-
-- The DocMaker scripts (Element and View variants, English & Persian) now include an interactive Ollama model selector.
-- When you run a DocMaker script, the initial confirmation dialog will show an optional dropdown listing the locally-installed Ollama models (discovered by running `ollama list`).
-- Choose an installed model to have the script use it for the AI request; the selected model is passed to the REST client (`AI_REST_JSON.js`) and included in the JSON request as `model: "<your-selected-model>"`.
-- If no models are detected, or you cancel selection, the scripts fall back to the previous default model — preserving backward compatibility.
-
-Files changed (DocMaker)
-- `BizDiag_Local_AI/DocMaker/AI_REST_JSON.js` — `sendToAI(prompt, element, isReplacement, modelName)` now accepts an optional `modelName` and uses it in the JSON request body; defaults to the previous model if omitted.
-- `BizDiag_Local_AI/DocMaker/AI_Element_DocMaker_EN.ajs`
-- `BizDiag_Local_AI/DocMaker/AI_Element_DocMaker_FA.ajs`
-- `BizDiag_Local_AI/DocMaker/AI_View_DocMaker_EN.ajs`
-- `BizDiag_Local_AI/DocMaker/AI_View_DocMaker_FA.ajs`
-
-Usage notes & caveats
-- Ollama must be installed and reachable from the Archi/JVM process PATH for model enumeration to work. If Archi is launched from a desktop shortcut, its environment PATH may differ from your PowerShell PATH — if models don't appear, try launching Archi from a terminal where `ollama list` works, or configure the full path to the `ollama` binary in a future update.
-- The current implementation parses the textual output of `ollama list`. If your Ollama supports JSON output (for example `ollama list --json`), we can switch to JSON parsing for more robust model enumeration.
-- Backwards compatibility: if no model is selected or none are found, the scripts continue to use the previous default model and behave the same as before.
-
-This allows organizations to select an AI deployment approach appropriate to their technical and information-security 
-requirements.
-
 
 ```
 ================================================================================
@@ -523,30 +427,30 @@ requirements.
 │   │              User: Select Element or View in Archi               │      │
 │   └────────────────────┬─────────────────────────────────────────────┘      │
 │                        │                                                    │
-│        ┌───────────────┴───────────────┐────────────────────────┐           │
-│        │                               │                        │           │
-│        ▼                               ▼                        ▼           │
-│   ┌─────────────────┐         ┌──────────────────┐     ┌──────────────────┐ │
-│   │ Element DocMaker│         │ View DocMaker    │     │Application_View_ │ │
-│   │                 │         │                  │     │to_UML.ajs        │ │
-│   │ EN.ajs / FA.ajs │         │ EN.ajs / FA.ajs  │     │                  │ │
-│   │                 │         │                  │     │  (Selected       │ │
-│   │ (jArchi Scripts │         │ (jArchi Scripts) │     │ Application  View│ │
-│   │  in Archi)      │         │ in Archi)        │     │                  │ │
-│   └────────┬────────┘         └────────┬─────────┘     └────────┬─────────┘ │
-│            │                           │                        │           │
-│            └───────────────┬───────────┘                        │           │
-│                            │                                    │           │
-│                            ▼                                    │           │
-│                   ┌─────────────────┐                           │           │
-│                   │ Ollama_Olalla   │                           │           │
-│                   │ .ajs            │                           │           │
-│                   │                 │                           │           │
-│                   │ Local AI        │                           │           │
-│                   │ Integration     │                           │           │
-│                   └────────┬────────┘                           │           │
-│                            │                                    │           │
-└────────────────────────────┼────────────────────────────────────│───────────┘
+│        ┌───────────────┴───────────────┐                                    |
+│        │                               │                                    │
+│        ▼                               ▼                                    │
+│   ┌─────────────────┐         ┌──────────────────┐                          |
+│   │ Element DocMaker│         │ View DocMaker    │                          │
+│   │                 │         │                  │                          │
+│   │ EN.ajs / FA.ajs │         │ EN.ajs / FA.ajs  │                          │
+│   │                 │         │                  │                          │
+│   │ (jArchi Scripts │         │ (jArchi Scripts) │                          │
+│   │  in Archi)      │         │ in Archi)        │                          │
+│   └────────┬────────┘         └────────┬─────────┘                          │
+│            │                           │                                    │
+│            └───────────────┬───────────┘                                    │
+│                            │                                                │
+│                            ▼                                                │
+│                   ┌─────────────────┐                                       │
+│                   │ Ollama_Olalla   │                                       │
+│                   │ .ajs            │                                       │
+│                   │                 │                                       │
+│                   │ Local AI        │                                       │
+│                   │ Integration     │                                       │
+│                   └────────┬────────┘                                       │
+│                            │                                                │
+└────────────────────────────┼────────────────────────────────────────────────┘
                              │
                              ▼
 ┌────────────────────────────────────────────┐
@@ -706,17 +610,9 @@ User Input
 │   • Handles timeouts and retry logic with configurable retry attempts       │
 │   • Deserializes Ollama responses from JSON                                 │
 │   • Persists AI-generated documentation to JSON files via Java NIO.2        │
-│   • Tracks element context (ID, name, type, view name, timestamps)         │
+│   • Tracks element context (ID, name, type, view name, timestamps)          │
 │   • Bridges jArchi data structures ↔ REST API contract                      │
 │   • Used by: AI_Element_DocMaker_EN/FA.ajs, AI_View_DocMaker_EN/FA.ajs      │
-│                                                                             │
-│ sendToAI.js                                                                 │
-│   • Simple HTTP client wrapper for querying Ollama                          │
-│   • Establishes HTTP connection to localhost Ollama endpoint                │
-│   • Constructs HTTP POST requests with JSON body                            │
-│   • Returns response text only (no context tracking or file I/O)            │
-│   • Used by: Application_View_to_UML.ajs only                               │
-│   • INDEPENDENT from AI_REST_JSON.js (different codebases)                  │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 
@@ -803,10 +699,105 @@ User in Archi
 └─ User sees success message in Archi console
 ```
 Result: documentation/business-service-customer-portal.md
-- Professional markdown documentation
+- Professional Markdown documentation
 - AI-generated content
 - Ready for sharing / publication
 
+
+_Why Ollama?_
+
+Ollama was chosen as the local AI runtime instead of requiring a cloud-based AI service and an external API key. As a 
+Digital Business Practitioner, I wanted AI-assisted documentation to provide greater control over potentially sensitive 
+Enterprise Architecture information and reduce dependency on external services.
+
+Other considerations, including operational cost, performance, local execution, and the ability to work without an 
+Internet connection, also motivated the development of an offline documentation generator. The project builds upon the 
+broader concept of AI-assisted ArchiMate documentation generation, while providing a distinct local-AI implementation 
+based on Ollama.
+
+**Ollama model selection (interactive)**
+
+- The DocMaker scripts (Element and View variants, English & Persian) now include an interactive Ollama model selector.
+- When you run a DocMaker script, the initial confirmation dialog will show an optional dropdown listing the locally-installed Ollama models (discovered by running `ollama list`).
+- Choose an installed model to have the script use it for the AI request; the selected model is passed to the REST client (`AI_REST_JSON.js`) and included in the JSON request as `model: "<your-selected-model>"`.
+- If no models are detected, or you cancel selection, the scripts fall back to the previous default model — preserving backward compatibility.
+
+Usage notes & caveats
+- Ollama must be installed and reachable from the Archi/JVM process PATH for model enumeration to work. If Archi is launched from a desktop shortcut, its environment PATH may differ from your PowerShell PATH — if models don't appear, try launching Archi from a terminal where `ollama list` works, or configure the full path to the `ollama` binary in a future update.
+- The current implementation parses the textual output of `ollama list`. If your Ollama supports JSON output (for example `ollama list --json`), we can switch to JSON parsing for more robust model enumeration.
+- Backwards compatibility: if no model is selected or none are found, the scripts continue to use the previous default model and behave the same as before.
+
+This allows organizations to select an AI deployment approach appropriate to their technical and information-security 
+requirements.
+
+
+
+
+<a id="cbp-subsystem"></a>
+#### 3.3) CBP Subsystem
+
+The Capability-Based Planning (CBP) module implements the seven moves described in "Capability-Based Planning, The Link
+between Strategy and Enterprise Architecture" and "Capability-based Planning in 7 moves!" through the jArchi script
+[`Capability-based Planning View.ajs`](BizDiag_Local_AI/Capability_Based_Planning/Capability-based%20Planning%20View.ajs).
+It uses explicit model properties as assessment and planning inputs; it does not infer maturity ratings, strategic
+impact, targets, actions, or priorities from element names or counts.
+
+The seven moves are implemented as follows:
+
+1. **Identify and model capabilities:** show modeled Capability concepts, their available profiles, and existing
+structural relationships. If the scope contains no Capability concepts, the script creates provenance-linked candidates
+from eligible Business Functions, Business Processes, and Business Services. Candidates are marked `ReviewRequired` and
+excluded from assessment until an architect reviews and approves them.
+2. **Assess maturity:** calculate a weighted overall score from People, Process, and Technology ratings, and present the
+result in a maturity heatmap.
+3. **Assess strategic importance:** calculate weighted impact from strategy elements explicitly marked
+`CBP.Role=Strategy`, then present the normalized score in a strategic-importance heatmap.
+4. **Analyze the landscape:** plot capabilities with complete assessments in the Maturity-Level/Strategic-Importance
+(ML-SI) matrix and classify their position using the configured acceptance tolerance.
+5. **Set improvement goals:** validate overall and dimension-level targets across configured increments and create Goals
+for valid target states.
+6. **Define actions:** create traceable Work Packages for explicitly described dimension improvements.
+7. **Design the change portfolio:** group actions into projects by increment and project name, then order projects by
+declared priority.
+
+The paper's moves are an architecture-and-planning method. The script operationalizes the parts that can be represented
+as explicit model inputs and repeatable checks. It cannot replace the human analysis that creates and governs those
+inputs.
+
+| Move | EA purpose in the paper | What the script does | What remains a human responsibility |
+|---|---|---|---|
+| **1. Identify and model business capabilities** | Build and refine a capability map from strategy, value streams, organization, and reference models; profile the capabilities and check coverage and granularity. | Uses Capability concepts in scope, shows profile properties and accepted existing hierarchy links, and can seed review-required candidates from Business Functions, Processes, or Services. | Discovering capabilities from strategy and value streams, assuring completeness, agreeing scope/granularity, validating definitions, and approving candidates. The script does not infer the map from strategy documents. |
+| **2. Assess maturity** | Assess each Capability's People, Process, and Technology maturity and calculate an overall maturity using a weighted mean; display a maturity heatmap. | Reads three 0–4 ratings, applies optional positive weights, calculates the weighted mean, writes `CBP.Result.Maturity`, and displays the nearest integer band. | Assigning defensible ratings using the paper's dimension rubrics and choosing weights. Ratings are not inferred from process counts, applications, or model structure. |
+| **3. Assess strategic importance** | Evaluate how each Capability contributes to the enterprise's strategies; consolidate and normalize impacts; display strategic importance. | Reads impact scores on explicitly tagged strategy concepts, applies optional strategy weights, normalizes the weighted average to 0–4, writes `CBP.Result.StrategicImportance`, and creates a heatmap. | Selecting relevant strategies, deciding their weights, and judging every Capability/strategy impact pair. The code's score is only as sound as those inputs. |
+| **4. Analyze the capability landscape** | Combine maturity and importance in an ML-SI matrix; interpret gaps, comfort, and an acceptance band. | Plots fully assessed concepts in rounded matrix cells, classifies using exact score difference and tolerance, and records `CBP.Result.Zone` and `CBP.Result.Gap`. | Interpreting strategic risk, deciding what constitutes acceptable capability risk, and validating that the threshold suits the enterprise. |
+| **5. Set improvement goals** | Define target maturity and staged increments, informed by strategy, resources, timelines, and management judgment. | Validates supplied overall and dimension targets, progression, weighted consistency, and the final target relative to strategic importance; creates a Goal per valid increment. | Choosing targets, timelines, resource feasibility, and which capabilities should be improved. The paper explicitly treats goal setting as contextual, not a rigid algorithm. |
+| **6. Define actions** | Translate each planned dimension-level maturity transition into concrete People, Process, and Technology actions. | For every dimension whose target rises, requires an action description, project name, and priority. Validated records become traceable Work Package concepts and links. | Defining actions that are sufficient, feasible, sequenced, owned, resourced, and appropriate to the actual capability. Text is supplied by the architect; the script does not invent it. |
+| **7. Design the change portfolio** | Consolidate actions into coordinated projects/programs using capability-based, dimension-based, or hybrid grouping and organizational context. | Groups actions by increment and entered project name, requires a consistent priority within a project/year, sorts lower priorities first, creates project Work Packages, and displays containment links. | Selecting a grouping strategy, resolving dependencies, capacity and budget trade-offs, preparing charters, and governing implementation. |
+
+#### AI Input Completion Companion
+
+[`CBP AI Input Completion.ajs`](BizDiag_Local_AI/Capability_Based_Planning/CBP%20AI%20Input%20Completion.ajs) is an optional
+companion to the seven-move script. It fills missing or invalid Move 2 maturity ratings and Move 3 strategy impacts for
+`INPUT REQUIRED` cards in the two existing heatmaps, then calculates the displayed scores using the CBP formulas. It does
+not rerun the seven-move workflow, approve candidates, or create views.
+
+The companion loads [`CBP Ollama Worker.js`](BizDiag_Local_AI/Capability_Based_Planning/CBP%20Ollama%20Worker.js), which
+calls the local Ollama REST API using Java's asynchronous HTTP client. Ensure Ollama is running with one or more models
+installed; the script lists installed model tags and asks the operator to choose one before making assessment requests.
+Requests use small batches and have bounded timeouts, while the worker pumps SWT events so Archi can process UI events
+during inference. Review AI-generated ratings and rationales before saving the model. Strategic importance remains
+unresolved when the model contains no strategy elements marked `CBP.Role=Strategy`.
+
+The `Capability-based Planning View.ajs` script creates a capability profile view, maturity and strategic-importance
+heatmaps, an ML-SI matrix with improvement goals, an actions and change portfolio view, and an overview. Both heatmaps
+display a colored five-band legend for absolute scores from 0 to 4, rather than a ranking relative to other capabilities.
+Generated relationships connect relevant concepts within these views; they distinguish planning traceability from
+relationships asserted by the source architecture.
+
+The calculations depend on assessed inputs maintained in the Archi model. Move 1 still requires human validation of the
+capability map and its evidence, as relevant business models, value chains, or strategic formulations may be absent from
+the EA model. The script's overview documents the model-property contract, and its source comments describe the
+implementation steps of the seven-move approach.
 
 
 <a id="bizmodelcanvas"></a>
