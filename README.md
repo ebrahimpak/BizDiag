@@ -188,7 +188,7 @@ architecture teams systematically examine areas such as:
 
 #### Business-IT Alignment Research Methodology
 
-The Business-IT Alignment module implements a five-phase Enterprise Architecture (EA) assessment process, conceptually based on extensive conducted research. This module is grounded in original research conducted by the Ebrahim Pak (2026). A paper presenting the prior literature review, research methodology, and study findings is forthcoming. In the meanwhile, the five main phases are as follow:
+The Business-IT Alignment module implements a five-phase Enterprise Architecture (EA) assessment process, conceptually based on extensive conducted research. This module is grounded in original research conducted by the Ebrahim Pak (2026). A paper presenting the prior literature review, research methodology, and study findings is forthcoming. In the meanwhile, the five main phases are as follows:
 1.	Preliminary Review: Examines six EA aspects, Strategy (S.01-S.10, STR.61-STR.67); Business Process (B.11-B.20); Data Governance (D.21-D.30); Application Portfolio (A.31-A.40); Technology Infrastructure (T.41-T.48); and Cross-Layer Alignment (X.49-X.60), to identify potential misalignments.
 2.	Malfunctioning Area Analysis: Detects and codes misalignments using aspect-based identifiers. During this phase, each detected misalignment is coded in a bipartite system: [ASPECT].[NUMBER], e.g., S.01 Strategy: Goal without Outcome/KPI.
 3.	Symptom Categorization: Classifies findings by EA aspect; severity (CRITICAL, HIGH, MEDIUM, LOW); description; and analyzability.
@@ -896,6 +896,20 @@ inputs.
 | **6. Define actions** | Translate each planned dimension-level maturity transition into concrete People, Process, and Technology actions. | For every dimension whose target rises, requires an action description, project name, and priority. Validated records become traceable Work Package concepts and links. | Defining actions that are sufficient, feasible, sequenced, owned, resourced, and appropriate to the actual capability. Text is supplied by the architect; the script does not invent it. |
 | **7. Design the change portfolio** | Consolidate actions into coordinated projects/programs using capability-based, dimension-based, or hybrid grouping and organizational context. | Groups actions by increment and entered project name, requires a consistent priority within a project/year, sorts lower priorities first, creates project Work Packages, and displays containment links. | Selecting a grouping strategy, resolving dependencies, capacity and budget trade-offs, preparing charters, and governing implementation. |
 
+#### AI Input Completion Companion
+
+[`CBP AI Input Completion.ajs`](Capability_Based_Planning/CBP%20AI%20Input%20Completion.ajs) is an optional companion to
+the seven-move script. It fills missing or invalid Move 2 maturity ratings and Move 3 strategy impacts for `INPUT REQUIRED`
+cards in the two existing heatmaps, then calculates the displayed scores using the CBP formulas. It does not rerun the
+seven-move workflow, approve candidates, or create views.
+
+The companion loads [`CBP Ollama Worker.js`](Capability_Based_Planning/CBP%20Ollama%20Worker.js), which calls the local
+Ollama REST API using Java's asynchronous HTTP client. Ensure Ollama is running with one or more models installed; the
+script lists installed model tags and asks the operator to choose one before making assessment requests. Requests use
+small batches and have bounded timeouts, while the worker pumps SWT events so Archi can process UI events during model
+inference. Review AI-generated ratings and rationales before saving the model. Strategic importance remains unresolved
+when the model contains no strategy elements marked `CBP.Role=Strategy`.
+
 
 The `Capability-based Planning View.ajs`script creates a capability profile view, maturity and strategic-importance 
 heatmaps, an ML-SI matrix with improvement goals, an actions and change portfolio view, and an overview. Both heatmaps 
@@ -1462,6 +1476,6 @@ BizDiag does not replace professional Enterprise Architecture judgment or organi
 
 - J. Luftman, "Assessing Business-IT Alignment Maturity," Communications of the Association for Information Systems, vol. 4, no. 14, December 2000.
 
-- A. Aldea, I. E. Maria, M. Lankhorst, D. Quartel and B. Wimsatt, "Capability-Based Planning, The Link between Strategy and Enterprise Architecture," November 2016. [Online]. Available: https://publications.opengroup.org/d183.
+- A. Aldea, I.E. Maria, M. Lankhorst, D. Quartel and B. Wimsatt, "Capability-Based Planning, The Link between Strategy and Enterprise Architecture," November 2016. [Online]. Available: https://publications.opengroup.org/d183.
 
 - R. Karami, “Capability-based Planning in 7 moves!” LinkedIn, Dec. 21, 2022. [Online]. Available: https://www.linkedin.com/pulse/capability-based-planning-7-moves-reza-karami/.
