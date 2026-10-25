@@ -931,21 +931,21 @@ The result is an architecture environment where models can become more than stat
 
 ## Technology Stack
 
-| Technology   | Role                                                                                                    |
-|--------------|---------------------------------------------------------------------------------------------------------|
-| Archi        | Enterprise Architecture modeling environment                                                            |
-| ArchiMate    | Enterprise Architecture modeling language                                                               |
-| jArchi       | Architecture model scripting plugin for Archi                                                           |
-| Java         | Standalone application development                                                                      |
-| JavaScript   | Both as outer structure of jArchi scripts and as standard .js JavaScript code, used in helper files.    |
-| GraalJS      | JavaScript language implementation, used in 2 flavors: jArchi scripts & standalone GraalJS applications |
-| JDBC         | Java Database Connectivity                                                                              |
-| H2           | Lightweight database and in-memory analysis                                                             |
-| JSON / JSONL | Structured architecture data                                                                            |
-| XML          | Utilized in pom.xml for Apache Maven projects' build and configuration information                      |
-| CSV / Excel  | Data export and storage for later analysis                                                              |
-| AI Models    | AI-assisted analysis and documentation                                                                  |
-| Ollama       | Local AI model management and execution                                                                 |
+| Technology   | Role                                                                                                                       |
+|--------------|----------------------------------------------------------------------------------------------------------------------------|
+| Archi        | Enterprise Architecture modeling environment                                                                               |
+| ArchiMate    | Enterprise Architecture modeling language                                                                                  |
+| jArchi       | Architecture model scripting plugin for Archi                                                                              |
+| Java         | Standalone application development                                                                                         |
+| JavaScript   | Both as outer structure of jArchi scripts and as standard .js JavaScript code, used in helper files.                       |
+| GraalJS      | JavaScript language implementation, providing Java interop, in 2 flavors: jArchi scripts & standalone GraalJS applications |
+| JDBC         | Java Database Connectivity                                                                                                 |
+| H2           | Lightweight database and in-memory analysis                                                                                |
+| JSON / JSONL | Structured architecture data                                                                                               |
+| XML          | Utilized in pom.xml for Apache Maven projects' build and configuration information                                         |
+| CSV / Excel  | Data export and storage for later analysis                                                                                 |
+| AI Models    | AI-assisted analysis and documentation                                                                                     |
+| Ollama       | Local AI model management and execution                                                                                    |
 
 
 ---
