@@ -35,17 +35,20 @@ as structured data for analysis, automation, decision support, and strategy.
 - [Overview](#overview)
 - [Research Foundation](#research-foundation)
 - [Key Capabilities](#key-capabilities)
-    - [1. Business_IT_Alignment: A Business–IT Alignment/Misalignment Analysis](#1-business_it_alignment-a-businessit-alignmentmisalignment-analysis)
-    - [2. DB_Log: A Database Logging Component](#2-db_log-a-database-logging-component)
+    - [1. Business_IT_Alignment](#business-it-alignment)
+        - [1.1) A Business–IT Alignment/Misalignment Analysis](#business-it-alignment-analysis)
+    - [2. ClientServer_DB: Client/Server and Data Integration Modules](#clientserver-db)
+        - [2.1) DB_Log](#clientserver-db-log)
+        - [2.2) GraalJS_ClientServer_Template](#clientserver-db-graaljs-clientserver-template)
+        - [2.3) GraalJS_Element_RESTLogger](#clientserver-db-graaljs-element-restlogger)
+        - [2.4) GraalJS_NIOLoggerServer](#clientserver-db-graaljs-niologgerserver)
+        - [2.5) Java_DBLoggerServer](#clientserver-db-java-dbloggerserver)
     - [3. BizDiag Local AI: An AI REST API for Smart Enterprise Architecture Operations](#3-bizdiag-local-ai-an-ai-rest-api-for-smart-enterprise-architecture-operations)
-        - [UML Subsystem](#uml-subsystem)
-      - [DocMaker Subsystem](#docmaker-subsystem)
-    - [4. GraalJS_ClientServer_Template: A GraalJS ClientServer Blueprint](#4-graaljs_clientserver_template-a-graaljs-clientserver-blueprint)
-    - [5. BizModelCanvas: A Business Model Canvas Generation & Analysis](#5-bizmodelcanvas-a-business-model-canvas-generation--analysis)
-    - [6. GraalJS_ClientServer_Template](#6-graaljs_clientserver_template)
-    - [7. GraalJS_NIOLoggerServer: A Client/Server/Dumper](#7-graaljs_niologgerserver-a-clientserverdumper-in-graaljs-jarchi-dialectgraaljs-vanilla-graaljsjavascript)
-    - [8. Java DBLoggerServer: A jArchi Client/JavaScript Adapter/Java Server](#8-java-dbloggerserver-a-jarchi-clientjavascript-adapterjava-server)
-    - [9. Capability Based Planning](#9-capability-based-planning)
+        - [3.1) UML Subsystem](#uml-subsystem)
+        - [3.2) DocMaker Subsystem](#docmaker-subsystem)
+        - [3.3) CBP Subsystem](#cbp-subsystem)
+    - [4. BizModelCanvas](#bizmodelcanvas)
+        - [4.1) A Business Model Canvas Generation & Analysis](#business-model-canvas-generation--analysis)
 - [Why ArchiMate & jArchi?](#why-archimate--jarchi)
 - [Technology Stack](#technology-stack)
 - [Data Flow](#data-flow)
@@ -102,25 +105,24 @@ The general workflow is:
 
 ```text
 ArchiMate Model
-        │
-        ▼
-      BizDiag
-        │
-        ├── Business–IT Alignment Analysis
-        ├── DB Log
-        ├── Generate Documentation
-        ├── GraalJS TimeServer
-        ├── Business Model Canvas
-        ├── GraalJS NIOLoggerServer
-        ├── GraalJS REST Logger
-        ├── Java DBLogger Server
-        ├── Capability Based Planning
-        │
-        ▼
-Architecture Intelligence
-        │
-        ▼
-Strategic & Operational Insights
+      │
+      ▼
+BizDiag modules
+      ├── Business_IT_Alignment
+      ├── ClientServer_DB
+      │   ├── DB_Log
+      │   ├── GraalJS_ClientServer_Template
+      │   ├── GraalJS_Element_RESTLogger
+      │   ├── GraalJS_NIOLoggerServer
+      │   └── Java_DBLoggerServer
+      ├── BizDiag_Local_AI
+      │   ├── Capability_Based_Planning
+      │   ├── DocMaker
+      │   └── UML
+      └── BizModelCanvas
+      │
+      ▼
+Architecture Intelligence and decision support
 ```
 
 BizDiag is designed as a modular suite. Individual capabilities can be used independently, while multiple components can 
@@ -150,7 +152,11 @@ academic paper will elaborate on the methodology and its research contributions.
 ## Key Capabilities
 
 
-### 1. **Business_IT_Alignment**: A Business–IT Alignment/Misalignment Analysis
+<a id="business-it-alignment"></a>
+### 1. **Business_IT_Alignment**
+
+<a id="business-it-alignment-analysis"></a>
+#### 1.1) A Business–IT Alignment/Misalignment Analysis
 
 BizDiag's Business_IT_Alignment subsystem includes analysis capabilities intended to help architects investigate
 relationships between business and IT architecture. This module has leveraged the previously-conducted studies on
@@ -211,7 +217,15 @@ aspect: "derivedAspect", //EA Layer
 ```
 
 
-### 2. **DB_Log**: A Database Logging Component
+### 2. **ClientServer_DB**: Client/Server and Data Integration Modules
+
+<a id="clientserver-db"></a>
+
+`ClientServer_DB/` groups related components that extract architecture data from ArchiMate models and make it available
+through client/server workflows, REST or TCP communication, JSON/JSONL exports, and H2 databases.
+
+<a id="clientserver-db-log"></a>
+#### 2.1) DB_Log
 
 DB_Log can transform architecture information into structured data suitable for programmatic analysis. Architecture 
 data can be loaded into an in-memory database, like the utilized H2 database, or any other relational database systems, 
@@ -254,32 +268,78 @@ Potential applications include:
 - Automated reporting
 - Organization-specific analytical models
 
+<a id="clientserver-db-graaljs-clientserver-template"></a>
+#### 2.2) GraalJS_ClientServer_Template
+
+This is a client/server template for Archi. The client is a jArchi script, while the server is a GraalJS application
+with JavaScript outer structure and Java inner structure. The example is a time-server/time-client application that
+demonstrates writing both jArchi code and non-jArchi code in distinct GraalJS environments within one codebase. Although
+the server could be implemented in vanilla Java, this design demonstrates using different GraalJS dialects in one
+project and is useful where a uniform language is preferred or required.
+
+Its NIO-based TCP server uses Java's non-blocking I/O architecture: a `ServerSocketChannel` accepts connections and a
+`Selector` monitors connection events. A single event loop registers client channels for reads, receives their payloads,
+and prints the UTF-8 text when a client closes its connection. This event-driven design avoids a separate thread per
+client and provides a basis for connection-management and lightweight TCP integration examples.
+
+<a id="clientserver-db-graaljs-element-restlogger"></a>
+#### 2.3) GraalJS_Element_RESTLogger
+
+This module pairs `GraalJSRESTClient.ajs` with `GraalJSRESTServer.js`. The jArchi client sends extracted model-element
+data to the GraalJS REST server, which records the received data in H2 for later analysis.
+
+<a id="clientserver-db-graaljs-niologgerserver"></a>
+#### 2.4) GraalJS_NIOLoggerServer
+
+This module exports element information for further analysis and integration. Its click-dumper client,
+`nio_interop_client.js`, receives element click events in Archi and writes them to both an H2 database and a JSONL file.
+The server runs a non-blocking NIO selector loop outside Archi/jArchi; logging uses JDBC and file I/O in the event loop.
+Connections are handled without a dedicated thread per client; synchronous database and file operations can briefly
+pause the event loop. The data flow is `log_click.ajs` → `nio_interop_client.js` → `nio_interop_server.js` → H2 and
+JSONL. JSONL supports AI pipelines, data processing, machine learning, large-scale architecture analysis, external-tool
+integration, and marketing use cases. The extracted data can also be converted or imported into spreadsheet tools for
+architecture reviews, reporting, data inspection, stakeholder analysis, and further processing with common business
+tools.
+
+<a id="clientserver-db-java-dbloggerserver"></a>
+#### 2.5) Java_DBLoggerServer
+
+This module connects a jArchi client to a standalone Java server for database-backed logging. The client sends selected
+element metadata as Base64 through `log_click.ajs`; the `nio_interop_client.js` transport adapter decodes the payload
+and sends it over TCP to `NioInteropServer.java`. The server runs outside Archi and jArchi as a vanilla Java program,
+providing a deployment option for environments that require a pure-Java server rather than a GraalJS runtime.
+
 
 ### 3. **BizDiag Local AI**: An AI REST API for Smart Enterprise Architecture Operations
 
 The BizDiag Local AI subsystem follows a layered, microservice-inspired architecture that separates Enterprise 
-Architecture model interaction from AI inference. It is organized around two core capabilities:
+Architecture model interaction from AI inference. It is organized around three capabilities:
 
 - an AI-enhanced ArchiMate Application View to UML transformation script
 - an AI-driven DocMaker subsystem for generating documentation
+- an AI-assisted Capability-Based Planning companion for completing assessment inputs
 
 ```
-├── DocMaker Subsystem
+BizDiag_Local_AI/
+├── Capability_Based_Planning
+    ├── Capability-based Planning View.ajs
+    ├── CBP AI Input Completion.ajs
+    └── CBP Ollama Worker.js
+├── DocMaker
 │   ├── AI_Element_DocMaker_EN.ajs
 │   ├── AI_Element_DocMaker_FA.ajs
 │   ├── AI_View_DocMaker_EN.ajs
 │   ├── AI_View_DocMaker_FA.ajs
 │   ├── AI_REST_JSON.js
 │   ├── Ollama_Olalla.ajs
-│   ├── Mark_it_Down.ajs
-│
-│
-└── UML Subsystem
+│   └── Mark_it_Down.ajs
+└── UML
     ├── Application_View_to_UML.ajs
     └── sendToAI.js
 ```
 
-#### **UML Subsystem**
+<a id="uml-subsystem"></a>
+#### 3.1) UML Subsystem
 The first BizDiag Local AI capability is `Application_View_to_UML.ajs`, a jArchi script that transformed the selected 
 application-layer views into new views using UML-like notation instead of ArchiMate notation. It is an AI-enhanced 
 UML-like view  generation script designed for architectural transformation and semantic enrichment. The script does not 
@@ -301,7 +361,8 @@ Profiles technique to extend UML metaclasses using stereotypes and tagged values
 UML/ArchiMate integration.
 
 
-#### **DocMaker Subsystem**
+<a id="docmaker-subsystem"></a>
+#### 3.2) DocMaker Subsystem
 This application consists of `AI_View_DocMaker_EN.ajs`, `AI_Element_DocMaker_FA.ajs`, `AI_Element_DocMaker_EN.ajs`,
 `AI_Element_DocMaker_FA.ajs`, `AI_REST_JSON.js`, `Ollama_Olalla.ajs`, and `Mark_it_Down.ajs`.
 The DocMaker subsystem within BizDiag Local AI is organized into three principal layers. First, the jArchi layer 
@@ -319,6 +380,72 @@ Java NIO.2 APIs for reliable file-system operations. Overall, this architecture 
 operational cost, offline functionality, and extensibility, allowing organizations to replace underlying LLMs, add 
 language variants, or integrate alternative AI runtimes without modifying the core enterprise architecture extraction 
 logic.
+
+<a id="cbp-subsystem"></a>
+#### 3.3) CBP Subsystem
+
+The Capability-Based Planning (CBP) module implements the seven moves described in "Capability-Based Planning, The Link
+between Strategy and Enterprise Architecture" and "Capability-based Planning in 7 moves!" through the jArchi script
+[`Capability-based Planning View.ajs`](BizDiag_Local_AI/Capability_Based_Planning/Capability-based%20Planning%20View.ajs).
+It uses explicit model properties as assessment and planning inputs; it does not infer maturity ratings, strategic
+impact, targets, actions, or priorities from element names or counts.
+
+The seven moves are implemented as follows:
+
+1. **Identify and model capabilities:** show modeled Capability concepts, their available profiles, and existing
+structural relationships. If the scope contains no Capability concepts, the script creates provenance-linked candidates
+from eligible Business Functions, Business Processes, and Business Services. Candidates are marked `ReviewRequired` and
+excluded from assessment until an architect reviews and approves them.
+2. **Assess maturity:** calculate a weighted overall score from People, Process, and Technology ratings, and present the
+result in a maturity heatmap.
+3. **Assess strategic importance:** calculate weighted impact from strategy elements explicitly marked
+`CBP.Role=Strategy`, then present the normalized score in a strategic-importance heatmap.
+4. **Analyze the landscape:** plot capabilities with complete assessments in the Maturity-Level/Strategic-Importance
+(ML-SI) matrix and classify their position using the configured acceptance tolerance.
+5. **Set improvement goals:** validate overall and dimension-level targets across configured increments and create Goals
+for valid target states.
+6. **Define actions:** create traceable Work Packages for explicitly described dimension improvements.
+7. **Design the change portfolio:** group actions into projects by increment and project name, then order projects by
+declared priority.
+
+The paper's moves are an architecture-and-planning method. The script operationalizes the parts that can be represented
+as explicit model inputs and repeatable checks. It cannot replace the human analysis that creates and governs those
+inputs.
+
+| Move | EA purpose in the paper | What the script does | What remains a human responsibility |
+|---|---|---|---|
+| **1. Identify and model business capabilities** | Build and refine a capability map from strategy, value streams, organization, and reference models; profile the capabilities and check coverage and granularity. | Uses Capability concepts in scope, shows profile properties and accepted existing hierarchy links, and can seed review-required candidates from Business Functions, Processes, or Services. | Discovering capabilities from strategy and value streams, assuring completeness, agreeing scope/granularity, validating definitions, and approving candidates. The script does not infer the map from strategy documents. |
+| **2. Assess maturity** | Assess each Capability's People, Process, and Technology maturity and calculate an overall maturity using a weighted mean; display a maturity heatmap. | Reads three 0–4 ratings, applies optional positive weights, calculates the weighted mean, writes `CBP.Result.Maturity`, and displays the nearest integer band. | Assigning defensible ratings using the paper's dimension rubrics and choosing weights. Ratings are not inferred from process counts, applications, or model structure. |
+| **3. Assess strategic importance** | Evaluate how each Capability contributes to the enterprise's strategies; consolidate and normalize impacts; display strategic importance. | Reads impact scores on explicitly tagged strategy concepts, applies optional strategy weights, normalizes the weighted average to 0–4, writes `CBP.Result.StrategicImportance`, and creates a heatmap. | Selecting relevant strategies, deciding their weights, and judging every Capability/strategy impact pair. The code's score is only as sound as those inputs. |
+| **4. Analyze the capability landscape** | Combine maturity and importance in an ML-SI matrix; interpret gaps, comfort, and an acceptance band. | Plots fully assessed concepts in rounded matrix cells, classifies using exact score difference and tolerance, and records `CBP.Result.Zone` and `CBP.Result.Gap`. | Interpreting strategic risk, deciding what constitutes acceptable capability risk, and validating that the threshold suits the enterprise. |
+| **5. Set improvement goals** | Define target maturity and staged increments, informed by strategy, resources, timelines, and management judgment. | Validates supplied overall and dimension targets, progression, weighted consistency, and the final target relative to strategic importance; creates a Goal per valid increment. | Choosing targets, timelines, resource feasibility, and which capabilities should be improved. The paper explicitly treats goal setting as contextual, not a rigid algorithm. |
+| **6. Define actions** | Translate each planned dimension-level maturity transition into concrete People, Process, and Technology actions. | For every dimension whose target rises, requires an action description, project name, and priority. Validated records become traceable Work Package concepts and links. | Defining actions that are sufficient, feasible, sequenced, owned, resourced, and appropriate to the actual capability. Text is supplied by the architect; the script does not invent it. |
+| **7. Design the change portfolio** | Consolidate actions into coordinated projects/programs using capability-based, dimension-based, or hybrid grouping and organizational context. | Groups actions by increment and entered project name, requires a consistent priority within a project/year, sorts lower priorities first, creates project Work Packages, and displays containment links. | Selecting a grouping strategy, resolving dependencies, capacity and budget trade-offs, preparing charters, and governing implementation. |
+
+#### AI Input Completion Companion
+
+[`CBP AI Input Completion.ajs`](BizDiag_Local_AI/Capability_Based_Planning/CBP%20AI%20Input%20Completion.ajs) is an optional
+companion to the seven-move script. It fills missing or invalid Move 2 maturity ratings and Move 3 strategy impacts for
+`INPUT REQUIRED` cards in the two existing heatmaps, then calculates the displayed scores using the CBP formulas. It does
+not rerun the seven-move workflow, approve candidates, or create views.
+
+The companion loads [`CBP Ollama Worker.js`](BizDiag_Local_AI/Capability_Based_Planning/CBP%20Ollama%20Worker.js), which
+calls the local Ollama REST API using Java's asynchronous HTTP client. Ensure Ollama is running with one or more models
+installed; the script lists installed model tags and asks the operator to choose one before making assessment requests.
+Requests use small batches and have bounded timeouts, while the worker pumps SWT events so Archi can process UI events
+during inference. Review AI-generated ratings and rationales before saving the model. Strategic importance remains
+unresolved when the model contains no strategy elements marked `CBP.Role=Strategy`.
+
+The `Capability-based Planning View.ajs` script creates a capability profile view, maturity and strategic-importance
+heatmaps, an ML-SI matrix with improvement goals, an actions and change portfolio view, and an overview. Both heatmaps
+display a colored five-band legend for absolute scores from 0 to 4, rather than a ranking relative to other capabilities.
+Generated relationships connect relevant concepts within these views; they distinguish planning traceability from
+relationships asserted by the source architecture.
+
+The calculations depend on assessed inputs maintained in the Archi model. Move 1 still requires human validation of the
+capability map and its evidence, as relevant business models, value chains, or strategic formulations may be absent from
+the EA model. The script's overview documents the model-property contract, and its source comments describe the
+implementation steps of the seven-move approach.
 
 _Why Ollama?_
 
@@ -356,6 +483,9 @@ directory management. The following are the jArchi scripts and JavaScript files 
 | `Mark_it_Down.ajs`           | Provides Markdown export functionality for selected Archi views and elements                                                                                                                   |
 | `Ollama_Olalla.ajs`          | Provides integration with the locally installed Ollama AI runtime                                                                                                                              |
 | `sendToAI.js`                | Simple HTTP client wrapper for querying Ollama (used by Application_View_to_UML.ajs only; independent of AI_REST_JSON.js)                                                                      |
+| `BizDiag_Local_AI/Capability_Based_Planning/Capability-based Planning View.ajs` | Generates CBP profile, assessment, matrix, goal, action, portfolio, and overview views |
+| `BizDiag_Local_AI/Capability_Based_Planning/CBP AI Input Completion.ajs` | Completes missing Move 2 maturity and Move 3 strategic-impact inputs using a user-selected local Ollama model |
+| `BizDiag_Local_AI/Capability_Based_Planning/CBP Ollama Worker.js` | Lists installed Ollama models and sends bounded asynchronous Java HTTP/JSON requests for the CBP companion |
 
 **Ollama model selection (interactive)**
 
@@ -679,21 +809,11 @@ Result: documentation/business-service-customer-portal.md
 
 
 
-### 4. **GraalJS_ClientServer_Template**: A GraalJS ClientServer Blueprint
+<a id="bizmodelcanvas"></a>
+### 4. **BizModelCanvas**
 
-This is a client and server template for Archi. The client is a jArchi script, native to Archi environment, while the 
-server is a GraalJS application, with JavaScript outer structure, and Java inner structure. As a template application
-this is a time-server/time-client application. This provides a unique architecture,while both client and server are 
-written in GraalJS, the clientside code is a jArchi dialect of GraalJS, while the serverside code is pure original 
-GraalJS. 
-
-The server code could be well written in vanilla Java, however there was a good reason behind this decision. This 
-intentional design was chosen for demonstrating how to write both jArchi code and non-jArchi code, both in GraalJS; and 
-how to utilize different dialects of GraalJS runtime environment in one codebase. This is particularly very useful in 
-projects that mandate uniformly coding in one particular language.
-
-
-### 5. **BizModelCanvas**: A Business Model Canvas Generation & Analysis 
+<a id="business-model-canvas-generation--analysis"></a>
+#### 4.1) A Business Model Canvas Generation & Analysis
 
 As a module of BizDiag software package, BizModelCanvas collection is a toolkit for analyzing value propositions, 
 producing enhanced views, and converting Business Model Canvas layouts into ArchiMate views. It is built to run inside 
@@ -791,139 +911,6 @@ that business model is not a static entity, and it changes throughout your organ
 to mend your business model canvas, periodically, and run this script suite against your model to see if the model
 changes lead to a different BMC. After all, if you take care of your business model, your business model will take care 
 of you!
-
-
-### 6. **GraalJS_ClientServer_Template**
-
-The NIO-Based TCP Server provides the server-side component of the client–server communication module, enabling 
-BizDiag's external scripts to transmit element-related data to a dedicated server process. Built around Java's 
-non-blocking I/O (NIO) architecture, it uses a `ServerSocketChannel` to accept incoming TCP connections and a `Selector`
-to monitor connection events. This event-driven design allows the server to manage client connections through a single 
-event loop, without requiring a separate thread for each client.
-
-Upon accepting a connection, the server registers the client channel for read operations and allocates a buffer to 
-receive the incoming payload. Once the client finishes transmitting and closes its connection, the server decodes the 
-received bytes as UTF-8 text and prints the payload to the console. In the BizDiag workflow, this mechanism enables data 
-collected by the client script to be delivered to the server for subsequent processing or integration with other 
-components. The implementation also provides a practical foundation for exploring event-driven network programming, 
-connection management, and the evolution of lightweight TCP-based integration mechanisms.
-
-
-### 7. **GraalJS_NIOLoggerServer**: A Client/Server/Dumper in (GraalJS: jArchi dialect)/(GraalJS: vanilla GraalJS)/(JavaScript)
-
-This module of BizDiag supports exporting element information into formats suitable for further analysis and integration.
-`GraalJS_NIOLoggerServer` has a click-dumper client, `nio_interop_client.js`, which receives click events on elements in
-the Archi environment, dumping them, simultaneously, to both an H2 and a JSONL file. User can access those 
-locally-dumped element-data through the H2 database, or through the JSONL file. The JSONL file can be used for further 
-processing, including potential AI-assisted analysis, or integration with any external tools.
-
-The application is leveraging client/server architecture. `GraalJS NIO Server` runs a pure NIO Selector loop on the main 
-thread. All connections are handled in a non-blocking fashion. Logging (JDBC/File I/O) is executed synchronously within 
-the event loop, accepting that these operations are blocking and will momentarily pause the loop. Therefore, the server 
-is a plain .js file, living outside Archi/jArchi.
-
-JSONL export can be particularly useful for:
-
-- AI pipelines
-- Data processing
-- Machine learning workflows
-- Large-scale architecture analysis
-- Integration with external tools
-- Marketing department
-
-Spreadsheet-based exports can support:
-
-- Architecture reviews
-- Reporting
-- Data inspection
-- Stakeholder analysis
-- Further processing using common business tools
-
-Briefly, the architecture of thus subsystem could be summarized like this:
-
-`log_click.ajs` dumps → `nio_interop_client.js` → `nio_interop_server.js` → [H2 + JSONL] for analytics.
-
-
-### 8. **Java DBLoggerServer**: A jArchi Client/JavaScript Adapter/Java Server
-
-This is a vanilla Java server, running as a standalone java program, outside Archi and jArchi environment. I leveraged  
-this special architecture, for special case of adherence to a default tech stack, that mandate the use of pure Java
-programs, rather than using runtime implementations, e.g., GraalJs.
-On the other side, there are log_click.ajs and nio_interop_client.js. The former script sends selected element's metadata 
-as Base64 to the external server. It runs inside Archi, and uses Base64 and Java Runtime for maximum reliability. The
-latter, nio_interop_client.js is a transport client (aka bridge/adapter) in the logging pipeline. It takes the payload 
-handed off by log_click.ajs, decodes it, then sends it over a TCP socket to NioInteropServer.java. It connects two parts 
-of the application, and makes an outbound socket connection.
-
-
-### 9. Capability Based Planning
-
-The Capability-Based Planning (CBP) module implements the seven moves as extracted from "Capability-Based Planning, The
-Link between Strategy and Enterprise Architecture", and described in "Capability-based Planning in 7 moves!" through the
-jArchi script [`Capability-based Planning View.ajs`](Capability_Based_Planning/Capability-based%20Planning%20View.ajs).
-It uses explicit model properties as assessment and planning inputs; it does not infer maturity ratings, strategic
-impact, targets, actions, or priorities from element names or counts.
-
-The seven moves are implemented as follows:
-
-1. **Identify and model capabilities:** show modeled Capability concepts, their available profiles, and existing
-structural relationships. If the scope contains no Capability concepts, the script creates provenance-linked candidates
-from eligible Business Functions, Business Processes, and Business Services. Candidates are marked `ReviewRequired` and
-excluded from assessment until an architect reviews and approves them.
-2. **Assess maturity:** calculate a weighted overall score from People, Process, and Technology ratings, and present the
-result in a maturity heatmap.
-3. **Assess strategic importance:** calculate weighted impact from strategy elements explicitly marked
-`CBP.Role=Strategy`, then present the normalized score in a strategic-importance heatmap.
-4. **Analyze the landscape:** plot capabilities with complete assessments in the Maturity-Level/Strategic-Importance
-(ML-SI) matrix and classify their position using the configured acceptance tolerance.
-5. **Set improvement goals:** validate overall and dimension-level targets across configured increments and create Goals
-for valid target states.
-6. **Define actions:** create traceable Work Packages for explicitly described dimension improvements.
-7. **Design the change portfolio:** group actions into projects by increment and project name, then order projects by
-declared priority.
-
-The paper's moves are an architecture-and-planning method. The script operationalizes the parts that can be represented 
-as explicit model inputs and repeatable checks. It cannot replace the human analysis that creates and governs those 
-inputs.
-
-| Move | EA purpose in the paper | What the script does | What remains a human responsibility |
-|---|---|---|---|
-| **1. Identify and model business capabilities** | Build and refine a capability map from strategy, value streams, organization, and reference models; profile the capabilities and check coverage and granularity. | Uses Capability concepts in scope, shows profile properties and accepted existing hierarchy links, and can seed review-required candidates from Business Functions, Processes, or Services. | Discovering capabilities from strategy and value streams, assuring completeness, agreeing scope/granularity, validating definitions, and approving candidates. The script does not infer the map from strategy documents. |
-| **2. Assess maturity** | Assess each Capability's People, Process, and Technology maturity and calculate an overall maturity using a weighted mean; display a maturity heatmap. | Reads three 0–4 ratings, applies optional positive weights, calculates the weighted mean, writes `CBP.Result.Maturity`, and displays the nearest integer band. | Assigning defensible ratings using the paper's dimension rubrics and choosing weights. Ratings are not inferred from process counts, applications, or model structure. |
-| **3. Assess strategic importance** | Evaluate how each Capability contributes to the enterprise's strategies; consolidate and normalize impacts; display strategic importance. | Reads impact scores on explicitly tagged strategy concepts, applies optional strategy weights, normalizes the weighted average to 0–4, writes `CBP.Result.StrategicImportance`, and creates a heatmap. | Selecting relevant strategies, deciding their weights, and judging every Capability/strategy impact pair. The code's score is only as sound as those inputs. |
-| **4. Analyze the capability landscape** | Combine maturity and importance in an ML-SI matrix; interpret gaps, comfort, and an acceptance band. | Plots fully assessed concepts in rounded matrix cells, classifies using exact score difference and tolerance, and records `CBP.Result.Zone` and `CBP.Result.Gap`. | Interpreting strategic risk, deciding what constitutes acceptable capability risk, and validating that the threshold suits the enterprise. |
-| **5. Set improvement goals** | Define target maturity and staged increments, informed by strategy, resources, timelines, and management judgment. | Validates supplied overall and dimension targets, progression, weighted consistency, and the final target relative to strategic importance; creates a Goal per valid increment. | Choosing targets, timelines, resource feasibility, and which capabilities should be improved. The paper explicitly treats goal setting as contextual, not a rigid algorithm. |
-| **6. Define actions** | Translate each planned dimension-level maturity transition into concrete People, Process, and Technology actions. | For every dimension whose target rises, requires an action description, project name, and priority. Validated records become traceable Work Package concepts and links. | Defining actions that are sufficient, feasible, sequenced, owned, resourced, and appropriate to the actual capability. Text is supplied by the architect; the script does not invent it. |
-| **7. Design the change portfolio** | Consolidate actions into coordinated projects/programs using capability-based, dimension-based, or hybrid grouping and organizational context. | Groups actions by increment and entered project name, requires a consistent priority within a project/year, sorts lower priorities first, creates project Work Packages, and displays containment links. | Selecting a grouping strategy, resolving dependencies, capacity and budget trade-offs, preparing charters, and governing implementation. |
-
-#### AI Input Completion Companion
-
-[`CBP AI Input Completion.ajs`](Capability_Based_Planning/CBP%20AI%20Input%20Completion.ajs) is an optional companion to
-the seven-move script. It fills missing or invalid Move 2 maturity ratings and Move 3 strategy impacts for `INPUT REQUIRED`
-cards in the two existing heatmaps, then calculates the displayed scores using the CBP formulas. It does not rerun the
-seven-move workflow, approve candidates, or create views.
-
-The companion loads [`CBP Ollama Worker.js`](Capability_Based_Planning/CBP%20Ollama%20Worker.js), which calls the local
-Ollama REST API using Java's asynchronous HTTP client. Ensure Ollama is running with one or more models installed; the
-script lists installed model tags and asks the operator to choose one before making assessment requests. Requests use
-small batches and have bounded timeouts, while the worker pumps SWT events so Archi can process UI events during model
-inference. Review AI-generated ratings and rationales before saving the model. Strategic importance remains unresolved
-when the model contains no strategy elements marked `CBP.Role=Strategy`.
-
-
-The `Capability-based Planning View.ajs`script creates a capability profile view, maturity and strategic-importance 
-heatmaps, an ML-SI matrix with improvement goals, an actions and change portfolio view, and an overview. Both heatmaps 
-display a colored five-band legend for absolute scores from 0 to 4, rather than a ranking relative to other capabilities. 
-Generated relationships connect the relevant concepts within these views; they distinguish planning traceability from 
-relationships asserted by the source architecture.
-
-The calculations depend on assessed inputs maintained in the Archi model, and Move 1 still requires human validation of
-the capability map and its evidence, as some factors could be missing in the EA model, in the first place, such as 
-Business Model Canvas, Value Chain Model, or strategic formulations and analytics. The script's overview documents the 
-model-property contract, and since the source code of `Capability-based Planning View.ajs` is already self-documented, 
-by means of systematic and details comments I have inserted before key snippets and each of the seven Move, depicting 
-the implementation steps of the capability-based planning approach.
-
 ---
 
 ## Why ArchiMate & jArchi?
@@ -1014,13 +1001,10 @@ BizDiag is not intended to be a single monolithic application.
 The project consists of multiple components, including:
 
 - Business–IT Alignment Analysis
-- DB Log
+- ClientServer_DB (DB_Log, GraalJS client/server, REST logger, NIO logger, and Java DB logger)
 - Generate Documentation
 - GraalJS TimeServer
 - Business Model Canvas
-- GraalJS NIOLoggerServer
-- GraalJS REST Logger
-- Java DBLogger Server
 
 Individual components can be used independently.
 
@@ -1160,27 +1144,42 @@ BizDiag architecture-analysis workflows operate on ArchiMate models created or m
 
 ## Repository Structure
 
-The repository is organized to separate reusable automation, applications, examples, and documentation.
+The repository is organized by its four primary modules. Build outputs and IDE metadata are omitted from this overview.
 
 ```text
 BizDiag/
 ├── README.md
 ├── LICENSE
-├── NOTICE
+├── LICENSE-FR
 ├── CITATION.cff
-├── applications/
-│   ├── ...
-│   └── ...
-├── scripts/
-│   ├── ...
-│   └── ...
-├── videos/
-    ├── ...
-    └── ...
-
+├── Business_IT_Alignment/
+│   ├── BusinessITAlignment_EN.ajs
+│   ├── BusinessITAlignment_FA.ajs
+│   └── img/
+├── BizDiag_Local_AI/
+│   ├── Capability_Based_Planning/
+│   │   ├── Capability-based Planning View.ajs
+│   │   ├── CBP AI Input Completion.ajs
+│   │   └── CBP Ollama Worker.js
+│   ├── DocMaker/
+│   └── UML/
+├── BizModelCanvas/
+│   ├── BizModelCanvas-GUI-EN.ajs
+│   ├── BizModelCanvas-GUI-FA.ajs
+│   ├── gui/
+│   ├── img/
+│   ├── lib/
+│   └── scripts/
+├── ClientServer_DB/
+│   ├── DB_Log/
+│   ├── GraalJS_ClientServer_Template/
+│   ├── GraalJS_Element_RESTLogger/
+│   ├── GraalJS_NIOLoggerServer/
+│   └── Java_DBLoggerServer/
+└── logo/
 ```
 
-The exact repository structure may evolve as the project grows.
+Each module folder contains its own scripts, resources, or server-side source files.
 
 ---
 
