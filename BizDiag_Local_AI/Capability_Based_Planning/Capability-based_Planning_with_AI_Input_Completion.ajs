@@ -28,7 +28,7 @@ console.show();
 
     const scriptsDirectory = __DIR__ + "scripts/";
     const confirmationMessage =
-        "This workflow will first run 'Capability-based Planning View.ajs' on the active model.\n\n" +
+        "This workflow will first run 'Capability-based_Planning_View.ajs' on the active model.\n\n" +
         "It will create or rebuild these views:\n\n" +
         "- CBP - Capability Map and Profiles\n" +
         "  Shows capabilities and their profiles; generated candidates are assessed provisionally for post-run review.\n\n" +
@@ -42,7 +42,7 @@ console.show();
         "  Shows improvement actions grouped into prioritized projects.\n\n" +
         "- Capability-based Planning View\n" +
         "  Provides an overview of the capability map and the seven planning steps.\n\n" +
-        "After these views are generated, 'CBP AI Input Completion.ajs' will run and may ask you to choose a local " +
+        "After these views are generated, 'CBP_AI_Input_Completion.ajs' will run and may ask you to choose a local " +
         "Ollama model.\n\n" +
         "Continue?";
 
@@ -51,8 +51,8 @@ console.show();
             console.log("CBP workflow cancelled; no scripts were run.");
             return;
         }
-        load(scriptsDirectory + "Capability-based Planning View.ajs");
-        load(scriptsDirectory + "CBP AI Input Completion.ajs");
+        load(scriptsDirectory + "Capability-based_Planning_View.ajs");
+        load(scriptsDirectory + "CBP_AI_Input_Completion.ajs");
     } catch (error) {
         const message = error.message || String(error);
         console.error("[ERROR] CBP workflow stopped: " + message);
