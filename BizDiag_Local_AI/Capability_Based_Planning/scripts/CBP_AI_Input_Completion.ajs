@@ -41,7 +41,7 @@ console.show();
         maturity: ["#F4CCCC", "#FCE5CD", "#FFF2CC", "#D9EAD3", "#B6D7A8"],
         importance: ["#B6D7A8", "#D9EAD3", "#FFF2CC", "#FCE5CD", "#F4CCCC"]
     };
-    const workerPath = __DIR__ + "CBP Ollama Worker.js";
+    const workerPath = __DIR__ + "CBP_Ollama_Worker.js";
     let localAiModel = "";
     let activeLocalAiModel = "";
     const completionMarker = "\n\nCBP AI completion status:";
