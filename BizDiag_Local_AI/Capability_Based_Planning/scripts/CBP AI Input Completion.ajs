@@ -53,18 +53,35 @@ console.show();
     let aiSuggestionBatches = 0;
     let aiRequestsAttempted = 0;
 
+    /**
+     * Writes an informational message to the Archi console.
+     * @param {string} message Message to display.
+     */
     function logInfo(message) {
         console.log(message);
     }
 
+    /**
+     * Writes a warning with the script's standard warning prefix.
+     * @param {string} message Warning detail to display.
+     */
     function logWarn(message) {
         console.log("[WARN] " + message);
     }
 
+    /**
+     * Writes an error with the script's standard error prefix.
+     * @param {string} message Error detail to display.
+     */
     function logError(message) {
         console.error("[ERROR] " + message);
     }
 
+    /**
+     * Safely reads an object's name for logs and generated documentation.
+     * @param {Object} object ArchiMate concept or other name-bearing object.
+     * @returns {string} Object name, or "Unnamed" when absent or inaccessible.
+     */
     function getName(object) {
         try {
             return object && object.name ? String(object.name) : "Unnamed";
@@ -73,6 +90,11 @@ console.show();
         }
     }
 
+    /**
+     * Safely reads an object's ArchiMate type identifier.
+     * @param {Object} object Concept to inspect.
+     * @returns {string} Type identifier, or an empty string when unavailable.
+     */
     function getType(object) {
         try {
             return object && object.type ? String(object.type) : "";
@@ -81,6 +103,11 @@ console.show();
         }
     }
 
+    /**
+     * Safely reads an object's stable model identifier as text.
+     * @param {Object} object ArchiMate concept to inspect.
+     * @returns {string} ID, or an empty string when absent or inaccessible.
+     */
     function getId(object) {
         try {
             return object && object.id !== null && object.id !== undefined
@@ -91,6 +118,12 @@ console.show();
         }
     }
 
+    /**
+     * Reads and trims a model property without propagating proxy-access errors.
+     * @param {Object} object Model concept or relationship containing the property.
+     * @param {string} key Exact property key.
+     * @returns {string} Property value as text, or an empty string when missing/unavailable.
+     */
     function getProperty(object, key) {
         try {
             const value = object.prop(key);
@@ -100,10 +133,21 @@ console.show();
         }
     }
 
+    /**
+     * Writes a model property after converting its value to text.
+     * @param {Object} object Model concept or relationship to update.
+     * @param {string} key Exact property key.
+     * @param {*} value Value to store as a string.
+     */
     function setProperty(object, key, value) {
         object.prop(key, String(value));
     }
 
+    /**
+     * Safely reads model documentation text.
+     * @param {Object} object Model concept or status card.
+     * @returns {string} Documentation, or an empty string when unavailable.
+     */
     function getDocumentation(object) {
         try {
             return object && object.documentation ? String(object.documentation) : "";
@@ -112,21 +156,45 @@ console.show();
         }
     }
 
+    /**
+     * Trims text and truncates it to a display-safe maximum length.
+     * @param {*} value Input converted to text; nullish values become empty text.
+     * @param {number} maximum Maximum retained character count before an ellipsis is appended.
+     * @returns {string} Bounded text.
+     */
     function boundedText(value, maximum) {
         const text = value === null || value === undefined ? "" : String(value).trim();
         return text.length > maximum ? text.substring(0, maximum) + "..." : text;
     }
 
+    /**
+     * Removes the previous AI completion status section from card documentation.
+     * @param {string} documentation Existing card documentation.
+     * @returns {string} Documentation preceding the completion-status marker.
+     */
     function stripCompletionStatus(documentation) {
         const markerIndex = documentation.indexOf(completionMarker);
         return markerIndex < 0 ? documentation : documentation.substring(0, markerIndex);
     }
 
+    /**
+     * Replaces a card's AI completion status section with unresolved reasons.
+     * @param {Object} card Business-object input-status card.
+     * @param {string[]} reasons Reasons its assessment remains unresolved.
+     */
     function setUnresolvedStatus(card, reasons) {
         const base = stripCompletionStatus(getDocumentation(card)).trim();
         card.documentation = base + completionMarker + "\n" + reasons.join("\n");
     }
 
+    /**
+     * Reads a required integer property and validates its inclusive range.
+     * @param {Object} object Model concept containing the score.
+     * @param {string} key Score property key.
+     * @param {number} minimum Inclusive lower bound.
+     * @param {number} maximum Inclusive upper bound.
+     * @returns {{valid: boolean, value?: number, missing?: boolean, reason?: string}} Validation result.
+     */
     function readIntegerScore(object, key, minimum, maximum) {
         const raw = getProperty(object, key);
         if (raw === "") return {valid: false, missing: true, reason: key + " is missing."};
@@ -144,6 +212,12 @@ console.show();
         return {valid: true, value: value};
     }
 
+    /**
+     * Reads an optional positive weight, using 1 when the property is absent.
+     * @param {Object} object Model concept containing the weight.
+     * @param {string} key Weight property key.
+     * @returns {{valid: boolean, value?: number, reason?: string}} Defaulted weight or validation error.
+     */
     function readWeight(object, key) {
         const raw = getProperty(object, key);
         if (raw === "") return {valid: true, value: 1};
@@ -154,6 +228,11 @@ console.show();
         return {valid: true, value: value};
     }
 
+    /**
+     * Reads a relationship's source endpoint across supported jArchi proxy shapes.
+     * @param {Object} relationship ArchiMate relationship.
+     * @returns {Object|null} Source concept, or null when inaccessible.
+     */
     function getSource(relationship) {
         try {
             return typeof relationship.getSource === "function"
@@ -164,6 +243,11 @@ console.show();
         }
     }
 
+    /**
+     * Reads a relationship's target endpoint across supported jArchi proxy shapes.
+     * @param {Object} relationship ArchiMate relationship.
+     * @returns {Object|null} Target concept, or null when inaccessible.
+     */
     function getTarget(relationship) {
         try {
             return typeof relationship.getTarget === "function"
@@ -174,6 +258,11 @@ console.show();
         }
     }
 
+    /**
+     * Finds model views with an exact name.
+     * @param {string} name Exact view name.
+     * @returns {Object[]} Matching view proxies; callers validate uniqueness.
+     */
     function getNamedViews(name) {
         const found = [];
         $("view").each(function(view) {
@@ -182,6 +271,10 @@ console.show();
         return found;
     }
 
+    /**
+     * Loads and validates the local Ollama worker once per runtime.
+     * @throws {Error} If the worker file is missing or does not expose its required API.
+     */
     function ensureOllamaWorker() {
         if (ollamaWorkerLoaded || typeof globalThis.cbpOllamaWorker !== "undefined") {
             ollamaWorkerLoaded = true;
@@ -201,6 +294,11 @@ console.show();
         ollamaWorkerLoaded = true;
     }
 
+    /**
+     * Lists installed local models and prompts the user to choose one.
+     * @returns {boolean} True when selected, false when the selection dialog is cancelled.
+     * @throws {Error} If worker loading, model discovery, or the selection dialog fails.
+     */
     function selectOllamaModel() {
         ensureOllamaWorker();
         // Let each user choose from their own installed models; do not assume a model tag.
@@ -218,6 +316,13 @@ console.show();
         return true;
     }
 
+    /**
+     * Sends a prompt to the selected model and tracks the model tag reported by Ollama.
+     * @param {string} prompt Assessment instructions and evidence.
+     * @param {number} maxTokens Maximum generated-token budget.
+     * @returns {string} Generated response content.
+     * @throws {Error} If worker loading or the Ollama request fails.
+     */
     function requestLocalOllama(prompt, maxTokens) {
         ensureOllamaWorker();
         const result = globalThis.cbpOllamaWorker.request(
@@ -232,6 +337,12 @@ console.show();
         return String(result.content);
     }
 
+    /**
+     * Collects model relationships incident to at least one supplied concept.
+     * @param {Object[]} concepts Concepts whose direct relationships are required.
+     * @returns {Array<{relationship: Object, source: Object, target: Object, sourceId: string, targetId: string}>}
+     *   Relationship rows with resolved endpoints and identifiers.
+     */
     function collectRelationships(concepts) {
         const wanted = {};
         for (let i = 0; i < concepts.length; i++) wanted[getId(concepts[i])] = true;
@@ -254,6 +365,14 @@ console.show();
         return rows;
     }
 
+    /**
+     * Builds a bounded, privacy-conscious summary of a model concept for an AI prompt.
+     *
+     * Includes documentation and a capped set of relevant CBP/profile/custom properties.
+     * Property names suggesting credentials or secrets are excluded.
+     * @param {Object} concept Model concept to summarize.
+     * @returns {string} Human-readable evidence summary.
+     */
     function conceptSummary(concept) {
         const lines = [
             getType(concept) + " '" + getName(concept) + "' [ID=" + getId(concept) + "]"
@@ -263,6 +382,10 @@ console.show();
         const keys = [];
         try {
             const properties = concept.prop();
+            /**
+             * Adds a non-sensitive property key when it is relevant to CBP assessment evidence.
+             * @param {*} propertyKey Property key supplied by the model proxy.
+             */
             const addPropertyKey = function(propertyKey) {
                 const key = String(propertyKey);
                 const normalized = key.toLowerCase();
@@ -296,6 +419,15 @@ console.show();
         return lines.join("\n");
     }
 
+    /**
+     * Creates bounded evidence context for maturity or capability-to-strategy impact assessment.
+     *
+     * Includes summaries of the capability and optional strategy, their direct relationships,
+     * and a limited set of related architecture concepts.
+     * @param {Object} capability Capability being assessed.
+     * @param {Object|null} strategy Strategy concept for impact assessment, or null for maturity.
+     * @returns {string} Evidence context to include in a local-model prompt.
+     */
     function buildEvidenceContext(capability, strategy) {
         const concepts = strategy ? [capability, strategy] : [capability];
         const relations = collectRelationships(concepts);
@@ -338,6 +470,12 @@ console.show();
         return boundedText(lines.join("\n"), 9000);
     }
 
+    /**
+     * Parses a JSON response from the local model, allowing surrounding Markdown fences.
+     * @param {string} response Raw model response.
+     * @returns {Object} Parsed JSON value; callers validate its schema and fields.
+     * @throws {Error} If no JSON object is present or the JSON is malformed.
+     */
     function parseAiJson(response) {
         let text = String(response).trim();
         text = text.replace(/^\uFEFF/, "");
@@ -350,6 +488,18 @@ console.show();
         return JSON.parse(text.substring(firstBrace, lastBrace + 1));
     }
 
+    /**
+     * Requests model suggestions and validates each response against an explicit allowlist.
+     *
+     * Rejects unrequested, duplicate, out-of-range, non-integer, or rationale-free suggestions.
+     * This function does not write model properties; its caller decides how to apply valid results.
+     * @param {string} prompt Complete assessment prompt.
+     * @param {Array<{property: string, minimum: number, maximum: number}>} propertyRanges
+     *   Allowed response keys and their inclusive integer ranges.
+     * @param {number} maxTokens Maximum generated-token budget.
+     * @returns {{suggestions: Object<string, number>, rationales: Object<string, string>, problems: string[]}}
+     *   Valid suggestions keyed by request alias, bounded rationales, and diagnostics.
+     */
     function requestSuggestions(prompt, propertyRanges, maxTokens) {
         aiSuggestionBatches++;
         const suggestions = {};
@@ -463,6 +613,15 @@ console.show();
         return {suggestions: suggestions, rationales: rationales, problems: problems};
     }
 
+    /**
+     * Requests missing/invalid People, Process, and Technology maturity ratings in small batches.
+     *
+     * Existing valid values are preserved. Returned aliases are mapped back to capability
+     * property keys, and all request/validation problems are attached to the relevant capability.
+     * @param {Array<{capability: Object}>} records Input-required maturity cards and their capabilities.
+     * @returns {Object<string, {suggestions: Object<string, number>, rationales: Object<string, string>, problems: string[]}>}
+     *   Per-capability validated property suggestions, rationales, and problems, keyed by capability ID.
+     */
     function requestMaturitySuggestions(records) {
         const byCapability = {};
         const groups = [];
@@ -547,6 +706,16 @@ console.show();
         return byCapability;
     }
 
+    /**
+     * Requests missing/invalid capability-to-strategy impacts in batches of at most four.
+     *
+     * Each impact is scored independently on the 0-2 scale. Existing valid impacts are preserved,
+     * and response aliases are mapped to strategy-specific request keys for later application.
+     * @param {Array<{capability: Object}>} records Input-required strategic-importance cards.
+     * @param {Object[]} strategies Strategy concepts marked with CBP.Role=Strategy.
+     * @returns {Object<string, {suggestions: Object<string, number>, rationales: Object<string, string>, problems: string[]}>}
+     *   Per-capability request-key suggestions, rationales, and problems, keyed by capability ID.
+     */
     function requestImpactSuggestions(records, strategies) {
         const byCapability = {};
         const jobs = [];
@@ -632,6 +801,10 @@ console.show();
         return byCapability;
     }
 
+    /**
+     * Finds distinct Driver, Goal, Requirement, and Course of Action elements marked as strategies.
+     * @returns {Object[]} Unique strategy concepts with CBP.Role=Strategy.
+     */
     function getStrategies() {
         const strategyTypes = ["driver", "goal", "requirement", "course-of-action"];
         const strategies = [];
@@ -647,6 +820,12 @@ console.show();
         return strategies;
     }
 
+    /**
+     * Finds a non-connection diagram object in a view that represents the supplied concept.
+     * @param {Object} view ArchiMate view to inspect.
+     * @param {Object} concept Model concept to find.
+     * @returns {Object|null} Matching diagram object, or null when it is not displayed.
+     */
     function hasVisualObjectForConcept(view, concept) {
         const id = getId(concept);
         let found = null;
@@ -664,6 +843,12 @@ console.show();
         return found;
     }
 
+    /**
+     * Resolves the unique Capability associated with an input-status card and verifies its source ID.
+     * @param {Object} card Generated input-status business object.
+     * @param {string} sourceId Capability ID recorded on the card.
+     * @returns {{capability: Object|null, reason: string}} Resolved capability or a diagnostic.
+     */
     function findAssociatedCapability(card, sourceId) {
         const targets = {};
         $("relationship").each(function(relationship) {
@@ -698,6 +883,11 @@ console.show();
         return {capability: targets[ids[0]], reason: ""};
     }
 
+    /**
+     * Finds this generator's visible INPUT REQUIRED business-object cards in a view.
+     * @param {Object} view Heatmap view to inspect.
+     * @returns {Array<{diagramObject: Object, concept: Object}>} Matching card concepts and diagram objects.
+     */
     function findInputCards(view) {
         const cards = [];
         $(view).children().each(function(diagramObject) {
@@ -714,6 +904,16 @@ console.show();
         return cards;
     }
 
+    /**
+     * Resolves input cards to capabilities and removes ambiguous or duplicate records.
+     *
+     * Cards with missing/mismatched associations or duplicate cards are left unresolved and
+     * reported rather than being silently paired with a capability.
+     * @param {Object} view Heatmap containing input-required cards.
+     * @param {string} measureName Human-readable measure used in diagnostics.
+     * @returns {Array<{view: Object, diagramObject: Object, card: Object, capability: Object, measure: string}>}
+     *   Unique, validated work records ready for completion.
+     */
     function groupInputCards(view, measureName) {
         const groups = {};
         const cards = findInputCards(view);
@@ -754,10 +954,21 @@ console.show();
         return Object.keys(groups).map(function(id) { return groups[id][0]; });
     }
 
+    /**
+     * Records a human-readable audit entry for a model property changed by this run.
+     * @param {Object} object Updated model concept.
+     * @param {string} property Property name or explanatory update description.
+     */
     function recordUpdatedProperty(object, property) {
         updatedProperties.push(getType(object) + " '" + getName(object) + "' [" + getId(object) + "]: " + property);
     }
 
+    /**
+     * Removes an obsolete derived score when its required inputs remain incomplete.
+     * @param {Object} capability Capability whose result is stale.
+     * @param {string} property Derived result property to remove.
+     * @param {string[]} reasons Mutable list receiving any removal failure.
+     */
     function clearStaleResult(capability, property, reasons) {
         if (getProperty(capability, property) === "") return;
         try {
@@ -768,6 +979,13 @@ console.show();
         }
     }
 
+    /**
+     * Writes validated suggestion values and their rationales to a model concept.
+     * @param {Object} object Concept to update.
+     * @param {{suggestions: Object<string, number>, rationales: Object<string, string>}} result
+     *   Validated suggestions keyed by the actual model property names.
+     * @param {function(string): string} rationalePropertyFor Maps each value property to its rationale property.
+     */
     function applySuggestions(object, result, rationalePropertyFor) {
         const names = Object.keys(result.suggestions);
         for (let i = 0; i < names.length; i++) {
@@ -780,6 +998,12 @@ console.show();
         }
     }
 
+    /**
+     * Reads all three maturity ratings and weights, collecting validation reasons.
+     * @param {Object} capability Capability to assess.
+     * @returns {{ratings: Object<string, number>, weights: Object<string, number>, reasons: string[]}}
+     *   Valid dimensions, valid/defaulted weights, and missing/invalid input messages.
+     */
     function getMaturityInputs(capability) {
         const ratings = {};
         const weights = {};
@@ -798,6 +1022,11 @@ console.show();
         return {ratings: ratings, weights: weights, reasons: reasons};
     }
 
+    /**
+     * Calculates the weighted 0-4 maturity mean when every dimension and weight is valid.
+     * @param {Object} capability Capability with CBP.Maturity.* and optional CBP.Weight.* properties.
+     * @returns {{score: number|null, inputs: Object, reasons: string[]}} Exact score, validated inputs, and errors.
+     */
     function calculateMaturity(capability) {
         const input = getMaturityInputs(capability);
         if (Object.keys(input.ratings).length !== dimensions.length ||
@@ -818,6 +1047,15 @@ console.show();
         return {score: weightedTotal / totalWeight, inputs: input, reasons: []};
     }
 
+    /**
+     * Calculates normalized weighted strategic importance when every strategy impact is valid.
+     *
+     * Each impact must be an integer from 0 to 2; optional strategy weights default to 1.
+     * @param {Object} capability Capability whose ID selects the impact property on strategies.
+     * @param {Object[]} strategies Strategy concepts to include in the complete weighted mean.
+     * @returns {{score: number|null, impacts: Array<{strategy: Object, value: number|null, weight: number|null}>, reasons: string[]}}
+     *   Exact 0-4 score, per-strategy values, and validation errors.
+     */
     function calculateImportance(capability, strategies) {
         const property = "CBP.Impact." + getId(capability);
         if (strategies.length === 0) {
@@ -861,6 +1099,12 @@ console.show();
         };
     }
 
+    /**
+     * Appends non-empty rationale properties to a documentation line array.
+     * @param {string[]} lines Mutable output lines.
+     * @param {Object} object Concept containing rationale properties.
+     * @param {string[]} propertyNames Rationale property keys to read in order.
+     */
     function addCardRationales(lines, object, propertyNames) {
         for (let i = 0; i < propertyNames.length; i++) {
             const rationale = getProperty(object, propertyNames[i]);
@@ -868,10 +1112,21 @@ console.show();
         }
     }
 
+    /**
+     * Rounds an exact score to its displayed heatmap band, clamped to 0-4.
+     * @param {number} score Exact score.
+     * @returns {number} Integer heatmap band.
+     */
     function calculateBand(score) {
         return Math.max(0, Math.min(4, Math.round(score)));
     }
 
+    /**
+     * Counts resolved score cards in each heatmap band to place subsequent cards without overlap.
+     * @param {Object} view Heatmap view to inspect.
+     * @param {string} title Card-title prefix identifying the measure.
+     * @returns {number[]} Five counts indexed by score band 0 through 4.
+     */
     function getBandCounts(view, title) {
         const counts = [0, 0, 0, 0, 0];
         $(view).children().each(function(diagramObject) {
@@ -891,6 +1146,12 @@ console.show();
         return counts;
     }
 
+    /**
+     * Finds an existing Association relationship between a card and a Capability.
+     * @param {Object} card Assessment card concept.
+     * @param {Object} capability Capability concept.
+     * @returns {Object|null} Matching model relationship, or null when absent.
+     */
     function findAssociation(card, capability) {
         let found = null;
         $("relationship").each(function(relationship) {
@@ -908,6 +1169,17 @@ console.show();
         return found;
     }
 
+    /**
+     * Ensures the card-to-Capability Association is represented visually in the heatmap.
+     *
+     * Reuses an existing model relationship where possible and adds a connection only when
+     * the corresponding visual connection is not already present.
+     * @param {Object} view Heatmap view to update.
+     * @param {Object} card Assessment card concept.
+     * @param {Object} capability Associated Capability concept.
+     * @param {Object} cardObject Card's diagram object.
+     * @param {Object} capabilityObject Capability's diagram object.
+     */
     function ensureVisualAssociation(view, card, capability, cardObject, capabilityObject) {
         let relationship = findAssociation(card, capability);
         if (!relationship) {
@@ -939,6 +1211,18 @@ console.show();
         if (!present) view.add(relationship, cardObject, capabilityObject);
     }
 
+    /**
+     * Converts an existing INPUT REQUIRED card into a resolved score card in its heatmap band.
+     *
+     * Reuses the status-card concept, updates its name/documentation/color and bounds, repositions
+     * the Capability object, and ensures the Association remains visible.
+     * @param {Object} record Validated work record returned by {@link groupInputCards}.
+     * @param {string} title Human-readable score-card title.
+     * @param {string} measure Score-color palette key ("maturity" or "importance").
+     * @param {number} score Exact calculated score, rounded for display placement.
+     * @param {string} documentation Completed assessment details for the card.
+     * @param {number[]} counts Mutable per-band counts used to allocate card positions.
+     */
     function placeResolvedCard(record, title, measure, score, documentation, counts) {
         // Reuse the existing placeholder and capability visual object in the heatmap.
         const band = calculateBand(score);
@@ -964,6 +1248,13 @@ console.show();
         ensureVisualAssociation(record.view, card, capability, cardObject, capabilityObject);
     }
 
+    /**
+     * Builds auditable card documentation for a completed weighted maturity assessment.
+     * @param {Object} capability Assessed Capability.
+     * @param {Object} calculation Successful maturity calculation and validated inputs.
+     * @param {number} score Exact weighted maturity score.
+     * @returns {string} Documentation with formula, ratings, weights, and any AI rationales.
+     */
     function getMaturityDocumentation(capability, calculation, score) {
         const lines = [
             "CBP Move 2 maturity assessment for Capability ID " + getId(capability) + ".",
@@ -984,6 +1275,13 @@ console.show();
         return lines.join("\n");
     }
 
+    /**
+     * Builds auditable card documentation for a completed strategic-importance assessment.
+     * @param {Object} capability Assessed Capability.
+     * @param {Object} calculation Successful importance calculation and per-strategy impacts.
+     * @param {number} score Exact normalized weighted score.
+     * @returns {string} Documentation with formula, impacts, weights, and available rationales.
+     */
     function getImportanceDocumentation(capability, calculation, score) {
         const lines = [
             "CBP Move 3 strategic-importance assessment for Capability ID " + getId(capability) + ".",
@@ -1006,6 +1304,16 @@ console.show();
         return lines.join("\n");
     }
 
+    /**
+     * Applies AI maturity suggestions, recalculates the score, and updates the maturity card.
+     *
+     * Valid existing ratings are preserved. Incomplete results keep their INPUT REQUIRED card,
+     * have stale derived scores removed, and receive explicit unresolved-status documentation.
+     * @param {Object} record Capability/card record returned by {@link groupInputCards}.
+     * @param {number[]} counts Mutable per-band layout counts.
+     * @param {{suggestions: Object<string, number>, rationales: Object<string, string>, problems: string[]}}
+     *   suggestions Validated AI suggestions and request diagnostics for this capability.
+     */
     function resolveMaturity(record, counts, suggestions) {
         const capability = record.capability;
         const reasons = [];
@@ -1036,6 +1344,17 @@ console.show();
         updatedCards.push("Maturity heatmap: " + getName(capability) + " -> " + score.toFixed(2));
     }
 
+    /**
+     * Applies AI strategy-impact suggestions, recalculates importance, and updates its heatmap card.
+     *
+     * Existing valid impacts are preserved. Every configured strategy must have a valid impact
+     * and weight for the overall score to resolve.
+     * @param {Object} record Capability/card record returned by {@link groupInputCards}.
+     * @param {Object[]} strategies Strategy concepts included in the score.
+     * @param {number[]} counts Mutable per-band layout counts.
+     * @param {{suggestions: Object<string, number>, rationales: Object<string, string>, problems: string[]}}
+     *   suggestions Validated AI suggestions and request diagnostics for this capability.
+     */
     function resolveImportance(record, strategies, counts, suggestions) {
         const capability = record.capability;
         const property = "CBP.Impact." + getId(capability);
@@ -1082,6 +1401,9 @@ console.show();
         updatedCards.push("Strategic-importance heatmap: " + getName(capability) + " -> " + score.toFixed(2));
     }
 
+    /**
+     * Reports changed properties/cards, unresolved records, and local-model request totals.
+     */
     function reportResults() {
         logInfo("Updated properties (" + updatedProperties.length + "):");
         for (let i = 0; i < updatedProperties.length; i++) logInfo("  " + updatedProperties[i]);

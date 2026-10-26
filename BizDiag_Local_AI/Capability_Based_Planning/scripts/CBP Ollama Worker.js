@@ -37,13 +37,25 @@
   const System = Java.type("java.lang.System");
   const Thread = Java.type("java.lang.Thread");
   const Display = Java.type("org.eclipse.swt.widgets.Display");
-  const client = HttpClient.newBuilder()
+  const client = HttpClient.newBuilder() // Constructs an HttpClient instance we can use to make requests.
     .connectTimeout(Duration.ofSeconds(5))
     .build();
   const apiRoot = "http://localhost:11434";
   const requestTimeoutMs = 120000;
 
-  // Pump SWT events while the background HTTP future waits for Ollama.
+  /**
+   * Waits for an asynchronous HTTP response while continuing to dispatch Archi's SWT events.
+   *
+   * The request future is cancelled if the display is unavailable, closes during the wait, or the
+   * configured timeout (with a five-second scheduling allowance) expires. A heartbeat is logged
+   * every 20 seconds so long-running local inference remains visible in the Archi console.
+   *
+   * @param {Object} future Java CompletableFuture returned by HttpClient.sendAsync().
+   * @param {number} timeoutMs Maximum request wait in milliseconds, excluding the five-second allowance.
+   * @param {string} description Human-readable operation name used in progress and error messages.
+   * @returns {Object} Completed Java HTTP response.
+   * @throws {Error} If the SWT display is unavailable/disposed, the request times out, or the future fails.
+   */
   function awaitResponse(future, timeoutMs, description) {
     const display = Display.getCurrent();
     if (!display) {
@@ -84,18 +96,36 @@
     }
   }
 
+  /**
+   * Sends one JSON HTTP request to the local Ollama server and waits for its response.
+   *
+   * GET requests omit a body; every other method is sent as a UTF-8 JSON POST. The shared
+   * asynchronous client and {@link awaitResponse} keep Archi's UI event loop responsive.
+   * HTTP status validation and response-body parsing are left to the calling API operation.
+   *
+   * @param {string} method HTTP method; "GET" selects GET and other values select POST.
+   * @param {string} path Ollama API path appended to the local API root.
+   * @param {Object|null} body JSON-serializable request body for POST requests.
+   * @param {number} timeoutMs Request timeout in milliseconds.
+   * @param {string} description Human-readable operation name used for timeout and failure reporting.
+   * @returns {Object} Java HTTP response with statusCode() and body() accessors.
+   * @throws {Error} If request creation, waiting, or asynchronous HTTP execution fails.
+   */
   function send(method, path, body, timeoutMs, description) {
+    // Constructs a specific request to the Ollama server, with an HttpRequest instance.
     const builder = HttpRequest.newBuilder(URI.create(apiRoot + path))
-      .timeout(Duration.ofMillis(timeoutMs))
-      .header("Content-Type", "application/json");
+      .timeout(Duration.ofMillis(timeoutMs)) // Sets a timeout for this request.
+      .header("Content-Type", "application/json"); // Adds a given name value pair to the set of headers for this request.
     if (method === "GET") {
-      builder.GET();
+      builder.GET(); // Sets the request method of this builder to GET.
     } else {
+      // Sets the request method of this builder to POST and sets its request body publisher to the given value.
       builder.POST(HttpRequestBodyPublishers.ofString(
         JSON.stringify(body),
         StandardCharsets.UTF_8
       ));
     }
+    // sendAsync() returns a CompletableFuture wrapped around the HttpResponse.
     const future = client.sendAsync(
       builder.build(),
       HttpResponseBodyHandlers.ofString(StandardCharsets.UTF_8)
@@ -103,6 +133,15 @@
     return awaitResponse(future, timeoutMs, description);
   }
 
+  /**
+   * Retrieves the installed Ollama model names for user selection.
+   *
+   * Calls GET /api/tags, requires HTTP 200, accepts either the `name` or `model` field
+   * for each returned model, removes empty and duplicate names, and sorts case-insensitively.
+   *
+   * @returns {string[]} Available model tags, sorted alphabetically.
+   * @throws {Error} If Ollama is unreachable, returns a non-200 status, invalid JSON, or no models.
+   */
   function listModels() {
     // Use the server's live model list instead of shipping preferred model names.
     const response = send("GET", "/api/tags", null, 7000, "Ollama model discovery");
@@ -125,6 +164,20 @@
     return names;
   }
 
+  /**
+   * Requests one non-streaming JSON-formatted generation from a selected Ollama model.
+   *
+   * Uses deterministic temperature 0 and the supplied prediction-token limit (default 256).
+   * The worker validates transport status and non-empty generated text but leaves interpretation
+   * and validation of the returned JSON content to the caller.
+   *
+   * @param {string} prompt Evidence-based instruction and context sent to the model.
+   * @param {string} model Installed Ollama model tag selected by the user.
+   * @param {number} [maxTokens=256] Maximum generated tokens requested from Ollama.
+   * @returns {{model: string, content: string}} Selected model tag and generated response text.
+   * @throws {Error} If the model tag is empty, the request fails, Ollama returns a non-200 status,
+   *   its response body is invalid JSON, or generated content is missing.
+   */
   function request(prompt, model, maxTokens) {
     if (typeof model !== "string" || !model.trim()) {
       throw new Error("Choose an installed Ollama model before requesting assessments.");

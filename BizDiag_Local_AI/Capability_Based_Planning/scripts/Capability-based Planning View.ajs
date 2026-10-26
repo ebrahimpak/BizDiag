@@ -65,6 +65,12 @@
  *
  *  (7) Design the change portfolio by consolidating and prioritizing these actions into coordinated projects and
  *  programs, followed by implementation, monitoring, and iterative reassessment.
+ *
+ * Candidate Capabilities:
+ * When the planning scope contains no Capability elements, eligible business functions, processes, or services can
+ * seed provisional Capability candidates. Each candidate is a separate model element linked to its source by
+ * provenance; the source is not converted or changed. Candidates are marked CBP.CandidateStatus=ReviewRequired,
+ * assessed provisionally through the seven moves, and should be validated by a user before relying on their results.
  */
 console.clear();
 console.show();
@@ -240,7 +246,7 @@ console.show();
      * Determines whether an element belongs in the CBP planning scope.
      *
      * Excludes known generated artifacts and admits only supported architecture concepts.
-     * Only Capability concepts or explicitly reviewed candidates are assessment subjects.
+     * Generated Capability candidates are also assessed provisionally for post-run review.
      * @param {Object} element Candidate model element.
      * @returns {boolean} True when the element is in scope.
      */
@@ -377,8 +383,8 @@ console.show();
      *
      * Business functions, processes, and services can seed candidates. Existing candidates
      * are reused by source ID; missing ones are created with source provenance and
-     * ReviewRequired status. The source concepts and relationships remain unchanged, and
-     * candidates must be explicitly approved before assessment.
+     * ReviewRequired status. The source concepts and relationships remain unchanged.
+     * Candidates are assessed provisionally in this run and should be reviewed before relying on their results.
      * @param {Object[]} sourceElements Elements in the selected planning scope.
      * @returns {Object[]} Existing or newly created review-required Capability candidates.
      */
@@ -413,9 +419,9 @@ console.show();
             candidate.documentation =
                 "Review-required CBP capability candidate derived from the existing " +
                 getTypeName(source) + " '" + getName(source) + "'. Confirm whether this represents an " +
-                "enterprise ability, then rename/refine it, complete its hierarchy and profile, and set " +
-                "CBP.CandidateStatus=Approved before using it for CBP assessments. This generated concept " +
-                "is not a validated capability.";
+                "enterprise ability, then rename/refine it and complete its hierarchy and profile. This candidate " +
+                "is assessed provisionally during generation; validate it and its assessment before relying on the " +
+                "results, then set CBP.CandidateStatus=Approved. This generated concept is not a validated capability.";
             setProperty(candidate, "CBP.GeneratedBy", "Capability-based Planning View");
             setProperty(candidate, "CBP.Candidate.SourceID", sourceId);
             setProperty(candidate, "CBP.Candidate.SourceType", getTypeName(source));
@@ -436,7 +442,11 @@ console.show();
      * would introduce a second parent or cycle are omitted; behavioral, dependency, serving,
      * and motivation relationships are not interpreted as hierarchy.
      * @param {Object[]} elements Elements included in the overview.
-     * @returns {Object} Hierarchy maps and the accepted source relationships.
+     * @returns {{
+     *   childrenByParent: Object<string, Array<{id: string, relationship: Object, sourceId: string, targetId: string}>>,
+     *   parentByChild: Object<string, string>,
+     *   relationships: Object[]
+     * }} Accepted hierarchy edges and layout-oriented parent/child indexes.
      */
     function collectHierarchyRelationships(elements) {
         const includedIds = {};
@@ -540,7 +550,7 @@ console.show();
      * @param {Object[]} elements Elements to position.
      * @param {Object} childrenByParent Hierarchy child lists keyed by parent ID.
      * @param {Object} parentByChild Parent IDs keyed by child ID.
-     * @returns {Object} Diagram positions keyed by element ID.
+     * @returns {Object<string, {x: number, y: number}>} Diagram coordinates keyed by element ID.
      */
     function layoutHierarchy(elements, childrenByParent, parentByChild) {
         // Reserve the left lane for the CBP workflow; lay out source-model hierarchies to its right.
@@ -842,8 +852,8 @@ console.show();
     /**
      * Calculates one capability's maturity, strategic importance, goals, and improvement actions.
      *
-     * Unapproved generated candidates return as review-required without scoring. For other
-     * capabilities, stale derived properties are cleared; maturity is the weighted mean of
+     * Generated candidates are scored provisionally while retaining their review status.
+     * Stale derived properties are cleared; maturity is the weighted mean of
      * all three dimension ratings, and strategic importance is the weighted mean of every
      * declared strategy impact normalized to 0-4. Exact scores determine the ML-SI zone using
      * the configured tolerance. Each increment is checked for complete, consistent targets,
@@ -855,28 +865,20 @@ console.show();
      * @param {Object[]} strategies Validated strategy elements and weights.
      * @param {string[]} increments Consecutive planning years.
      * @param {number} tolerance Acceptance-band tolerance for the ML-SI comparison.
-     * @returns {Object} Capability, nullable scores and gap, classified zone, validated
-     *   increment Goals and actions, and input errors.
+     * @returns {{
+     *   capability: Object,
+     *   errors: string[],
+     *   actions: Array<{capability: Object, year: string, dimension: string, start: number, target: number,
+     *     description: string, projectName: string, priority: number}>,
+     *   goals: Array<Object>,
+     *   maturity: number|null,
+     *   importance: number|null,
+     *   zone: string,
+     *   gap: number|null
+     * }} Assessment results. A null score/gap indicates incomplete evidence; actions and Goals
+     *   contain only validated planning inputs.
      */
     function calculateCapability(capability, strategies, increments, tolerance) {
-        const candidateStatus = getProperty(capability, "CBP.CandidateStatus");
-        // Candidate provenance requires explicit approval; a missing status is not approval.
-        if (isCapabilityCandidate(capability) && candidateStatus.toLowerCase() !== "approved") {
-            return {
-                capability: capability,
-                errors: [
-                    "This generated Capability candidate is awaiting review. Confirm it represents an enterprise ability, " +
-                    "refine its name, hierarchy, and profile, then set CBP.CandidateStatus=Approved before assessment."
-                ],
-                actions: [],
-                goals: [],
-                maturity: null,
-                importance: null,
-                zone: "Review required",
-                gap: null,
-                candidate: true
-            };
-        }
         // Derived scores are refreshed each run so stale results cannot survive changed or missing inputs.
         const oldResultProperties = [
             "CBP.Result.Maturity",
@@ -1282,9 +1284,10 @@ console.show();
         if (!view) throw new Error("Could not create view '" + name + "'.");
         view.documentation =
             "CBP Move 1: shows explicitly modeled capabilities with their user-supplied profile information. " +
-            "Candidates generated from business functions/processes/services are marked ReviewRequired and must be " +
-            "validated before assessment. The script does not infer capabilities from source documents; profile " +
-            "sources and content must be researched and entered on each Capability as CBP.Profile.* properties.";
+            "Candidates generated from business functions/processes/services are marked ReviewRequired and assessed " +
+            "provisionally. Validate candidates and their assessments before relying on results. The script does not " +
+            "infer capabilities from source documents; profile sources and content must be researched and entered on " +
+            "each Capability as CBP.Profile.* properties.";
         clearView(view);
         resetDiagramObjectIndex();
 
@@ -1307,7 +1310,7 @@ console.show();
                 profile += "Candidate status: " + candidateStatus +
                     "\nSource: " + getProperty(capability, "CBP.Candidate.SourceType") +
                     " - " + getProperty(capability, "CBP.Candidate.SourceName") +
-                    "\nSet CBP.CandidateStatus=Approved only after review.\n";
+                    "\nAssessment is provisional until this candidate is reviewed and approved.\n";
             }
             for (let f = 0; f < profileFields.length; f++) {
                 const field = profileFields[f];
@@ -1694,8 +1697,12 @@ console.show();
      * identical relationships are reused on reruns. Projects are ordered by increment,
      * declared numeric priority (lower first), then project name.
      * @param {Object[]} results Capability assessment results containing generated actions.
-     * @returns {Object} Portfolio containing ordered project groups and actions, flat action
-     *   records with their model elements, and input conflicts requiring correction.
+     * @returns {{
+     *   projects: Array<{year: string, name: string, priority: number, element: Object,
+     *     actions: Array<{input: Object, element: Object}>}>,
+     *   actions: Array<{input: Object, element: Object, project: Object}>,
+     *   errors: string[]
+     * }} Ordered project packages, generated action records, and conflicting-priority diagnostics.
      */
     function buildPortfolio(results) {
         const projects = {};
@@ -2044,7 +2051,7 @@ console.show();
             capabilityElements.push(planningElements[i]);
         }
         // A map without explicit Capability concepts can only be seeded from eligible business
-        // behaviors; those candidates remain unscored until an architect validates and approves them.
+        // behaviors; candidates are scored provisionally and retain a visible review status.
         if (capabilityElements.length === 0) {
             const generatedCandidates = createCapabilityCandidates(planningElements);
             for (let i = 0; i < generatedCandidates.length; i++) {
@@ -2064,8 +2071,8 @@ console.show();
             }
             logWarn(
                 "No validated ArchiMate Capability elements were found. Created " + capabilityElements.length +
-                " review-required candidates from business functions/processes/services. They are not assessed " +
-                "until reviewed and marked CBP.CandidateStatus=Approved."
+                " review-required candidates from business functions/processes/services. They will be assessed " +
+                "provisionally in this run; review the candidates and results before relying on them."
             );
         }
         const planningIds = {};
@@ -2090,8 +2097,8 @@ console.show();
                 return;
             }
         }
-        // Candidate review gates analysis, while approved and original Capability concepts share
-        // the same validation/calculation path.
+        // Candidate status remains a review marker; candidates use the same provisional
+        // validation and calculation path as other Capability concepts.
         const strategies = discoverStrategies();
         const candidatesAwaitingReview = [];
         for (let i = 0; i < capabilityElements.length; i++) {
@@ -2102,7 +2109,6 @@ console.show();
         }
         const results = [];
         for (let i = 0; i < capabilityElements.length; i++) {
-            // Unapproved candidates return review-status results, never assessment scores.
             results.push(calculateCapability(capabilityElements[i], strategies, increments, tolerance));
         }
         const portfolio = buildPortfolio(results);
@@ -2163,8 +2169,8 @@ console.show();
             "Model: CBP.Increments=YYYY,YYYY; optional CBP.AcceptanceTolerance=0..4.\n" +
             "Strategy concepts (Driver, Goal, Requirement, or Course of Action): CBP.Role=Strategy; optional " +
             "CBP.StrategyWeight>0; CBP.Impact.<CapabilityID>=0|1|2 for each capability.\n" +
-            "Capability: CBP.Maturity.People|Process|Technology=integer 0..4; candidate concepts require " +
-            "CBP.CandidateStatus=Approved before scoring; optional " +
+            "Capability: CBP.Maturity.People|Process|Technology=integer 0..4; candidate assessments are provisional " +
+            "until reviewed and approved; optional " +
             "CBP.Weight.People|Process|Technology>0 (default weight 1); CBP.Profile.Source, Definition, " +
             "BusinessUnits, Processes, Applications, StrategicElements, Measures.\n" +
             "For each increment YYYY: CBP.TargetML.YYYY and CBP.Target.People|Process|Technology.YYYY; " +
@@ -2241,14 +2247,14 @@ console.show();
 
         logSuccess(
             "CBP views generated for " + capabilityElements.length +
-            " capability concepts (" + candidatesAwaitingReview.length + " awaiting review)."
+            " capability concepts (" + candidatesAwaitingReview.length + " generated candidates marked for review)."
         );
         if (candidatesAwaitingReview.length > 0) {
             logWarn(
                 candidatesAwaitingReview.length +
-                " capability candidates await validation and are excluded from maturity, importance, matrix, " +
-                "goal, and portfolio calculations. Review them in '" + profileView.name +
-                "' and set CBP.CandidateStatus=Approved to include them."
+                " generated Capability candidates were assessed provisionally. Review their identity, profile, and " +
+                "assessment results in '" + profileView.name +
+                "' before relying on them, then set CBP.CandidateStatus=Approved."
             );
         }
         logInfo("Moves 1-7 are documented on the seven workflow elements and detailed in the supporting views.");

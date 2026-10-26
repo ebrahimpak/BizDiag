@@ -323,9 +323,11 @@ Architecture model interaction from AI inference. It is organized around three c
 ```
 BizDiag_Local_AI/
 ├── Capability_Based_Planning
-    ├── Capability-based Planning View.ajs
-    ├── CBP AI Input Completion.ajs
-    └── CBP Ollama Worker.js
+│   ├── Capability-based Planning with AI Input Completion.ajs
+│   └── scripts/
+│       ├── Capability-based Planning View.ajs
+│       ├── CBP AI Input Completion.ajs
+│       └── CBP Ollama Worker.js
 ├── DocMaker
 │   ├── AI_Element_DocMaker_EN.ajs
 │   ├── AI_Element_DocMaker_FA.ajs
@@ -339,6 +341,23 @@ BizDiag_Local_AI/
     └── sendToAI.js
 ```
 
+#### Capability-Based Planning Workflow
+
+Run `Capability-based Planning with AI Input Completion.ajs` from Archi to launch the combined workflow. Its
+confirmation dialog describes the six views that the planning script creates or rebuilds and their purposes. After
+confirmation, it runs `scripts/Capability-based Planning View.ajs` first, then
+`scripts/CBP AI Input Completion.ajs`. The latter uses the local worker to list installed Ollama models and prompts
+the user to select one when AI input completion is needed. Canceling the initial confirmation runs neither script.
+
+The planning script generates provisional Capability candidates from eligible business functions, processes, or
+services when the planning scope contains no Capability elements. Candidates retain source provenance and a
+`ReviewRequired` status, are assessed during the same run, and should be reviewed before relying on their results.
+The AI completion script fills only missing or invalid maturity and strategy-impact inputs when sufficient evidence
+is available; unresolved inputs remain identified in the heatmap.
+
+Keep the launcher, the `scripts/` directory, and the worker together in the shown layout. The worker uses Java's
+asynchronous HTTP client to communicate with the Ollama API at `http://localhost:11434`; Ollama must be running
+locally, with at least one installed model, for AI completion.
 
 _The Scripts_
 
@@ -365,9 +384,10 @@ directory management. The following are the jArchi scripts and JavaScript files 
 | `BizDiag_Local_AI/DocMaker/Mark_it_Down.ajs`                                    | Provides Markdown export functionality for selected Archi views and elements                                                                                                                   |
 | `BizDiag_Local_AI/DocMaker/Ollama_Olalla.ajs`                                   | Provides integration with the locally installed Ollama AI runtime                                                                                                                              |
 | `BizDiag_Local_AI/UML/sendToAI.js`                                              | Simple HTTP client wrapper for querying Ollama (used by Application_View_to_UML.ajs only; independent of AI_REST_JSON.js)                                                                      |
-| `BizDiag_Local_AI/Capability_Based_Planning/Capability-based Planning View.ajs` | Generates CBP profile, assessment, matrix, goal, action, portfolio, and overview views |
-| `BizDiag_Local_AI/Capability_Based_Planning/CBP Ollama Worker.js`        | Completes missing Move 2 maturity and Move 3 strategic-impact inputs using a user-selected local Ollama model |
-| `BizDiag_Local_AI/Capability_Based_Planning/CBP Ollama Worker.js`               | Lists installed Ollama models and sends bounded asynchronous Java HTTP/JSON requests for the CBP companion |
+| `BizDiag_Local_AI/Capability_Based_Planning/Capability-based Planning with AI Input Completion.ajs` | Displays the workflow confirmation dialog, then runs planning followed by AI input completion |
+| `BizDiag_Local_AI/Capability_Based_Planning/scripts/Capability-based Planning View.ajs` | Generates the CBP profile, assessment, matrix, goal, action, portfolio, and overview views |
+| `BizDiag_Local_AI/Capability_Based_Planning/scripts/CBP AI Input Completion.ajs` | Completes missing Move 2 maturity and Move 3 strategic-impact inputs using a user-selected local Ollama model |
+| `BizDiag_Local_AI/Capability_Based_Planning/scripts/CBP Ollama Worker.js` | Lists installed Ollama models and sends asynchronous Java HTTP/JSON requests for the CBP companion |
 
 
 
@@ -1158,9 +1178,11 @@ BizDiag/
 │   └── img/
 ├── BizDiag_Local_AI/
 │   ├── Capability_Based_Planning/
-│   │   ├── Capability-based Planning View.ajs
-│   │   ├── CBP AI Input Completion.ajs
-│   │   └── CBP Ollama Worker.js
+│   │   ├── Capability-based Planning with AI Input Completion.ajs
+│   │   └── scripts/
+│   │       ├── Capability-based Planning View.ajs
+│   │       ├── CBP AI Input Completion.ajs
+│   │       └── CBP Ollama Worker.js
 │   ├── DocMaker/
 │   └── UML/
 ├── BizModelCanvas/
