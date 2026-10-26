@@ -1,0 +1,62 @@
+/**
+ * Copyright © 2026 Ebrahim Pak
+ *
+ * SPDX-License-Identifier: CECILL-B
+ *
+ * This file is part of BizDiag.
+ *
+ * BizDiag is distributed under the CeCILL-B Free Software License Agreement,
+ * Version 1.0. See the LICENSE file for details.
+ *
+ * The French and English versions of the license are available in
+ * LICENSE-FR and LICENSE, respectively.
+ *
+ * Author: Ebrahim Pak
+ *
+ * --------------------------------------------------------------------------------------------------------------------
+ *
+ * 'Capability-based Planning with AI Input Completion'
+ * Confirms and runs the capability-based planning script before its AI input completion companion, which displays its
+ * model-selection dialog after the planning views have been generated.
+ */
+
+console.clear();
+console.show();
+
+(function() {
+    "use strict";
+
+    const scriptsDirectory = __DIR__ + "scripts/";
+    const confirmationMessage =
+        "This workflow will first run 'Capability-based Planning View.ajs' on the active model.\n\n" +
+        "It will create or rebuild these views:\n\n" +
+        "- CBP - Capability Map and Profiles\n" +
+        "  Shows capabilities and their profiles; generated candidates are assessed provisionally for post-run review.\n\n" +
+        "- CBP - Maturity and Strategic Importance - Maturity Heatmap\n" +
+        "  Shows capability maturity scores and highlights missing or incomplete inputs.\n\n" +
+        "- CBP - Maturity and Strategic Importance - Strategic Importance Heatmap\n" +
+        "  Shows strategic-importance scores and highlights missing or incomplete inputs.\n\n" +
+        "- CBP - ML-SI Matrix and Improvement Goals\n" +
+        "  Compares maturity with strategic importance, classifies capability gaps, and shows improvement goals.\n\n" +
+        "- CBP - Actions and Change Portfolio\n" +
+        "  Shows improvement actions grouped into prioritized projects.\n\n" +
+        "- Capability-based Planning View\n" +
+        "  Provides an overview of the capability map and the seven planning steps.\n\n" +
+        "After these views are generated, 'CBP AI Input Completion.ajs' will run and may ask you to choose a local " +
+        "Ollama model.\n\n" +
+        "Continue?";
+
+    try {
+        if (!window.confirm(confirmationMessage)) {
+            console.log("CBP workflow cancelled; no scripts were run.");
+            return;
+        }
+        load(scriptsDirectory + "Capability-based Planning View.ajs");
+        load(scriptsDirectory + "CBP AI Input Completion.ajs");
+    } catch (error) {
+        const message = error.message || String(error);
+        console.error("[ERROR] CBP workflow stopped: " + message);
+        if (error.stack) console.error(error.stack);
+        window.alert("CBP workflow stopped: " + message);
+    }
+})();
