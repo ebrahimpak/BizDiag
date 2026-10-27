@@ -15,7 +15,7 @@
  *
  * --------------------------------------------------------------------------------------------------------------------
  *
- * 'CBP Ollama Worker'
+ * Shared local Ollama worker for the CBP continuation.
  * Provides a local worker for interacting with the Ollama API. It acts as a bridge between the Archi application and
  * the Ollama server, handling HTTP requests and responses, a RESTful API for model discovery and text generation. It
  * ensures that the Archi application can communicate with the Ollama server in a non-blocking manner, while also
