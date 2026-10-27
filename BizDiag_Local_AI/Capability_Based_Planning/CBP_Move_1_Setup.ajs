@@ -1,0 +1,172 @@
+/**
+ * Copyright © 2026 Ebrahim Pak
+ *
+ * SPDX-License-Identifier: CECILL-B
+ *
+ * This file is part of BizDiag.
+ *
+ * BizDiag is distributed under the CeCILL-B Free Software License Agreement,
+ * Version 1.0. See the LICENSE file for details.
+ *
+ * The French and English versions of the license are available in
+ * LICENSE-FR and LICENSE, respectively.
+ *
+ * Author: Ebrahim Pak
+ *
+ * -------------------------------------------------------------------------------------------------------------------
+ *
+ * CBP Move 1 setup: creates the editable input checkpoint for the continuation script.
+ */
+console.clear();
+console.show();
+
+(function() {
+    "use strict";
+
+    const rootDirectory = __DIR__;
+    load(rootDirectory + "lib/CBP_Model_Inputs.js");
+    load(rootDirectory + "lib/CBP_Run_State.js");
+    load(rootDirectory + "lib/CBP_View_Generator.js");
+
+    function logHeader(text) { console.log("=== " + text + " ==="); }
+    function logError(text) { console.error("[ERROR] " + text); }
+
+    try {
+        logHeader("CBP Move 1 - Setup");
+        if (typeof model === "undefined" || !model) {
+            throw new Error("No active ArchiMate model is available.");
+        }
+        const activeModel = model;
+        const modelIdentity = cbpRunState.modelIdentity(activeModel);
+        const priorRun = cbpRunState.readRun(activeModel);
+        if (priorRun && priorRun.status === "INPUTS_PENDING") {
+            const decision = window.promptSelection(
+                "A CBP run is still pending for '" + priorRun.model.name + "'. Continue setup would replace its scope. " +
+                "Choose whether to explicitly abort it.",
+                ["Abort pending run and start a new Move 1 setup", "Cancel"]
+            );
+            if (decision !== "Abort pending run and start a new Move 1 setup") {
+                console.log("CBP Move 1 cancelled; the pending run was preserved.");
+                return;
+            }
+            priorRun.status = "ABORTED";
+            priorRun.abortedAt = new Date().toISOString();
+            cbpRunState.writeRun(activeModel, priorRun);
+        }
+        if (priorRun && priorRun.status !== "INPUTS_PENDING" && priorRun.status !== "COMPLETED" &&
+            priorRun.status !== "ABORTED") {
+            throw new Error("The existing CBP run has an unsupported status: " + priorRun.status + ".");
+        }
+
+        let incrementText = cbpRunState.property(activeModel, "CBP.Increments");
+        if (!incrementText) {
+            incrementText = window.prompt(
+                "Enter the consecutive four-digit planning years, separated by commas (for example 2027,2028).\n" +
+                "These years are required to prepare all Move 5-7 inputs. CBP will not choose years for you.",
+                ""
+            );
+            if (incrementText === null || incrementText === undefined) {
+                console.log("CBP Move 1 cancelled before changing the model.");
+                return;
+            }
+        }
+        const incrementResult = cbpModelInputs.parseIncrements(incrementText);
+        if (!incrementResult.valid) throw new Error(incrementResult.reason);
+
+        const discovered = cbpRunState.discoverScope();
+        let capabilities = discovered.capabilities.slice();
+        if (!capabilities.length) {
+            if (!discovered.sources.length) {
+                throw new Error("No Capability or eligible Business Function, Business Process, or Business Service " +
+                    "was found in the supported selection or active model.");
+            }
+        }
+        const potentialStrategies = cbpRunState.discoverPotentialStrategies();
+        const viewPlans = cbpViewGenerator.preflightViews(activeModel, [
+            cbpViewGenerator.NAMES.profile,
+            cbpViewGenerator.NAMES.strategies
+        ], priorRun && priorRun.views);
+
+        const stableModelIdentity = cbpRunState.ensureModelIdentity(activeModel);
+        if (!cbpRunState.property(activeModel, "CBP.Increments")) {
+            cbpModelInputs.writeProperty(activeModel, "CBP.Increments", incrementResult.years.join(","));
+        }
+        if (!capabilities.length) {
+            const created = [];
+            discovered.sources.forEach(function(source) {
+                created.push(cbpRunState.ensureCandidate(activeModel, source));
+            });
+            capabilities = cbpRunState.uniqueById(created);
+        }
+        if (!capabilities.length) throw new Error("Move 1 could not resolve any Capability subjects.");
+
+        const capabilityCodes = cbpRunState.ensureInputCodes(capabilities);
+        const requiredCapabilityKeys = [
+            "CBP.Maturity.People", "CBP.Maturity.Process", "CBP.Maturity.Technology"
+        ];
+        incrementResult.years.forEach(function(year) {
+            requiredCapabilityKeys.push("CBP.TargetML." + year);
+            cbpModelInputs.DIMENSIONS.forEach(function(dimension) {
+                requiredCapabilityKeys.push("CBP.Target." + dimension + "." + year);
+                requiredCapabilityKeys.push("CBP.Action." + dimension + "." + year);
+                requiredCapabilityKeys.push("CBP.Project." + dimension + "." + year);
+                requiredCapabilityKeys.push("CBP.ProjectPriority." + dimension + "." + year);
+            });
+        });
+        capabilities.forEach(function(capability) {
+            requiredCapabilityKeys.forEach(function(key) { cbpRunState.setIfAbsent(capability, key); });
+        });
+
+        potentialStrategies.forEach(function(strategy) {
+            cbpRunState.setIfAbsent(strategy, "CBP.Role");
+            capabilities.forEach(function(capability) {
+                cbpRunState.setIfAbsent(strategy, cbpModelInputs.impactKey(capability));
+            });
+        });
+
+        const runId = "cbp-" + Date.now().toString(36) + "-" +
+            Math.floor(Math.random() * 0x1000000).toString(36);
+        const run = {
+            schema: 1,
+            runId: runId,
+            model: stableModelIdentity,
+            capabilityIds: capabilities.map(cbpRunState.idOf),
+            capabilityCodes: capabilityCodes,
+            candidateSourceIds: capabilities.map(function(capability) {
+                return cbpRunState.property(capability, "CBP.Candidate.SourceID");
+            }).filter(function(id) { return !!id; }),
+            potentialStrategyIds: potentialStrategies.map(cbpRunState.idOf),
+            strategyIds: potentialStrategies.filter(function(strategy) {
+                return cbpRunState.property(strategy, "CBP.Role") === "Strategy";
+            }).map(cbpRunState.idOf),
+            increments: incrementResult.years,
+            status: "INPUTS_PENDING",
+            createdAt: new Date().toISOString(),
+            views: {}
+        };
+        const setupViews = cbpViewGenerator.drawSetup(
+            activeModel, capabilities, potentialStrategies, run, viewPlans
+        );
+        run.views.profile = cbpRunState.idOf(setupViews.profile);
+        run.views.strategies = cbpRunState.idOf(setupViews.strategies);
+        cbpRunState.writeRun(activeModel, run);
+
+        console.log("[OK] Move 1 setup complete. Run ID: " + runId);
+        console.log("Model: " + modelIdentity.name +
+            " | Capabilities: " + capabilities.length +
+            " | Candidates: " + run.candidateSourceIds.length +
+            " | Potential strategies: " + potentialStrategies.length +
+            " | Increments: " + incrementResult.years.join(", "));
+        console.log("Open the two CBP input worklists, enter the listed properties on their model elements, and save " +
+            "the model before running CBP_Continue_Moves_2_to_7.ajs.");
+        if (!run.strategyIds.length) {
+            console.log("[WARN] No strategy is currently marked CBP.Role=Strategy. Mark intended strategies before " +
+                "continuing; otherwise Move 3 will have no strategic-importance score.");
+        }
+    } catch (error) {
+        const message = error && error.message ? error.message : String(error);
+        logError("Move 1 stopped: " + message);
+        if (error && error.stack) console.error(error.stack);
+        window.alert("CBP Move 1 stopped:\n" + message);
+    }
+})();

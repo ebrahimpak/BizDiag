@@ -46,7 +46,7 @@ as structured data for analysis, automation, decision support, and strategy.
     - [3. BizDiag Local AI: Leveraging AI REST API for Smart Enterprise Architecture Operations](#bizdiag-local-ai)
         - [3.1) UML Subsystem](#uml-subsystem)
         - [3.2) DocMaker Subsystem](#docmaker-subsystem)
-        - [3.3) CBP Subsystem](#cbp-subsystem)
+        - [3.3) Capability-Based Planning](#capability-based-planning)
     - [4. BizModelCanvas](#bizmodelcanvas)
         - [4.1) A Business Model Canvas Generation & Analysis](#business-model-canvas-generation--analysis)
 - [Why ArchiMate & jArchi?](#why-archimate--jarchi)
@@ -116,6 +116,7 @@ BizDiag modules
       │   ├── GraalJS_NIOLoggerServer
       │   └── Java_DBLoggerServer
       ├── BizDiag_Local_AI
+      │   ├── CBP_Ollama_Worker.js
       │   ├── Capability_Based_Planning
       │   ├── DocMaker
       │   └── UML
@@ -313,21 +314,21 @@ providing a deployment option for environments that require a pure-Java server r
 <a id="bizdiag-local-ai"></a>
 ### 3. **BizDiag Local AI**: Leveraging AI REST API for Smart Enterprise Architecture Operations
 
-The BizDiag Local AI subsystem follows a layered, microservice-inspired architecture that separates Enterprise 
+The BizDiag Local AI subsystem follows a layered, microservice-inspired architecture that separates Enterprise
 Architecture model interaction from AI inference. It is organized around three capabilities:
 
 - an AI-enhanced ArchiMate Application View to UML transformation script
 - an AI-driven DocMaker subsystem for generating documentation
-- an AI-assisted Capability-Based Planning companion for completing assessment inputs
+- the Capability-Based Planning workflow and its optional Ollama input-assistance worker
 
 ```
 BizDiag_Local_AI/
-├── Capability_Based_Planning
-│   ├── Capability-based_Planning_with_AI_Input_Completion.ajs
-│   └── scripts/
-│       ├── Capability-based_Planning_View.ajs
-│       ├── CBP_AI_Input_Completion.ajs
-│       └── CBP_Ollama_Worker.js
+├── CBP_Ollama_Worker.js
+├── Capability_Based_Planning/
+│   ├── CBP_Move_1_Setup.ajs
+│   ├── CBP_Continue_Moves_2_to_7.ajs
+│   ├── lib/
+│   └── tests/
 ├── DocMaker
 │   ├── AI_Element_DocMaker_EN.ajs
 │   ├── AI_Element_DocMaker_FA.ajs
@@ -340,24 +341,6 @@ BizDiag_Local_AI/
     ├── Application_View_to_UML.ajs
     └── sendToAI.js
 ```
-
-#### Capability-Based Planning Workflow
-
-Run `Capability-based_Planning_with_AI_Input_Completion.ajs` from Archi to launch the combined workflow. Its
-confirmation dialog describes the six views that the planning script creates or rebuilds and their purposes. After
-confirmation, it runs `scripts/Capability-based_Planning_View.ajs` first, then
-`scripts/CBP_AI_Input_Completion.ajs`. The latter uses the local worker to list installed Ollama models and prompts
-the user to select one when AI input completion is needed. Canceling the initial confirmation runs neither script.
-
-The planning script generates provisional Capability candidates from eligible business functions, processes, or
-services when the planning scope contains no Capability elements. Candidates retain source provenance and a
-`ReviewRequired` status, are assessed during the same run, and should be reviewed before relying on their results.
-The AI completion script fills only missing or invalid maturity and strategy-impact inputs when sufficient evidence
-is available; unresolved inputs remain identified in the heatmap.
-
-Keep the launcher, the `scripts/` directory, and the worker together in the shown layout. The worker uses Java's
-asynchronous HTTP client to communicate with the Ollama API at `http://localhost:11434`; Ollama must be running
-locally, with at least one installed model, for AI completion.
 
 _The Scripts_
 
@@ -384,10 +367,9 @@ directory management. The following are the jArchi scripts and JavaScript files 
 | `BizDiag_Local_AI/DocMaker/Mark_it_Down.ajs`                                    | Provides Markdown export functionality for selected Archi views and elements                                                                                                                   |
 | `BizDiag_Local_AI/DocMaker/Ollama_Olalla.ajs`                                   | Provides integration with the locally installed Ollama AI runtime                                                                                                                              |
 | `BizDiag_Local_AI/UML/sendToAI.js`                                              | Simple HTTP client wrapper for querying Ollama (used by Application_View_to_UML.ajs only; independent of AI_REST_JSON.js)                                                                      |
-| `BizDiag_Local_AI/Capability_Based_Planning/Capability-based_Planning_with_AI_Input_Completion.ajs` | Displays the workflow confirmation dialog, then runs planning followed by AI input completion |
-| `BizDiag_Local_AI/Capability_Based_Planning/scripts/Capability-based_Planning_View.ajs` | Generates the CBP profile, assessment, matrix, goal, action, portfolio, and overview views |
-| `BizDiag_Local_AI/Capability_Based_Planning/scripts/CBP_AI_Input_Completion.ajs` | Completes missing Move 2 maturity and Move 3 strategic-impact inputs using a user-selected local Ollama model |
-| `BizDiag_Local_AI/Capability_Based_Planning/scripts/CBP_Ollama_Worker.js` | Lists installed Ollama models and sends asynchronous Java HTTP/JSON requests for the CBP companion |
+| `BizDiag_Local_AI/CBP_Ollama_Worker.js` | Provides optional local Ollama model discovery and asynchronous requests for CBP input suggestions; loaded only when the user chooses AI assistance |
+| `BizDiag_Local_AI/Capability_Based_Planning/CBP_Move_1_Setup.ajs` | Creates the Move 1 capability and strategy input worklists |
+| `BizDiag_Local_AI/Capability_Based_Planning/CBP_Continue_Moves_2_to_7.ajs` | Validates inputs, optionally requests local AI suggestions, and generates the remaining CBP views |
 
 
 
@@ -754,21 +736,86 @@ requirements.
 
 
 
-<a id="cbp-subsystem"></a>
-#### 3.3) CBP Subsystem
+<a id="capability-based-planning"></a>
+#### 3.3) Capability-Based Planning
 
 The Capability-Based Planning (CBP) module implements the seven moves described in "Capability-Based Planning, The Link
-between Strategy and Enterprise Architecture" and "Capability-based Planning in 7 moves!" through the jArchi script
-[`Capability-based_Planning_View.ajs`](BizDiag_Local_AI/Capability_Based_Planning/scripts/Capability-based_Planning_View.ajs).
-It uses explicit model properties as assessment and planning inputs; it does not infer maturity ratings, strategic
-impact, targets, actions, or priorities from element names or counts.
+between Strategy and Enterprise Architecture" and "Capability-based Planning in 7 moves!" through two separately run
+jArchi scripts: [`CBP_Move_1_Setup.ajs`](BizDiag_Local_AI/Capability_Based_Planning/CBP_Move_1_Setup.ajs) and
+[`CBP_Continue_Moves_2_to_7.ajs`](BizDiag_Local_AI/Capability_Based_Planning/CBP_Continue_Moves_2_to_7.ajs).
+Move 1 creates input worklists and a durable model-local run record. The user edits properties on the model elements,
+saves the model, and then runs the continuation. The scripts use explicit model properties and do not infer maturity
+ratings, strategic impact, targets, actions, or priorities from element names or counts.
+
+#### CBP data-entry properties and values
+
+Enter these properties on the **underlying model elements' Properties tabs**, not on the generated view cards. Move 1
+lists the inputs in its worklists. Replace `<YYYY>` with a year configured in the model's `CBP.Increments` property;
+for example, use `.2000` only when `2000` is one of those configured years. Do not enter the angle-bracket
+placeholders literally.
+
+**Capability properties** — add these to each in-scope Capability:
+
+| Property name | Value to enter |
+|---|---|
+| `CBP.Maturity.People` | Required integer from `0` to `4`. |
+| `CBP.Maturity.Process` | Required integer from `0` to `4`. |
+| `CBP.Maturity.Technology` | Required integer from `0` to `4`. |
+| `CBP.Weight.People` | Optional finite number greater than `0`; defaults to `1` when absent. Sets People’s relative influence in the maturity calculation. |
+| `CBP.Weight.Process` | Optional finite number greater than `0`; defaults to `1` when absent. Sets Process’s relative influence in the maturity calculation. |
+| `CBP.Weight.Technology` | Optional finite number greater than `0`; defaults to `1` when absent. Sets Technology’s relative influence in the maturity calculation. |
+| `CBP.InputCode` | Assigned by Move 1; a stable short code such as `CAP-001`. Use this code to identify the Capability in strategy impact property names. |
+
+**Per-increment targets** — add these to each Capability for every configured year:
+
+| Property name pattern | Example for 2000 | Value to enter |
+|---|---|---|
+| `CBP.TargetML.<YYYY>` | `CBP.TargetML.2000` | Required number from `0` to `4`; must be consistent with the dimension targets and their weights. |
+| `CBP.Target.People.<YYYY>` | `CBP.Target.People.2000` | Required integer from `0` to `4`. |
+| `CBP.Target.Process.<YYYY>` | `CBP.Target.Process.2000` | Required integer from `0` to `4`. |
+| `CBP.Target.Technology.<YYYY>` | `CBP.Target.Technology.2000` | Required integer from `0` to `4`. |
+
+**Actions and project priorities** — add these to a Capability only for a dimension whose target is above its current
+maturity:
+
+| Property name pattern | Example for People in 2000 | Value to enter |
+|---|---|---|
+| `CBP.Action.<Dimension>.<YYYY>` | `CBP.Action.People.2000` | Non-empty description of the improvement action. |
+| `CBP.Project.<Dimension>.<YYYY>` | `CBP.Project.People.2000` | Non-empty project or package name. |
+| `CBP.ProjectPriority.<Dimension>.<YYYY>` | `CBP.ProjectPriority.People.2000` | Positive integer; lower numbers rank first (for example, `1` ranks ahead of `2`). There is no configured maximum. |
+
+Replace `<Dimension>` with `People`, `Process`, or `Technology`. For example, if the People target is higher than
+current People maturity in 2000, enter the People action, project, and priority properties for that year.
+
+Weights have no fixed upper limit: they are relative multipliers, not scores. For example, a weight of `2` gives a
+dimension or strategy twice the influence of one weighted `1`, while `0.5` gives it half the influence. When comparing
+weights within the same calculation, multiplying all of them by the same positive factor does not change the result.
+Leave a weight absent to use the default `1`; zero and negative values are invalid.
+
+**Strategy properties** — add these to each potential strategy element (Driver, Goal, Requirement, or Course of Action):
+
+| Property name | Value to enter |
+|---|---|
+| `CBP.Role` | Set to the exact text `Strategy` only when the element is intended to be included as a strategy; otherwise leave unset. |
+| `CBP.StrategyWeight` | Optional finite number greater than `0`; defaults to `1` when absent. Sets this strategy’s relative influence in the importance calculation. |
+| `CBP.Impact.<CapabilityCode>` | Required integer `0`, `1`, or `2` for every in-scope Capability on each selected strategy: `0` = no contribution, `1` = some contribution, `2` = strong contribution. Example: `CBP.Impact.CAP-001`. |
+
+The short Capability code in `CBP.Impact.CAP-001` identifies **which Capability is being rated**; the value records
+that Capability's contribution to the strategy. Impact ratings must be whole numbers—`1.3` is invalid.
+
+**Model-level properties:**
+
+| Property name | Value to enter |
+|---|---|
+| `CBP.Increments` | Required consecutive four-digit years separated by commas, such as `2000,2001`. Move 1 prompts for this if it is absent. |
+| `CBP.AcceptanceTolerance` | Optional number from `0` to `4`; defaults to `0`. |
 
 The seven moves are implemented as follows:
 
-1. **Identify and model capabilities:** show modeled Capability concepts, their available profiles, and existing
-structural relationships. If the scope contains no Capability concepts, the script creates provenance-linked candidates
-from eligible Business Functions, Business Processes, and Business Services. Candidates are marked `ReviewRequired`,
-assessed provisionally in the same run, and should be reviewed before relying on their results.
+1. **Identify and model capabilities:** show modeled Capability concepts and input properties in a Move 1 worklist. If
+the scope contains no Capability concepts, the script creates provenance-linked candidates from eligible Business
+Functions, Business Processes, and Business Services. Candidates are marked `ReviewRequired`, assessed provisionally
+in the continuation, and should be reviewed before relying on their results.
 2. **Assess maturity:** calculate a weighted overall score from People, Process, and Technology ratings, and present the
 result in a maturity heatmap.
 3. **Assess strategic importance:** calculate weighted impact from strategy elements explicitly marked
@@ -795,30 +842,24 @@ inputs.
 | **6. Define actions** | Translate each planned dimension-level maturity transition into concrete People, Process, and Technology actions. | For every dimension whose target rises, requires an action description, project name, and priority. Validated records become traceable Work Package concepts and links. | Defining actions that are sufficient, feasible, sequenced, owned, resourced, and appropriate to the actual capability. Text is supplied by the architect; the script does not invent it. |
 | **7. Design the change portfolio** | Consolidate actions into coordinated projects/programs using capability-based, dimension-based, or hybrid grouping and organizational context. | Groups actions by increment and entered project name, requires a consistent priority within a project/year, sorts lower priorities first, creates project Work Packages, and displays containment links. | Selecting a grouping strategy, resolving dependencies, capacity and budget trade-offs, preparing charters, and governing implementation. |
 
-#### CBP AI Input Completion Companion
+The continuation offers AI assistance only if maturity ratings or strategy impacts are missing or invalid. After the
+user opts in, it loads the shared Local AI worker
+[`CBP_Ollama_Worker.js`](BizDiag_Local_AI/CBP_Ollama_Worker.js),
+lists locally installed models, and validates every returned property key, range, and rationale before applying a
+suggestion. It does not use heatmap cards as a work queue and does not infer targets, actions, project names, or
+priorities. Review and save the model after AI-assisted completion.
 
-[`CBP_AI_Input_Completion.ajs`](BizDiag_Local_AI/Capability_Based_Planning/scripts/CBP_AI_Input_Completion.ajs) is an optional
-companion to the seven-move script. It fills missing or invalid Move 2 maturity ratings and Move 3 strategy impacts for
-`INPUT REQUIRED` cards in the two existing heatmaps, then calculates the displayed scores using the CBP formulas. It does
-not rerun the seven-move workflow, approve candidates, or create views.
+Move 1 creates the Capability/profile and Strategy Inputs worklists only; it does not create analytical views. The
+continuation creates the maturity and strategic-importance heatmaps, ML-SI matrix and valid Goals, actions and change
+portfolio, and overview. Managed views use ownership markers and stop on ambiguous name collisions rather than
+overwriting user-owned views. If a potential strategy is not marked exactly `CBP.Role=Strategy`, it is ignored; without
+any selected strategies, strategic importance remains unresolved rather than being treated as zero.
 
-The companion loads [`CBP_Ollama_Worker.js`](BizDiag_Local_AI/Capability_Based_Planning/scripts/CBP_Ollama_Worker.js), which
-calls the local Ollama REST API using Java's asynchronous HTTP client. Ensure Ollama is running with one or more models
-installed; the script lists installed model tags and asks the operator to choose one before making assessment requests.
-Requests use small batches and have bounded timeouts, while the worker pumps SWT events so Archi can process UI events
-during inference. Review AI-generated ratings and rationales before saving the model. Strategic importance remains
-unresolved when the model contains no strategy elements marked `CBP.Role=Strategy`.
-
-The `Capability-based_Planning_View.ajs` script creates a capability profile view, maturity and strategic-importance
-heatmaps, an ML-SI matrix with improvement goals, an actions and change portfolio view, and an overview. Both heatmaps
-display a colored five-band legend for absolute scores from 0 to 4, rather than a ranking relative to other capabilities.
-Generated relationships connect relevant concepts within these views; they distinguish planning traceability from
-relationships asserted by the source architecture.
-
-The calculations depend on assessed inputs maintained in the Archi model. Move 1 still requires human validation of the
-capability map and its evidence, as relevant business models, value chains, or strategic formulations may be absent from
-the EA model. The script's overview documents the model-property contract, and its source comments describe the
-implementation steps of the seven-move approach.
+The pure input and calculation helpers have a Node.js regression test at
+`BizDiag_Local_AI/Capability_Based_Planning/tests/` (run with
+`node --test BizDiag_Local_AI/Capability_Based_Planning/tests/CBP_Assessment.test.js BizDiag_Local_AI/Capability_Based_Planning/tests/CBP_Workflow.test.js`). The workflow test uses a mock Archi adapter;
+real view behavior, empty-property retention, and save/reopen behavior must still be verified in the supported
+Archi/jArchi runtime.
 
 
 _Why Ollama?_
@@ -1177,12 +1218,19 @@ BizDiag/
 │   ├── BusinessITAlignment_FA.ajs
 │   └── img/
 ├── BizDiag_Local_AI/
+│   ├── CBP_Ollama_Worker.js
 │   ├── Capability_Based_Planning/
-│   │   ├── Capability-based_Planning_with_AI_Input_Completion.ajs
-│   │   └── scripts/
-│   │       ├── Capability-based_Planning_View.ajs
-│   │       ├── CBP_AI_Input_Completion.ajs
-│   │       └── CBP_Ollama_Worker.js
+│   │   ├── CBP_REWORK_PLAN.md
+│   │   ├── CBP_Move_1_Setup.ajs
+│   │   ├── CBP_Continue_Moves_2_to_7.ajs
+│   │   ├── lib/
+│   │   │   ├── CBP_Model_Inputs.js
+│   │   │   ├── CBP_Run_State.js
+│   │   │   ├── CBP_Assessment_Engine.js
+│   │   │   └── CBP_View_Generator.js
+│   │   └── tests/
+│   │       ├── CBP_Assessment.test.js
+│   │       └── CBP_Workflow.test.js
 │   ├── DocMaker/
 │   └── UML/
 ├── BizModelCanvas/
