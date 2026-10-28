@@ -1,5 +1,5 @@
 /**
- * Copyright © 2026 Ebrahim Pak
+ * CBP continuation: validates the saved Move 1 scope, optionally assists missing assessments, and generates Moves 2-7.
  *
  * SPDX-License-Identifier: CECILL-B
  *
@@ -13,13 +13,24 @@
  *
  * Author: Ebrahim Pak
  *
- * -------------------------------------------------------------------------------------------------------------------
+ * @fileoverview Archi/jArchi entry point for the second stage of the CBP workflow.
  *
- * CBP continuation: validates the saved Move 1 scope, optionally assists missing assessments, and generates Moves 2-7.
+ * This stage translates explicit model inputs into maturity and strategic-importance assessments,
+ * the capability landscape, improvement goals, actions, and portfolio views. These outputs correspond
+ * to Moves 2-7 of "Capability-Based Planning, The Link between Strategy and Enterprise Architecture"
+ * and "Capability-based Planning in 7 moves!". The papers' method depends on human judgment: this
+ * script validates inputs but does not infer a capability map, targets, actions, or priorities.
  */
 console.clear();
 console.show();
 
+/**
+ * Runs the second CBP stage using the saved Move 1 scope and the user's edited model properties.
+ *
+ * It validates the checkpoint, optionally requests local suggestions for missing maturity/impact
+ * ratings, calculates and renders Moves 2-7, and marks the run complete. Human-selected strategy,
+ * target, action, and portfolio decisions are not inferred by this entry point.
+ */
 (function() {
     "use strict";
 
@@ -35,15 +46,29 @@ console.show();
         "CBP.Result.Gap"
     ];
 
+    /**
+     * Writes a visible phase marker to the Archi script console.
+     * @param {string} text Phase label.
+     */
     function phase(text) { console.log("=== " + text + " ==="); }
+
+    /**
+     * Converts Java, JavaScript, or plain error values to a readable message.
+     * @param {*} error Thrown value.
+     * @returns {string} Human-readable error message.
+     */
     function asError(error) { return error && error.message ? error.message : String(error); }
 
+    /**
+     * Loads and verifies the optional Ollama worker from this module's lib folder.
+     * @throws {Error} If the worker file is absent or does not register its public API.
+     */
     function loadOllamaWorker() {
         if (typeof globalThis.cbpOllamaWorker !== "undefined" &&
             typeof globalThis.cbpOllamaWorker.request === "function" &&
             typeof globalThis.cbpOllamaWorker.listModels === "function") return;
         const File = Java.type("java.io.File");
-        const workerFile = new File(__DIR__ + "../CBP_Ollama_Worker.js");
+        const workerFile = new File(__DIR__ + "lib/CBP_Ollama_Worker.js");
         if (!workerFile.isFile()) throw new Error("Ollama worker not found: " + workerFile.getCanonicalPath());
         load(workerFile.getCanonicalPath());
         if (typeof globalThis.cbpOllamaWorker === "undefined") {
@@ -51,6 +76,13 @@ console.show();
         }
     }
 
+    /**
+     * Restores the exact model elements recorded by Move 1.
+     * @param {string[]} ids Archi model IDs from the persisted run.
+     * @param {string} description Element label for diagnostics.
+     * @returns {Object[]} Resolved elements in checkpoint order.
+     * @throws {Error} If any recorded element was deleted or is outside the supported CBP types.
+     */
     function resolveByIds(ids, description) {
         return ids.map(function(id) {
             const element = cbpRunState.findElement(id);
@@ -59,6 +91,16 @@ console.show();
         });
     }
 
+    /**
+     * Identifies missing or invalid eligible maturity and strategy-impact values.
+     *
+     * Only these assessment inputs are considered for optional Ollama assistance, matching the
+     * explicitly rated evidence used in Moves 2-3. Targets, actions, projects, and priorities remain
+     * user-supplied planning decisions.
+     * @param {Object[]} capabilities In-scope Capabilities.
+     * @param {{element:Object, weight:number}[]} strategies Selected Courses of Action.
+     * @returns {Object[]} Exact element/property requests with permitted integer ranges.
+     */
     function collectAiRequests(capabilities, strategies) {
         const requests = [];
         capabilities.forEach(function(capability) {
@@ -92,6 +134,11 @@ console.show();
         return requests;
     }
 
+    /**
+     * Collects bounded model context for a local assessment suggestion request.
+     * @param {Object} element Archi element whose missing rating is requested.
+     * @returns {string} Truncated documentation, relevant properties, and relationship context.
+     */
     function evidence(element) {
         const properties = [
             "CBP.Candidate.SourceType", "CBP.Candidate.SourceName", "CBP.Profile.Definition",
@@ -125,6 +172,17 @@ console.show();
         return lines.join("\n").substring(0, 2200);
     }
 
+    /**
+     * Requests and validates local model suggestions for currently missing assessment properties.
+     *
+     * Suggestions must match a requested element ID/property key, have an allowed integer value and
+     * include a rationale. A valid manual value is never replaced; accepted model values are marked
+     * provisional so they remain distinguishable from architect-authored assessments.
+     * @param {Object[]} requests Requests produced by {@link collectAiRequests}.
+     * @param {string} selectedModel Installed local Ollama model selected by the user.
+     * @returns {string[]} Applied element-ID/property-key identities.
+     * @throws {Error} If Ollama communication or response parsing fails.
+     */
     function applyAiSuggestions(requests, selectedModel) {
         loadOllamaWorker();
 
@@ -133,6 +191,10 @@ console.show();
         const applied = [];
         const seen = {};
         let rejected = 0;
+        /**
+         * Applies only unique, requested, well-formed suggestions whose target remains invalid.
+         * @param {Object[]} suggestions Candidate suggestions from Ollama.
+         */
         function acceptSuggestions(suggestions) {
           suggestions.forEach(function(suggestion) {
             if (!suggestion || typeof suggestion.elementId !== "string" ||
@@ -200,6 +262,14 @@ console.show();
         return applied;
     }
 
+    /**
+     * Selects only Courses of Action explicitly marked as strategies and validates their weights.
+     * This preserves the CBP papers' need for explicit strategy selection rather than inferring it
+     * from arbitrary model concepts.
+     * @param {Object[]} potentialStrategies In-scope Course of Action elements.
+     * @returns {{element:Object, weight:number}[]} Selected and validated strategy records.
+     * @throws {Error} If a selected strategy has an invalid weight.
+     */
     function selectedStrategies(potentialStrategies) {
         const strategies = [];
         potentialStrategies.forEach(function(element) {
@@ -214,6 +284,11 @@ console.show();
         return strategies;
     }
 
+    /**
+     * Removes previously calculated properties before writing the current assessment results.
+     * @param {Object} capability Archi Capability receiving derived values.
+     * @throws {Error} If stale values exist but the runtime cannot remove them safely.
+     */
     function clearDerived(capability) {
         derivedKeys.forEach(function(key) {
             if (cbpRunState.property(capability, key)) {
@@ -249,6 +324,7 @@ console.show();
         }
         const capabilities = resolveByIds(run.capabilityIds, "Capability");
         const potentialStrategies = resolveByIds(run.potentialStrategyIds, "Potential strategy");
+        // ===== MOVE 3 INPUT SELECTION: Only user-designated Courses of Action contribute as strategies. =====
         const strategies = selectedStrategies(potentialStrategies);
         const toleranceRaw = cbpRunState.property(activeModel, "CBP.AcceptanceTolerance");
         const tolerance = toleranceRaw
@@ -294,6 +370,7 @@ console.show();
             console.log("[AI] No missing eligible ratings or impacts; Ollama was not loaded.");
         }
 
+        // ===== MOVES 2-7 CALCULATIONS: Produce maturity, importance, landscape, goals, and actions. =====
         const results = cbpAssessmentEngine.calculate(
             capabilities, strategies, run.increments, tolerance.value, cbpModelInputs
         );
@@ -313,15 +390,19 @@ console.show();
             }
         });
 
+        // ===== MOVE 2 RENDERING: Render the weighted maturity calculation as a heatmap. =====
         cbpViewGenerator.drawHeatmap(
             activeModel, cbpViewGenerator.NAMES.maturity, "moves-2-maturity",
             "Maturity", results, viewPlans
         );
+        // ===== MOVE 3 RENDERING: Render the normalized strategy-importance calculation as a heatmap. =====
         cbpViewGenerator.drawHeatmap(
             activeModel, cbpViewGenerator.NAMES.importance, "moves-3-importance",
             "Strategic importance", results, viewPlans
         );
+        // ===== MOVES 4-5 RENDERING: Show the landscape matrix and validated improvement Goals. =====
         cbpViewGenerator.drawMatrix(activeModel, results, viewPlans);
+        // ===== MOVES 6-7 RENDERING: Show validated improvement actions and the grouped change portfolio. =====
         cbpViewGenerator.drawPortfolio(activeModel, results, viewPlans);
         cbpViewGenerator.drawOverview(activeModel, run, results, viewPlans);
 

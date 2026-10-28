@@ -1,5 +1,5 @@
 /**
- * Copyright © 2026 Ebrahim Pak
+ * Idempotent creation and rebuilding of CBP-managed Archi views.
  *
  * SPDX-License-Identifier: CECILL-B
  *
@@ -13,9 +13,12 @@
  *
  * Author: Ebrahim Pak
  *
- * -------------------------------------------------------------------------------------------------------------------
+ * @fileoverview Renders the editable Move 1 worklists and analytical Moves 2-7 views.
  *
- * Idempotent creation and rebuilding of CBP-managed Archi views.
+ * The view sequence mirrors the seven-move workflow described in "Capability-Based Planning,
+ * The Link between Strategy and Enterprise Architecture" and "Capability-based Planning in 7 moves!".
+ * It visualizes inputs and calculated results; it does not replace capability-map validation, strategy
+ * selection, or the architect's interpretation of goals and actions.
  */
 (function(root) {
     "use strict";
@@ -41,6 +44,11 @@
     KEYS_BY_NAME[NAMES.portfolio] = "moves-6-7-portfolio";
     KEYS_BY_NAME[NAMES.overview] = "workflow-overview";
 
+    /**
+     * Converts a jArchi collection to a JavaScript array.
+     * @param {Object} collection Collection supporting jArchi's {@code each} method.
+     * @returns {Object[]} Collection members.
+     */
     function collectionToArray(collection) {
         const values = [];
         if (collection && typeof collection.each === "function") {
@@ -49,14 +57,30 @@
         return values;
     }
 
+    /**
+     * Gets a view's display name through the common run-state adapter.
+     * @param {Object} view Archi diagram view.
+     * @returns {string} View name.
+     */
     function viewName(view) {
         return root.cbpRunState.nameOf(view);
     }
 
+    /**
+     * Reads a custom identity/ownership property from a view.
+     * @param {Object} view Archi diagram view.
+     * @param {string} key Custom-property name.
+     * @returns {string} Normalized property value.
+     */
     function viewProperty(view, key) {
         return root.cbpRunState.property(view, key);
     }
 
+    /**
+     * Produces a view label that identifies a Capability by its stable short input code.
+     * @param {Object} element Archi model element.
+     * @returns {string} Readable element name and code or a short ID fallback.
+     */
     function elementLabel(element) {
         const code = root.cbpRunState.property(element, "CBP.InputCode");
         if (code) return root.cbpRunState.nameOf(element) + " [" + code + "]";
@@ -64,6 +88,11 @@
         return root.cbpRunState.nameOf(element) + " [ID:" + id.substring(0, 8) + "]";
     }
 
+    /**
+     * Formats legacy provisional-candidate provenance, if one is present on a Capability.
+     * @param {Object} capability Archi Capability.
+     * @returns {string} Candidate status/source note, or an empty string.
+     */
     function candidateContext(capability) {
         const status = root.cbpRunState.property(capability, "CBP.CandidateStatus");
         if (!status) return "";
@@ -72,6 +101,12 @@
             " - " + root.cbpRunState.property(capability, "CBP.Candidate.SourceName");
     }
 
+    /**
+     * Enumerates model views, using the supported jArchi API or a diagram-model query fallback.
+     * @param {Object} activeModel Active Archi model.
+     * @returns {Object[]} Views belonging to or discoverable for the model.
+     * @throws {Error} If no supported view enumeration route is available.
+     */
     function allViews(activeModel) {
         if (!activeModel) {
             throw new Error("The active Archi model is unavailable while enumerating views.");
@@ -83,6 +118,10 @@
         const found = [];
         const seen = {};
         let querySucceeded = false;
+        /**
+         * Adds query results once, deduplicating by model ID or fallback view name.
+         * @param {Object} collection jArchi collection of diagram views.
+         */
         function addFrom(collection) {
             collectionToArray(collection).forEach(function(view) {
                 const id = root.cbpRunState.idOf(view);
@@ -116,12 +155,28 @@
             "archimate-diagram-model views. CBP stopped before modifying views.");
     }
 
+    /**
+     * Finds a uniquely named view in the active model.
+     * @param {Object} activeModel Active Archi model.
+     * @param {string} name Exact view name.
+     * @returns {?Object} Matching view, or null when absent.
+     * @throws {Error} If duplicate views have the requested name.
+     */
     function findView(activeModel, name) {
         const matches = allViews(activeModel).filter(function(view) { return viewName(view) === name; });
         if (matches.length > 1) throw new Error("Several views are named '" + name + "'.");
         return matches.length ? matches[0] : null;
     }
 
+    /**
+     * Validates managed-view ownership and identity before any view is rebuilt.
+     * This prevents CBP output generation from silently overwriting user-owned views.
+     * @param {Object} activeModel Active Archi model.
+     * @param {string[]} names Expected managed view names.
+     * @param {Object<string,string>} stableIds Previously recorded view IDs keyed by name.
+     * @returns {Object<string,?Object>} Existing managed views or null slots for views to create.
+     * @throws {Error} On duplicate names, ownership-marker mismatches, or identity conflicts.
+     */
     function preflightViews(activeModel, names, stableIds) {
         const views = allViews(activeModel);
         const plans = {};
@@ -166,6 +221,14 @@
         return plans;
     }
 
+    /**
+     * Creates or reuses a preflight-approved view and stamps its CBP ownership identity.
+     * @param {Object} activeModel Active Archi model.
+     * @param {string} name View name.
+     * @param {string} key Stable internal view key.
+     * @param {Object<string,?Object>} plans Preflight results.
+     * @returns {Object} Managed Archi diagram view.
+     */
     function obtainView(activeModel, name, key, plans) {
         let view = plans && plans[name];
         if (!view) {
@@ -177,6 +240,10 @@
         return view;
     }
 
+    /**
+     * Removes existing visual children so a managed view can be rebuilt idempotently.
+     * @param {Object} view Managed Archi view.
+     */
     function clearView(view) {
         const children = [];
         $(view).children().each(function(child) { children.push(child); });
@@ -185,6 +252,16 @@
         });
     }
 
+    /**
+     * Creates or updates a CBP-owned model concept identified by a stable generated key.
+     * Name collisions with concepts not owned by CBP stop generation rather than overwrite user data.
+     * @param {Object} activeModel Active Archi model.
+     * @param {string} type ArchiMate concept type.
+     * @param {string} key Stable CBP generation key.
+     * @param {string} name Display name.
+     * @param {string} documentation Concept documentation.
+     * @returns {Object} Generated or reused concept.
+     */
     function generatedConcept(activeModel, type, key, name, documentation) {
         const concepts = root.cbpRunState.query(type);
         const found = concepts.filter(function(element) {
@@ -198,6 +275,11 @@
             throw new Error("Generated concept key '" + key + "' is owned by an unexpected element type.");
         }
         if (!element) {
+            /**
+             * Removes generated ID suffixes when checking readable-name collisions.
+             * @param {string} value Candidate generated label.
+             * @returns {string} Label without the optional ID suffix.
+             */
             function normalizedLabel(value) {
                 return value.replace(/ \[ID:[^\]]+\]/g, "");
             }
@@ -219,21 +301,60 @@
         return element;
     }
 
+    /**
+     * Adds one concept to a view at the supplied diagram coordinates.
+     * @param {Object} view Archi diagram view.
+     * @param {Object} concept Model concept to display.
+     * @param {number} x Horizontal position.
+     * @param {number} y Vertical position.
+     * @param {number} width Object width.
+     * @param {number} height Object height.
+     * @returns {Object} Created diagram object.
+     */
     function object(view, concept, x, y, width, height) {
         return view.add(concept, x, y, width, height);
     }
 
+    /**
+     * Adds a CBP-owned Business Object card with stable model identity to a view.
+     * @param {Object} activeModel Active Archi model.
+     * @param {Object} view Target view.
+     * @param {string} key Stable CBP card key.
+     * @param {string} name Card label.
+     * @param {string} documentation Card content.
+     * @param {number} x Horizontal position.
+     * @param {number} y Vertical position.
+     * @param {number} width Card width.
+     * @param {number} height Card height.
+     * @returns {Object} Diagram object and its underlying concept.
+     */
     function card(activeModel, view, key, name, documentation, x, y, width, height) {
         const concept = generatedConcept(activeModel, "business-object", key, name, documentation);
         return object(view, concept, x, y, width, height);
     }
 
-    function drawSetup(activeModel, capabilities, potentialStrategies, run, plans) {
+    /**
+     * Builds Move 1's Capability profile and Course of Action input worklists.
+     *
+     * Capabilities carry maturity/target inputs, Value Streams and Resources provide map context,
+     * and Courses of Action are presented for explicit user designation as strategies. This reflects
+     * the papers' strategy-capability and capability-map focus without inventing relationships or
+     * assigning strategic intent.
+     * @param {Object} activeModel Active Archi model.
+     * @param {Object[]} capabilities In-scope Capability assessment subjects.
+     * @param {Object[]} potentialStrategies In-scope Course of Action elements.
+     * @param {Object[]} contextElements Value Streams and Resources to show as map context.
+     * @param {Object} run Pending workflow record, including configured increments.
+     * @param {Object<string,?Object>} plans Preflight-approved Move 1 views.
+     * @returns {{profile:Object, strategies:Object}} The two input views.
+     */
+    function drawSetup(activeModel, capabilities, potentialStrategies, contextElements, run, plans) {
+        // ===== MOVE 1 RENDERING: Build the editable Capability, context, and Course of Action worklists. =====
         let view = obtainView(activeModel, NAMES.profile, "move-1-profile", plans);
         const profileView = view;
         view.documentation =
-            "Move 1 input worklist. Enter maturity and per-year target/action properties on each Capability in its " +
-            "Properties panel. Generated candidates are provisional (ReviewRequired) and are included in assessments.";
+            "Move 1 capability map worklist. This view includes only Capabilities, Value Streams, and Resources. " +
+            "Enter maturity and per-year target/action properties on each Capability in its Properties panel.";
         clearView(view);
         card(activeModel, view, "instructions:profile", "[CBP] Move 1 - Capability inputs",
             "Enter these Properties on each Capability:\nCBP.Maturity.People (0-4)\nCBP.Maturity.Process (0-4)\n" +
@@ -243,6 +364,10 @@
             "lower values rank first).\n" +
             "Do not enter the angle-bracket placeholders literally. Optional CBP.Weight.<Dimension> defaults to 1.",
             40, 35, 900, 120);
+        card(activeModel, view, "context:title", "[CBP] Value Stream and Resource context",
+            "These existing Value Stream and Resource elements are included as capability-map context only. " +
+            "Assessment inputs belong on Capability elements.",
+            1050, 35, 700, 80);
         capabilities.forEach(function(capability, index) {
             const candidateStatus = root.cbpRunState.property(capability, "CBP.CandidateStatus");
             const source = root.cbpRunState.property(capability, "CBP.Candidate.SourceType") +
@@ -267,8 +392,9 @@
             ].map(function(field) {
                 return field[0] + ": " + (root.cbpRunState.property(capability, field[1]) || "MISSING");
             }).join("\n");
-            const cardText = "CBP.CandidateStatus: " + (candidateStatus || "not a generated candidate") +
-                (candidateStatus ? "\nProvisional source: " + source : "") +
+            const cardText = (candidateStatus
+                ? "Existing provisional candidate status: " + candidateStatus + "\nSource: " + source + "\n"
+                : "") +
                 "\nProfile:\n" + profileText +
                 "\nRequired exact property names (add manually if Archi does not retain blank keys):\n" +
                 exactKeys.join("\n") + "\nOptional weights: CBP.Weight.People, CBP.Weight.Process, " +
@@ -284,15 +410,29 @@
             );
             view.add(association, info, conceptObject);
         });
+        contextElements.forEach(function(element, index) {
+            const y = 135 + index * 75;
+            const contextObject = object(view, element, 1050, y, 300, 60);
+            const description = card(activeModel, view, "capability-context:" + element.id,
+                "[CBP] " + root.cbpRunState.typeOf(element) + " context - " +
+                    root.cbpRunState.nameOf(element),
+                "Capability-map context element. No CBP assessment values are entered on this element.",
+                1380, y, 370, 60);
+            const association = ensureRelationship(
+                activeModel, "association-relationship", "Capability map context",
+                contextObject.concept, description.concept
+            );
+            view.add(association, contextObject, description);
+        });
 
         view = obtainView(activeModel, NAMES.strategies, "move-1-strategy-inputs", plans);
         view.documentation =
-            "Potential strategy worklist. Set CBP.Role=Strategy only on intended Driver, Goal, Requirement, or Course " +
-            "of Action elements. Then enter CBP.Impact.<CapabilityID> (integer 0-2) for every in-scope Capability. " +
+            "Course of Action worklist. Set CBP.Role=Strategy only on intended Course of Action elements. " +
+            "Then enter CBP.Impact.<CapabilityCode> (integer 0-2) for every in-scope Capability. " +
             "Strategy weights are optional and default to 1.";
         clearView(view);
         card(activeModel, view, "instructions:strategies", "[CBP] Move 1 - Strategy inputs",
-            "These properties belong on the strategy element shown beside each checklist. Set CBP.Role to the exact " +
+            "These properties belong on the Course of Action shown beside each checklist. Set CBP.Role to the exact " +
             "text Strategy only for intended strategies. For each listed Capability, enter how strongly it contributes " +
             "to this strategy: 0 = no contribution, 1 = some contribution, 2 = strong contribution. " +
             "The short code in each property key identifies the Capability, not the strategy.",
@@ -334,6 +474,17 @@
         return {profile: profileView, strategies: view};
     }
 
+    /**
+     * Renders one assessed CBP dimension as a five-band heatmap and shows unresolved inputs.
+     * Corresponds to Move 2 maturity or Move 3 strategic-importance assessment.
+     * @param {Object} activeModel Active Archi model.
+     * @param {string} name Managed view name.
+     * @param {string} key Stable internal view key.
+     * @param {string} measure "Maturity" or "Strategic importance".
+     * @param {Object[]} results Assessment engine results.
+     * @param {Object<string,?Object>} plans Preflight-approved view references.
+     * @returns {Object} Generated heatmap view.
+     */
     function drawHeatmap(activeModel, name, key, measure, results, plans) {
         const view = obtainView(activeModel, name, key, plans);
         view.documentation = measure + " assessment from explicit CBP model inputs. Exact results are shown in cards; " +
@@ -342,6 +493,7 @@
         const colors = measure === "Maturity"
             ? ["#F4CCCC", "#FCE5CD", "#FFF2CC", "#D9EAD3", "#B6D7A8"]
             : ["#B6D7A8", "#D9EAD3", "#FFF2CC", "#FCE5CD", "#F4CCCC"];
+        // ===== MOVES 2-3 RENDERING: Render the calculated scores in five bands with unresolved inputs visible. =====
         for (let score = 0; score <= 4; score++) {
             const legend = card(activeModel, view, "legend:" + key + ":" + score,
                 "[CBP] " + measure + " band " + score, measure + " score " + score + " of 4.",
@@ -378,6 +530,14 @@
         return view;
     }
 
+    /**
+     * Renders the maturity/strategic-importance landscape, unresolved inputs, and validated goals.
+     * Implements the visualization parts of Moves 4-5; rounded coordinates are display-only.
+     * @param {Object} activeModel Active Archi model.
+     * @param {Object[]} results Assessment engine results.
+     * @param {Object<string,?Object>} plans Preflight-approved view references.
+     * @returns {Object} Matrix and goals view.
+     */
     function drawMatrix(activeModel, results, plans) {
         const view = obtainView(activeModel, NAMES.matrix, "moves-4-5-matrix", plans);
         view.documentation =
@@ -397,6 +557,7 @@
         const cellCounts = {};
         const capabilityObjects = {};
         let goalRow = 0;
+        // ===== MOVE 4 RENDERING: Place assessed Capabilities in the Maturity-Level / Strategic-Importance matrix. =====
         results.forEach(function(result) {
             const hasScores = result.maturity !== null && result.importance !== null;
             if (hasScores) {
@@ -430,6 +591,7 @@
                     result.errors.join("\n"), 40, 900 + statusRow * 80, 900, 70);
                 cellCounts.unresolved = statusRow + 1;
             }
+            // ===== MOVE 5 RENDERING: Add only validated increment Goals to the matrix work product. =====
             result.goals.forEach(function(target) {
                 const goal = generatedConcept(activeModel, "goal",
                     "goal:" + result.capability.id + ":" + target.year,
@@ -454,6 +616,16 @@
         return view;
     }
 
+    /**
+     * Reuses a relationship with the same type and endpoints, or creates it when absent.
+     * @param {Object} activeModel Active Archi model.
+     * @param {string} type ArchiMate relationship type.
+     * @param {string} name Relationship name.
+     * @param {Object} source Source concept.
+     * @param {Object} target Target concept.
+     * @returns {Object} Existing or newly created relationship.
+     * @throws {Error} If duplicate relationships with the same endpoints already exist.
+     */
     function ensureRelationship(activeModel, type, name, source, target) {
         const sourceId = root.cbpRunState.idOf(source);
         const targetId = root.cbpRunState.idOf(target);
@@ -468,13 +640,51 @@
         return matches.length ? matches[0] : activeModel.createRelationship(type, name, source, target);
     }
 
+    /**
+     * Renders validated improvement Work Packages grouped into increment projects.
+     * Implements Moves 6-7 from explicitly entered action, project, and priority properties.
+     * @param {Object} activeModel Active Archi model.
+     * @param {Object[]} results Assessment engine results.
+     * @param {Object<string,?Object>} plans Preflight-approved view references.
+     * @returns {Object} Actions and change-portfolio view.
+     */
     function drawPortfolio(activeModel, results, plans) {
         const view = obtainView(activeModel, NAMES.portfolio, "moves-6-7-portfolio", plans);
         view.documentation =
             "Actions and project packages are generated only from complete CBP.Action, CBP.Project, and " +
             "CBP.ProjectPriority inputs. Lower priority numbers rank first.";
         clearView(view);
+        const dimensionColors = {
+            People: "#CFE2F3",
+            Process: "#D9EAD3",
+            Technology: "#D9D2E9"
+        };
+        const zoneColors = {
+            Gap: "#F4CCCC",
+            Comfort: "#D9EAD3",
+            Acceptance: "#FFF2CC"
+        };
+        const capabilityResults = {};
+        results.forEach(function(result) {
+            capabilityResults[root.cbpRunState.idOf(result.capability)] = result;
+        });
+        const legendItems = [
+            ["[CBP] People actions", dimensionColors.People],
+            ["[CBP] Process actions", dimensionColors.Process],
+            ["[CBP] Technology actions", dimensionColors.Technology],
+            ["[CBP] Capability: Gap", zoneColors.Gap],
+            ["[CBP] Capability: Comfort", zoneColors.Comfort],
+            ["[CBP] Capability: Acceptance", zoneColors.Acceptance]
+        ];
+        legendItems.forEach(function(item, index) {
+            const legend = card(activeModel, view, "portfolio:legend:" + index, item[0],
+                index < 3 ? "Action Work Packages are colored by improvement dimension." :
+                    "Capability colors use the same zone colors as the ML-SI matrix.",
+                40 + (index % 3) * 260, 25 + Math.floor(index / 3) * 55, 245, 45);
+            if (legend && legend.setFillColor) legend.setFillColor(item[1]);
+        });
         const groups = {};
+        // ===== MOVE 6: Materialize validated dimension-level improvement actions as Work Packages. =====
         results.forEach(function(result) {
             result.actions.forEach(function(action) {
                 const groupKey = action.year + "|" + action.projectName;
@@ -485,6 +695,7 @@
                 groups[groupKey].actions.push(action);
             });
         });
+        // ===== MOVE 7: Group actions into increment/project packages and order projects by declared priority. =====
         const list = Object.keys(groups).map(function(key) { return groups[key]; })
             .sort(function(a, b) { return a.year === b.year ? a.priority - b.priority : a.year.localeCompare(b.year); });
         let row = 0;
@@ -493,7 +704,7 @@
                 card(activeModel, view, "portfolio:conflict:" + group.year + ":" + group.name,
                     "[CBP] Priority conflict - " + group.name,
                     "Project '" + group.name + "' in " + group.year + " has conflicting priorities. No actions in this " +
-                    "project are generated in the portfolio until corrected.", 40, 60 + row * 110, 900, 70);
+                    "project are generated in the portfolio until corrected.", 40, 150 + row * 110, 900, 70);
                 row++;
                 return;
             }
@@ -503,8 +714,10 @@
                 "Increment: " + group.year + "\nPriority: " + group.priority);
             root.cbpModelInputs.writeProperty(project, "CBP.Increment", group.year);
             root.cbpModelInputs.writeProperty(project, "CBP.Priority", group.priority);
-            const projectObject = object(view, project, 40, 60 + row * 130, 300, 85);
+            const projectObject = object(view, project, 40, 150 + row * 130, 300, 85);
+            if (projectObject && projectObject.setFillColor) projectObject.setFillColor("#D9D9D9");
             group.actions.forEach(function(action, index) {
+                // ===== MOVE 6 RENDERING: Create the validated action Work Package and its traceable links. =====
                 const actionElement = generatedConcept(activeModel, "work-package",
                     "action:" + action.capability.id + ":" + action.year + ":" + action.dimension,
                     "CBP Action - " + action.year + " - " + elementLabel(action.capability) +
@@ -516,8 +729,21 @@
                     ["CBP.ProjectName", action.projectName], ["CBP.Priority", action.priority],
                     ["CBP.SourceCapabilityID", root.cbpRunState.idOf(action.capability)]
                 ].forEach(function(pair) { root.cbpModelInputs.writeProperty(actionElement, pair[0], pair[1]); });
-                const actionObject = object(view, actionElement, 390, 60 + row * 130 + index * 75, 360, 65);
-                const capabilityObject = object(view, action.capability, 800, 60 + row * 130 + index * 75, 250, 65);
+                const actionObject = object(view, actionElement, 390, 150 + row * 130 + index * 75, 360, 65);
+                if (actionObject && actionObject.setFillColor) {
+                    actionObject.setFillColor(dimensionColors[action.dimension] || "#EAD1DC");
+                }
+                const capabilityObject = object(
+                    view, action.capability, 800, 150 + row * 130 + index * 75, 250, 65
+                );
+                const capabilityResult = capabilityResults[root.cbpRunState.idOf(action.capability)];
+                if (capabilityObject && capabilityObject.setFillColor) {
+                    capabilityObject.setFillColor(
+                        capabilityResult && zoneColors[capabilityResult.zone]
+                            ? zoneColors[capabilityResult.zone]
+                            : "#D9D9D9"
+                    );
+                }
                 ensureRelationship(activeModel, "composition-relationship",
                     "Project contains improvement action", project, actionElement);
                 ensureRelationship(activeModel, "realization-relationship",
@@ -538,19 +764,27 @@
         if (!list.length) {
             card(activeModel, view, "portfolio:none", "[CBP] No validated improvement actions",
                 "No valid action records were derived. Review the matrix view for missing or invalid target/action inputs.",
-                40, 60, 900, 75);
+                40, 150, 900, 75);
         }
         let errorRow = row;
         results.forEach(function(result) {
             if (!result.errors.length) return;
             card(activeModel, view, "portfolio:inputs:" + result.capability.id,
                 "[CBP] Planning inputs incomplete - " + elementLabel(result.capability),
-                result.errors.join("\n"), 40, 60 + errorRow * 130, 900, 90);
+                result.errors.join("\n"), 40, 150 + errorRow * 130, 900, 90);
             errorRow++;
         });
         return view;
     }
 
+    /**
+     * Creates a navigational summary of the Move 1-7 views and this run's unresolved input count.
+     * @param {Object} activeModel Active Archi model.
+     * @param {Object} run Completed workflow record.
+     * @param {Object[]} results Assessment results.
+     * @param {Object<string,?Object>} plans Preflight-approved view references.
+     * @returns {Object} Workflow overview view.
+     */
     function drawOverview(activeModel, run, results, plans) {
         const view = obtainView(activeModel, NAMES.overview, "workflow-overview", plans);
         view.documentation = "CBP Moves 1-7 overview for run " + run.runId + ". See the two input worklists and " +

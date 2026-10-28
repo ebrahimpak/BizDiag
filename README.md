@@ -116,8 +116,9 @@ BizDiag modules
       │   ├── GraalJS_NIOLoggerServer
       │   └── Java_DBLoggerServer
       ├── BizDiag_Local_AI
-      │   ├── CBP_Ollama_Worker.js
       │   ├── Capability_Based_Planning
+      │   │   └── lib
+      │   │       └── CBP_Ollama_Worker.js
       │   ├── DocMaker
       │   └── UML
       └── BizModelCanvas
@@ -323,12 +324,11 @@ Architecture model interaction from AI inference. It is organized around three c
 
 ```
 BizDiag_Local_AI/
-├── CBP_Ollama_Worker.js
 ├── Capability_Based_Planning/
 │   ├── CBP_Move_1_Setup.ajs
 │   ├── CBP_Continue_Moves_2_to_7.ajs
-│   ├── lib/
-│   └── tests/
+│   └── lib/
+│       └── CBP_Ollama_Worker.js
 ├── DocMaker
 │   ├── AI_Element_DocMaker_EN.ajs
 │   ├── AI_Element_DocMaker_FA.ajs
@@ -367,8 +367,8 @@ directory management. The following are the jArchi scripts and JavaScript files 
 | `BizDiag_Local_AI/DocMaker/Mark_it_Down.ajs`                                    | Provides Markdown export functionality for selected Archi views and elements                                                                                                                   |
 | `BizDiag_Local_AI/DocMaker/Ollama_Olalla.ajs`                                   | Provides integration with the locally installed Ollama AI runtime                                                                                                                              |
 | `BizDiag_Local_AI/UML/sendToAI.js`                                              | Simple HTTP client wrapper for querying Ollama (used by Application_View_to_UML.ajs only; independent of AI_REST_JSON.js)                                                                      |
-| `BizDiag_Local_AI/CBP_Ollama_Worker.js` | Provides optional local Ollama model discovery and asynchronous requests for CBP input suggestions; loaded only when the user chooses AI assistance |
-| `BizDiag_Local_AI/Capability_Based_Planning/CBP_Move_1_Setup.ajs` | Creates the Move 1 capability and strategy input worklists |
+| `BizDiag_Local_AI/Capability_Based_Planning/lib/CBP_Ollama_Worker.js` | Provides optional local Ollama model discovery and asynchronous requests for CBP input suggestions; loaded only when the user chooses AI assistance |
+| `BizDiag_Local_AI/Capability_Based_Planning/CBP_Move_1_Setup.ajs` | Creates Move 1 worklists using only Capability, Value Stream, Course of Action, and Resource elements |
 | `BizDiag_Local_AI/Capability_Based_Planning/CBP_Continue_Moves_2_to_7.ajs` | Validates inputs, optionally requests local AI suggestions, and generates the remaining CBP views |
 
 
@@ -792,7 +792,7 @@ dimension or strategy twice the influence of one weighted `1`, while `0.5` gives
 weights within the same calculation, multiplying all of them by the same positive factor does not change the result.
 Leave a weight absent to use the default `1`; zero and negative values are invalid.
 
-**Strategy properties** — add these to each potential strategy element (Driver, Goal, Requirement, or Course of Action):
+**Strategy properties** — add these to each potential strategy element (Course of Action):
 
 | Property name | Value to enter |
 |---|---|
@@ -812,10 +812,14 @@ that Capability's contribution to the strategy. Impact ratings must be whole num
 
 The seven moves are implemented as follows:
 
-1. **Identify and model capabilities:** show modeled Capability concepts and input properties in a Move 1 worklist. If
-the scope contains no Capability concepts, the script creates provenance-linked candidates from eligible Business
-Functions, Business Processes, and Business Services. Candidates are marked `ReviewRequired`, assessed provisionally
-in the continuation, and should be reviewed before relying on their results.
+Move 1 is limited to these ArchiMate element types: **Capability, Value Stream, Course of Action, and Resource**.
+Capabilities are the assessment subjects; Value Streams and Resources appear as context in the capability map;
+Courses of Action are the only elements eligible for `CBP.Role=Strategy`. Business-layer elements such as Business
+Functions, Business Processes, and Business Services are not selected, transformed, or used to generate Capability
+candidates. Move 1 requires at least one existing Capability in scope.
+
+1. **Identify and model capabilities:** show in-scope Capability concepts and their input properties, with Value
+Streams and Resources as capability-map context. Move 1 does not create Capability candidates from other element types.
 2. **Assess maturity:** calculate a weighted overall score from People, Process, and Technology ratings, and present the
 result in a maturity heatmap.
 3. **Assess strategic importance:** calculate weighted impact from strategy elements explicitly marked
@@ -834,7 +838,7 @@ inputs.
 
 | Move | EA purpose in the paper | What the script does | What remains a human responsibility |
 |---|---|---|---|
-| **1. Identify and model business capabilities** | Build and refine a capability map from strategy, value streams, organization, and reference models; profile the capabilities and check coverage and granularity. | Uses Capability concepts in scope, shows profile properties and accepted existing hierarchy links, and can seed review-required candidates from Business Functions, Processes, or Services. | Discovering capabilities from strategy and value streams, assuring completeness, agreeing scope/granularity, validating definitions, and approving candidates. The script does not infer the map from strategy documents. |
+| **1. Identify and model business capabilities** | Build and refine a capability map from strategy, value streams, organization, and reference models; profile the capabilities and check coverage and granularity. | Uses only Capability, Value Stream, Course of Action, and Resource elements. Capabilities are assessment subjects; Value Streams and Resources provide map context; Courses of Action are potential strategies. It does not create Capability candidates from Business-layer elements. | Discovering capabilities from strategy and value streams, assuring completeness, agreeing scope/granularity, validating definitions, and deciding which Courses of Action represent strategies. The script does not infer the map from strategy documents. |
 | **2. Assess maturity** | Assess each Capability's People, Process, and Technology maturity and calculate an overall maturity using a weighted mean; display a maturity heatmap. | Reads three 0–4 ratings, applies optional positive weights, calculates the weighted mean, writes `CBP.Result.Maturity`, and displays the nearest integer band. | Assigning defensible ratings using the paper's dimension rubrics and choosing weights. Ratings are not inferred from process counts, applications, or model structure. |
 | **3. Assess strategic importance** | Evaluate how each Capability contributes to the enterprise's strategies; consolidate and normalize impacts; display strategic importance. | Reads impact scores on explicitly tagged strategy concepts, applies optional strategy weights, normalizes the weighted average to 0–4, writes `CBP.Result.StrategicImportance`, and creates a heatmap. | Selecting relevant strategies, deciding their weights, and judging every Capability/strategy impact pair. The code's score is only as sound as those inputs. |
 | **4. Analyze the capability landscape** | Combine maturity and importance in an ML-SI matrix; interpret gaps, comfort, and an acceptance band. | Plots fully assessed concepts in rounded matrix cells, classifies using exact score difference and tolerance, and records `CBP.Result.Zone` and `CBP.Result.Gap`. | Interpreting strategic risk, deciding what constitutes acceptable capability risk, and validating that the threshold suits the enterprise. |
@@ -843,8 +847,8 @@ inputs.
 | **7. Design the change portfolio** | Consolidate actions into coordinated projects/programs using capability-based, dimension-based, or hybrid grouping and organizational context. | Groups actions by increment and entered project name, requires a consistent priority within a project/year, sorts lower priorities first, creates project Work Packages, and displays containment links. | Selecting a grouping strategy, resolving dependencies, capacity and budget trade-offs, preparing charters, and governing implementation. |
 
 The continuation offers AI assistance only if maturity ratings or strategy impacts are missing or invalid. After the
-user opts in, it loads the shared Local AI worker
-[`CBP_Ollama_Worker.js`](BizDiag_Local_AI/CBP_Ollama_Worker.js),
+user opts in, it loads the CBP module's local worker
+[`CBP_Ollama_Worker.js`](BizDiag_Local_AI/Capability_Based_Planning/lib/CBP_Ollama_Worker.js),
 lists locally installed models, and validates every returned property key, range, and rationale before applying a
 suggestion. It does not use heatmap cards as a work queue and does not infer targets, actions, project names, or
 priorities. Review and save the model after AI-assisted completion.
@@ -852,14 +856,8 @@ priorities. Review and save the model after AI-assisted completion.
 Move 1 creates the Capability/profile and Strategy Inputs worklists only; it does not create analytical views. The
 continuation creates the maturity and strategic-importance heatmaps, ML-SI matrix and valid Goals, actions and change
 portfolio, and overview. Managed views use ownership markers and stop on ambiguous name collisions rather than
-overwriting user-owned views. If a potential strategy is not marked exactly `CBP.Role=Strategy`, it is ignored; without
-any selected strategies, strategic importance remains unresolved rather than being treated as zero.
-
-The pure input and calculation helpers have a Node.js regression test at
-`BizDiag_Local_AI/Capability_Based_Planning/tests/` (run with
-`node --test BizDiag_Local_AI/Capability_Based_Planning/tests/CBP_Assessment.test.js BizDiag_Local_AI/Capability_Based_Planning/tests/CBP_Workflow.test.js`). The workflow test uses a mock Archi adapter;
-real view behavior, empty-property retention, and save/reopen behavior must still be verified in the supported
-Archi/jArchi runtime.
+overwriting user-owned views. Only Courses of Action marked exactly `CBP.Role=Strategy` are included; without any
+selected Courses of Action, strategic importance remains unresolved rather than being treated as zero.
 
 
 _Why Ollama?_
@@ -1218,19 +1216,15 @@ BizDiag/
 │   ├── BusinessITAlignment_FA.ajs
 │   └── img/
 ├── BizDiag_Local_AI/
-│   ├── CBP_Ollama_Worker.js
 │   ├── Capability_Based_Planning/
-│   │   ├── CBP_REWORK_PLAN.md
 │   │   ├── CBP_Move_1_Setup.ajs
 │   │   ├── CBP_Continue_Moves_2_to_7.ajs
 │   │   ├── lib/
+│   │   │   ├── CBP_Ollama_Worker.js
 │   │   │   ├── CBP_Model_Inputs.js
 │   │   │   ├── CBP_Run_State.js
 │   │   │   ├── CBP_Assessment_Engine.js
 │   │   │   └── CBP_View_Generator.js
-│   │   └── tests/
-│   │       ├── CBP_Assessment.test.js
-│   │       └── CBP_Workflow.test.js
 │   ├── DocMaker/
 │   └── UML/
 ├── BizModelCanvas/

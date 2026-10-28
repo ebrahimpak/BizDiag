@@ -1,5 +1,5 @@
 /**
- * Copyright © 2026 Ebrahim Pak
+ * CBP Move 1 setup: creates the editable input checkpoint for the continuation script.
  *
  * SPDX-License-Identifier: CECILL-B
  *
@@ -13,13 +13,26 @@
  *
  * Author: Ebrahim Pak
  *
- * -------------------------------------------------------------------------------------------------------------------
+ * @fileoverview Archi/jArchi entry point for identifying the capability-map scope and preparing inputs.
  *
- * CBP Move 1 setup: creates the editable input checkpoint for the continuation script.
+ * Move 1 reflects the capability identification and capability-map framing in "Capability-Based
+ * Planning, The Link between Strategy and Enterprise Architecture" and "Capability-based Planning in
+ * 7 moves!". The supported scope is intentionally limited to Capability, Value Stream, Course of
+ * Action, and Resource. The script prepares an editable checkpoint; it does not infer a capability
+ * map, transform business-layer elements into Capabilities, or decide which Course of Action is a
+ * strategy.
  */
 console.clear();
 console.show();
 
+/**
+ * Runs Move 1: validates model and increments, discovers the approved scope, prepares editable
+ * properties/worklists, and persists the run checkpoint for Moves 2-7.
+ *
+ * The user reviews, edits, and saves the model before separately launching the continuation.
+ * This preserves the human-in-the-loop assessment and planning workflow described in the CBP
+ * literature rather than combining identification and assessment into automatic inference.
+ */
 (function() {
     "use strict";
 
@@ -28,7 +41,16 @@ console.show();
     load(rootDirectory + "lib/CBP_Run_State.js");
     load(rootDirectory + "lib/CBP_View_Generator.js");
 
+    /**
+     * Writes a visible phase header to the Archi script console.
+     * @param {string} text Phase label.
+     */
     function logHeader(text) { console.log("=== " + text + " ==="); }
+
+    /**
+     * Writes a consistently prefixed Move 1 error to the Archi console.
+     * @param {string} text Error message.
+     */
     function logError(text) { console.error("[ERROR] " + text); }
 
     try {
@@ -74,32 +96,25 @@ console.show();
         if (!incrementResult.valid) throw new Error(incrementResult.reason);
 
         const discovered = cbpRunState.discoverScope();
-        let capabilities = discovered.capabilities.slice();
+        const capabilities = discovered.capabilities.slice();
         if (!capabilities.length) {
-            if (!discovered.sources.length) {
-                throw new Error("No Capability or eligible Business Function, Business Process, or Business Service " +
-                    "was found in the supported selection or active model.");
-            }
+            throw new Error("Move 1 requires at least one ArchiMate Capability. Only Capability, Value Stream, " +
+                "Course of Action, and Resource elements are in scope; Business-layer elements are not converted " +
+                "into generated Capability candidates.");
         }
+        const contextElements = discovered.valueStreams.concat(discovered.resources);
         const potentialStrategies = cbpRunState.discoverPotentialStrategies();
         const viewPlans = cbpViewGenerator.preflightViews(activeModel, [
             cbpViewGenerator.NAMES.profile,
             cbpViewGenerator.NAMES.strategies
         ], priorRun && priorRun.views);
 
+        // ===== MOVE 1: Identify the capability-map scope and prepare editable model inputs. =====
+        // Scope is limited to Capabilities, Value Streams, Courses of Action, and Resources.
         const stableModelIdentity = cbpRunState.ensureModelIdentity(activeModel);
         if (!cbpRunState.property(activeModel, "CBP.Increments")) {
             cbpModelInputs.writeProperty(activeModel, "CBP.Increments", incrementResult.years.join(","));
         }
-        if (!capabilities.length) {
-            const created = [];
-            discovered.sources.forEach(function(source) {
-                created.push(cbpRunState.ensureCandidate(activeModel, source));
-            });
-            capabilities = cbpRunState.uniqueById(created);
-        }
-        if (!capabilities.length) throw new Error("Move 1 could not resolve any Capability subjects.");
-
         const capabilityCodes = cbpRunState.ensureInputCodes(capabilities);
         const requiredCapabilityKeys = [
             "CBP.Maturity.People", "CBP.Maturity.Process", "CBP.Maturity.Technology"
@@ -132,9 +147,8 @@ console.show();
             model: stableModelIdentity,
             capabilityIds: capabilities.map(cbpRunState.idOf),
             capabilityCodes: capabilityCodes,
-            candidateSourceIds: capabilities.map(function(capability) {
-                return cbpRunState.property(capability, "CBP.Candidate.SourceID");
-            }).filter(function(id) { return !!id; }),
+            valueStreamIds: discovered.valueStreams.map(cbpRunState.idOf),
+            resourceIds: discovered.resources.map(cbpRunState.idOf),
             potentialStrategyIds: potentialStrategies.map(cbpRunState.idOf),
             strategyIds: potentialStrategies.filter(function(strategy) {
                 return cbpRunState.property(strategy, "CBP.Role") === "Strategy";
@@ -145,7 +159,7 @@ console.show();
             views: {}
         };
         const setupViews = cbpViewGenerator.drawSetup(
-            activeModel, capabilities, potentialStrategies, run, viewPlans
+            activeModel, capabilities, potentialStrategies, contextElements, run, viewPlans
         );
         run.views.profile = cbpRunState.idOf(setupViews.profile);
         run.views.strategies = cbpRunState.idOf(setupViews.strategies);
@@ -154,14 +168,15 @@ console.show();
         console.log("[OK] Move 1 setup complete. Run ID: " + runId);
         console.log("Model: " + modelIdentity.name +
             " | Capabilities: " + capabilities.length +
-            " | Candidates: " + run.candidateSourceIds.length +
-            " | Potential strategies: " + potentialStrategies.length +
+            " | Value Streams: " + discovered.valueStreams.length +
+            " | Resources: " + discovered.resources.length +
+            " | Courses of Action: " + potentialStrategies.length +
             " | Increments: " + incrementResult.years.join(", "));
         console.log("Open the two CBP input worklists, enter the listed properties on their model elements, and save " +
             "the model before running CBP_Continue_Moves_2_to_7.ajs.");
         if (!run.strategyIds.length) {
-            console.log("[WARN] No strategy is currently marked CBP.Role=Strategy. Mark intended strategies before " +
-                "continuing; otherwise Move 3 will have no strategic-importance score.");
+            console.log("[WARN] No Course of Action is currently marked CBP.Role=Strategy. Mark intended Courses of " +
+                "Action before continuing; otherwise Move 3 will have no strategic-importance score.");
         }
     } catch (error) {
         const message = error && error.message ? error.message : String(error);

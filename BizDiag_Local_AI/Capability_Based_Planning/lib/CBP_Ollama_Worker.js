@@ -1,5 +1,5 @@
 /**
- * Copyright © 2026 Ebrahim Pak
+ * Shared local Ollama worker for the CBP continuation.
  *
  * SPDX-License-Identifier: CECILL-B
  *
@@ -13,13 +13,14 @@
  *
  * Author: Ebrahim Pak
  *
- * --------------------------------------------------------------------------------------------------------------------
+ * @fileoverview Optional transport adapter for local Ollama model discovery and generation requests.
  *
- * Shared local Ollama worker for the CBP continuation.
- * Provides a local worker for interacting with the Ollama API. It acts as a bridge between the Archi application and
- * the Ollama server, handling HTTP requests and responses, a RESTful API for model discovery and text generation. It
- * ensures that the Archi application can communicate with the Ollama server in a non-blocking manner, while also
- * providing error handling and timeout management.
+ * The worker is invoked only when the CBP continuation user opts in to suggestions for missing maturity
+ * or strategy-impact ratings. It supplies transport and model discovery only: it does not calculate CBP
+ * scores or make strategy, target, action, or priority decisions. Those assessments operationalize the
+ * explicit-input approach in "Capability-Based Planning, The Link between Strategy and Enterprise
+ * Architecture" and "Capability-based Planning in 7 moves!", where assessment evidence and planning
+ * choices remain subject to architect judgment.
  */
 
 "use strict";

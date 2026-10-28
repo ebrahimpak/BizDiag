@@ -1,5 +1,5 @@
 /**
- * Copyright © 2026 Ebrahim Pak
+ * Pure CBP assessment and planning calculation engine.
  *
  * SPDX-License-Identifier: CECILL-B
  *
@@ -13,17 +13,38 @@
  *
  * Author: Ebrahim Pak
  *
- * -------------------------------------------------------------------------------------------------------------------
+ * @fileoverview Calculates CBP maturity, strategic importance, landscape, goals, and actions.
  *
- * Calculates CBP maturity, strategic importance, landscape, goals, and actions.
+ * This engine turns explicit architect-supplied inputs into the repeatable assessment and planning
+ * outputs corresponding to Moves 2-7 in "Capability-Based Planning, The Link between Strategy and
+ * Enterprise Architecture" and "Capability-based Planning in 7 moves!". The papers provide the
+ * workflow rationale; target choices, evidence quality, risk tolerance, and action design remain
+ * human responsibilities.
  */
 (function(root) {
     "use strict";
 
+    /**
+     * Calculates each Capability's assessment, landscape position, increment goals, and actions.
+     *
+     * Maturity and strategic importance are assessed first (Moves 2-3), then their difference and
+     * tolerance classify the landscape (Move 4). Explicit targets and action properties are validated
+     * for the configured increments (Moves 5-7). Invalid or incomplete inputs are reported rather
+     * than inferred.
+     *
+     * @param {Object[]} capabilities In-scope Archi Capability elements.
+     * @param {{element:Object, weight:number}[]} strategies Selected Courses of Action and their weights.
+     * @param {string[]} increments Consecutive configured planning years.
+     * @param {number} tolerance User-configured acceptance tolerance for the maturity/importance gap.
+     * @param {Object} inputs CBP input parsing and weighted-calculation helper API.
+     * @returns {Object[]} Per-Capability scores, errors, targets, goals, and validated actions.
+     */
     function calculate(capabilities, strategies, increments, tolerance, inputs) {
         const results = [];
         for (let i = 0; i < capabilities.length; i++) {
             const capability = capabilities[i];
+
+            // ===== MOVES 2-3: Compute maturity and strategic-importance inputs for this Capability. =====
             const maturity = inputs.calculateMaturity(capability);
             const importance = inputs.calculateImportance(capability, strategies);
             const errors = maturity.errors.concat(importance.errors);
@@ -40,6 +61,7 @@
                 actions: []
             };
             if (maturity.score !== null && importance.score !== null) {
+                // ===== MOVE 4: Compare importance with maturity and classify the landscape position. =====
                 result.gap = importance.score - maturity.score;
                 result.zone = result.gap > tolerance ? "Gap" :
                     (result.gap < -tolerance ? "Comfort" : "Acceptance");
@@ -51,6 +73,7 @@
                 previous[dimension] = maturity.dimensions[dimension];
             }
 
+            // ===== MOVE 5: Validate increment targets and accept only complete, consistent goals. =====
             for (let y = 0; y < increments.length; y++) {
                 const year = increments[y];
                 const target = {
@@ -103,6 +126,7 @@
                         target.errors.push(key + " cannot be lower than the prior maturity/target.");
                         target.valid = false;
                     }
+                    // ===== MOVE 6: Require explicit action, project, and priority inputs for improvements. =====
                     if (start !== undefined && parsed.value > start) {
                         const actionKey = "CBP.Action." + dimension + "." + year;
                         const projectKey = "CBP.Project." + dimension + "." + year;
