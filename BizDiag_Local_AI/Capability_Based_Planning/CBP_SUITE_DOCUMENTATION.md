@@ -158,21 +158,6 @@ before running the continuation.
 Ollama does not supply targets, actions, project names, weights, or priorities. The continuation continues to
 calculation and view generation when AI assistance is declined or fails, with missing inputs visible as unresolved.
 
-### 3.4 Optional mock-data seeder
-
-`CBP_Fill_Mock_Input_Data.ajs` is a separate test helper to run after Move 1 and before the continuation. It requires a
-matching `INPUTS_PENDING` checkpoint, asks for confirmation, and seeds only blank properties on the exact Capabilities
-and potential Courses of Action recorded by that run. It preserves every existing nonblank value. Synthetic
-maturity/impact values vary deterministically by Capability so a model with multiple Capabilities exercises different
-heatmap bands; multiple strategies also produce intermediate importance scores. A single strategy can only produce
-even importance scores because its impact inputs are integers on a 0–2 scale. Targets progress toward level 4, with
-corresponding mock actions, project names, and priorities. Blank Courses of Action roles are set to `Strategy`.
-
-The generated values are only for exercising the workflow, not assessment evidence or recommendations. Use a test
-model, save after seeding, and then run `CBP_Continue_Moves_2_to_7.ajs`. If an existing nonblank value is invalid, the
-seeder preserves it and may report that a target could not be completed; fix or clear that value manually if a fully
-populated test run is needed.
-
 ## 4. Data contract: model properties
 
 All properties are custom properties on the indicated Archi model element or model. Empty required fields are missing,
@@ -413,7 +398,6 @@ transport worker is in the module's `lib/` directory.
 | File | Responsibility |
 |---|---|
 | `CBP_Move_1_Setup.ajs` | First-stage entry point; preflight, year validation, scope preparation, property creation, Move 1 views, and pending run checkpoint. |
-| `CBP_Fill_Mock_Input_Data.ajs` | Optional test-only helper; fills blank inputs in the pending run with deterministic synthetic values and preserves existing values. |
 | `CBP_Continue_Moves_2_to_7.ajs` | Second-stage entry point; checkpoint verification, optional AI prompt/suggestion application, calculations, output-view generation, completion record, and UI summary. |
 | `lib/CBP_Model_Inputs.js` | Property access, numeric/range parsing, increment parsing, weighted mean, maturity calculation, importance calculation, and impact-key generation. This helper is independent of Archi queries except for the model object's property API. |
 | `lib/CBP_Run_State.js` | Archi/jArchi adapters, supported element types, selected-scope discovery, stable Capability input codes, model identity, and model-local run-record persistence. |
