@@ -1,5 +1,5 @@
 /**
- * Copyright © 2026 Ebrahim Pak
+ * Archi/jArchi adapters for CBP scope discovery, model properties, and durable run state.
  *
  * SPDX-License-Identifier: CECILL-B
  *
@@ -13,9 +13,12 @@
  *
  * Author: Ebrahim Pak
  *
- * -------------------------------------------------------------------------------------------------------------------
+ * @fileoverview Provides model queries, CBP's allowed element scope, and persisted two-stage run state.
  *
- * Archi/jArchi adapters for CBP scope discovery, model properties, and durable run state.
+ * Move 1's capability-map scope follows the user's selected ArchiMate types: Capability, Value Stream,
+ * Course of Action, and Resource. This supports the capability-map/value-stream/resource focus of the
+ * cited CBP papers while deliberately avoiding inference of capabilities from unrelated business-layer
+ * elements. Courses of Action are the only potential strategy type in this implementation.
  */
 (function(root) {
     "use strict";
@@ -23,42 +26,77 @@
     const RUN_KEY = "CBP.Internal.RunRecord";
     const MODEL_ID_KEY = "CBP.Internal.ModelID";
     const OWNER = "BizDiag CBP Workflow v1";
-    const SOURCE_TYPES = ["business-function", "business-process", "business-service"];
-    const STRATEGY_TYPES = ["driver", "goal", "requirement", "course-of-action"];
-    const SCOPE_TYPES = ["capability"].concat(SOURCE_TYPES);
+    const SCOPE_TYPES = ["capability", "value-stream", "course-of-action", "resource"];
+    const STRATEGY_TYPES = ["course-of-action"];
 
+    /**
+     * Gets an Archi object's display name through either jArchi or a test adapter.
+     * @param {Object} object Model object.
+     * @returns {string} Object name, or an empty string.
+     */
     function nameOf(object) {
         return object && typeof object.getName === "function"
             ? String(object.getName() || "")
             : String((object && object.name) || "");
     }
 
+    /**
+     * Gets an Archi object's stable model identity.
+     * @param {Object} object Model object.
+     * @returns {string} Model ID, or an empty string.
+     */
     function idOf(object) {
         if (!object) return "";
         const value = typeof object.getId === "function" ? object.getId() : object.id;
         return value === null || value === undefined ? "" : String(value);
     }
 
+    /**
+     * Gets the jArchi element type identifier.
+     * @param {Object} object Model object.
+     * @returns {string} Type identifier, or an empty string.
+     */
     function typeOf(object) {
         if (!object) return "";
         const value = typeof object.getType === "function" ? object.getType() : object.type;
         return value === null || value === undefined ? "" : String(value);
     }
 
+    /**
+     * Reads a normalized CBP property via the shared input adapter.
+     * @param {Object} object Archi model object.
+     * @param {string} key Custom-property name.
+     * @returns {string} Property value.
+     */
     function property(object, key) {
         return root.cbpModelInputs.readProperty(object, key);
     }
 
+    /**
+     * Creates an empty custom-property entry only when it has no current value.
+     * @param {Object} object Archi model object.
+     * @param {string} key Custom-property name.
+     */
     function setIfAbsent(object, key) {
         if (!property(object, key)) root.cbpModelInputs.writeProperty(object, key, "");
     }
 
+    /**
+     * Queries all model elements of a jArchi type.
+     * @param {string} type jArchi query type.
+     * @returns {Object[]} Matching model elements.
+     */
     function query(type) {
         const found = [];
         $(type).each(function(item) { if (item) found.push(item); });
         return found;
     }
 
+    /**
+     * Removes duplicate or unidentified objects from a collection using Archi model IDs.
+     * @param {Object[]} items Model objects.
+     * @returns {Object[]} Unique identified objects, preserving first-seen order.
+     */
     function uniqueById(items) {
         const seen = {};
         return items.filter(function(item) {
@@ -69,6 +107,10 @@
         });
     }
 
+    /**
+     * Reads selected model concepts when the jArchi selection API is available.
+     * @returns {Object[]} Currently selected elements; an empty array when selection is unavailable.
+     */
     function selectedConcepts() {
         const selected = [];
         if (typeof resolveSelection === "undefined" || !resolveSelection ||
@@ -85,24 +127,46 @@
         return selected;
     }
 
+    /**
+     * Tests whether an element belongs to the four approved Move 1 types and is not CBP-generated.
+     * @param {Object} element Candidate model element.
+     * @returns {boolean} True for an eligible user/model-owned scope element.
+     */
     function isSupportedScopeElement(element) {
         return SCOPE_TYPES.indexOf(typeOf(element)) >= 0 &&
             !property(element, "CBP.GeneratedKey");
     }
 
+    /**
+     * Discovers Move 1 scope from eligible selection, or from the active model if none is selected.
+     *
+     * The selected-scope behavior lets architects focus the capability map; a selection containing
+     * no approved element types falls back to the full supported-type query. The return value keeps
+     * Capability assessment subjects separate from Value Stream and Resource context elements.
+     * @returns {{scope:Object[], capabilities:Object[], valueStreams:Object[], resources:Object[]}}
+     */
     function discoverScope() {
         const selected = selectedConcepts().filter(isSupportedScopeElement);
         const candidates = selected.length ? selected : [].concat.apply([], SCOPE_TYPES.map(query))
             .filter(isSupportedScopeElement);
         const scope = uniqueById(candidates);
         const capabilities = scope.filter(function(item) { return typeOf(item) === "capability"; });
-        const sources = scope.filter(function(item) {
-            return SOURCE_TYPES.indexOf(typeOf(item)) >= 0 &&
-                property(item, "CBP.Candidate.SourceID") === "";
-        });
-        return {scope: scope, capabilities: capabilities, sources: sources};
+        const valueStreams = scope.filter(function(item) { return typeOf(item) === "value-stream"; });
+        const resources = scope.filter(function(item) { return typeOf(item) === "resource"; });
+        return {
+            scope: scope,
+            capabilities: capabilities,
+            valueStreams: valueStreams,
+            resources: resources
+        };
     }
 
+    /**
+     * Finds potential strategy elements for Move 1's input worklist.
+     * Only Courses of Action are eligible, and none are assumed to be strategies until marked by
+     * the user with {@code CBP.Role=Strategy}.
+     * @returns {Object[]} Unique, non-generated Course of Action elements.
+     */
     function discoverPotentialStrategies() {
         return uniqueById([].concat.apply([], STRATEGY_TYPES.map(query))
             .filter(function(item) {
@@ -110,12 +174,25 @@
             }));
     }
 
+    /**
+     * Returns all model Capabilities except CBP-generated diagram-card concepts.
+     * Used to preserve and validate unique short input codes across runs.
+     * @returns {Object[]} Capability elements.
+     */
     function allCapabilities() {
         return query("capability").filter(function(item) {
             return !property(item, "CBP.GeneratedKey");
         });
     }
 
+    /**
+     * Preserves existing short Capability codes and assigns unique codes to uncoded Capabilities.
+     * The code makes each impact property understandable (for example, {@code CBP.Impact.CAP-001})
+     * while keeping the assessed Capability identity stable across workflow runs.
+     * @param {Object[]} capabilities In-scope Capabilities.
+     * @returns {{id:string, code:string}[]} Capability IDs and their assigned/preserved codes.
+     * @throws {Error} If an existing code is invalid or duplicated in the model.
+     */
     function ensureInputCodes(capabilities) {
         const all = allCapabilities();
         const owners = {};
@@ -148,6 +225,12 @@
         });
     }
 
+    /**
+     * Resolves the active model identity, preferring its persisted CBP identity marker.
+     * @param {Object} activeModel Active Archi model.
+     * @returns {{id:string, name:string}} Stable model ID and readable name.
+     * @throws {Error} If the model has no readable name.
+     */
     function modelIdentity(activeModel) {
         const id = property(activeModel, MODEL_ID_KEY) || idOf(activeModel);
         const modelName = nameOf(activeModel);
@@ -155,6 +238,11 @@
         return {id: id, name: modelName};
     }
 
+    /**
+     * Persists a unique CBP model identity when the active model does not already have one.
+     * @param {Object} activeModel Active Archi model.
+     * @returns {{id:string, name:string}} Persisted model ID and name.
+     */
     function ensureModelIdentity(activeModel) {
         let id = property(activeModel, MODEL_ID_KEY);
         if (!id) {
@@ -165,6 +253,12 @@
         return {id: id, name: nameOf(activeModel)};
     }
 
+    /**
+     * Reads and validates the model-local checkpoint used to connect Move 1 with Moves 2-7.
+     * @param {Object} activeModel Active Archi model.
+     * @returns {?Object} Parsed run record, or null when no run exists.
+     * @throws {Error} If persisted run state is corrupt or uses an unsupported schema.
+     */
     function readRun(activeModel) {
         const raw = property(activeModel, RUN_KEY);
         if (!raw) return null;
@@ -181,12 +275,22 @@
         return run;
     }
 
+    /**
+     * Persists the Move 1/continuation run record as model-local custom-property JSON.
+     * @param {Object} activeModel Active Archi model.
+     * @param {Object} run Workflow checkpoint.
+     */
     function writeRun(activeModel, run) {
         root.cbpModelInputs.writeProperty(activeModel, RUN_KEY, JSON.stringify(run));
     }
 
+    /**
+     * Resolves a recorded scope ID among the only element types admitted by the CBP workflow.
+     * @param {string} id Archi model ID recorded in the Move 1 checkpoint.
+     * @returns {?Object} Matching Capability, Value Stream, Course of Action, or Resource.
+     */
     function findElement(id) {
-        const types = ["capability"].concat(SOURCE_TYPES, STRATEGY_TYPES);
+        const types = SCOPE_TYPES;
         for (let t = 0; t < types.length; t++) {
             const items = query(types[t]);
             for (let i = 0; i < items.length; i++) {
@@ -196,41 +300,10 @@
         return null;
     }
 
-    function ensureCandidate(activeModel, source) {
-        const sourceId = idOf(source);
-        const existing = query("capability").filter(function(item) {
-            return property(item, "CBP.Candidate.SourceID") === sourceId;
-        });
-        if (existing.length > 1) {
-            throw new Error("Multiple candidate Capabilities reference source ID " + sourceId + ".");
-        }
-        if (existing.length === 1) {
-            const candidate = existing[0];
-            if (property(candidate, "CBP.CandidateStatus") !== "ReviewRequired") {
-                root.cbpModelInputs.writeProperty(candidate, "CBP.CandidateStatus", "ReviewRequired");
-            }
-            return candidate;
-        }
-        const candidate = activeModel.createElement(
-            "capability",
-            "[CBP Candidate] " + nameOf(source) + " [" + typeOf(source) + "] [ID:" +
-                sourceId.substring(0, 8) + "]"
-        );
-        candidate.documentation =
-            "Provisional CBP Capability hypothesis derived from '" + nameOf(source) + "'. Review its meaning, " +
-            "name, hierarchy, and profile before relying on its assessments.";
-        root.cbpModelInputs.writeProperty(candidate, "CBP.GeneratedBy", OWNER);
-        root.cbpModelInputs.writeProperty(candidate, "CBP.Candidate.SourceID", sourceId);
-        root.cbpModelInputs.writeProperty(candidate, "CBP.Candidate.SourceType", typeOf(source));
-        root.cbpModelInputs.writeProperty(candidate, "CBP.Candidate.SourceName", nameOf(source));
-        root.cbpModelInputs.writeProperty(candidate, "CBP.CandidateStatus", "ReviewRequired");
-        return candidate;
-    }
-
     root.cbpRunState = Object.freeze({
         OWNER: OWNER,
         RUN_KEY: RUN_KEY,
-        SOURCE_TYPES: SOURCE_TYPES,
+        SCOPE_TYPES: SCOPE_TYPES,
         STRATEGY_TYPES: STRATEGY_TYPES,
         nameOf: nameOf,
         idOf: idOf,
@@ -247,7 +320,6 @@
         ensureModelIdentity: ensureModelIdentity,
         readRun: readRun,
         writeRun: writeRun,
-        findElement: findElement,
-        ensureCandidate: ensureCandidate
+        findElement: findElement
     });
 })(typeof globalThis !== "undefined" ? globalThis : this);

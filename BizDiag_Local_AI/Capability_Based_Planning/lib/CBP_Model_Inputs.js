@@ -1,5 +1,5 @@
 /**
- * Copyright © 2026 Ebrahim Pak
+ * Pure CBP input parsing and calculation helpers shared by the Archi scripts.
  *
  * SPDX-License-Identifier: CECILL-B
  *
@@ -13,20 +13,37 @@
  *
  * Author: Ebrahim Pak
  *
- * -------------------------------------------------------------------------------------------------------------------
+ * @fileoverview Validates CBP model properties and calculates maturity and strategic-importance inputs.
  *
- * Pure CBP input parsing and calculation helpers shared by the Archi scripts.
+ * This module operationalizes the quantitative parts of the CBP workflow described in
+ * "Capability-Based Planning, The Link between Strategy and Enterprise Architecture" and
+ * "Capability-based Planning in 7 moves!". The papers guide the dimensions and assessment workflow;
+ * the property contract and formulas implemented here are explicit software rules, not a substitute
+ * for the architect's evidence-based judgments.
  */
 (function(root) {
     "use strict";
 
     const DIMENSIONS = ["People", "Process", "Technology"];
 
+    /**
+     * Reads and normalizes a custom model property.
+     * @param {Object} object Archi model object exposing jArchi's {@code prop} method.
+     * @param {string} key Exact custom-property name.
+     * @returns {string} Trimmed property value, or an empty string when absent.
+     */
     function readProperty(object, key) {
         const value = object && typeof object.prop === "function" ? object.prop(key) : "";
         return value === null || value === undefined ? "" : String(value).trim();
     }
 
+    /**
+     * Writes a custom property through the jArchi model-object API.
+     * @param {Object} object Archi model object exposing jArchi's {@code prop} method.
+     * @param {string} key Exact custom-property name.
+     * @param {*} value Value converted to text before storage.
+     * @throws {Error} If the supplied object cannot store properties.
+     */
     function writeProperty(object, key, value) {
         if (!object || typeof object.prop !== "function") {
             throw new Error("Cannot write CBP property '" + key + "' on this model object.");
@@ -34,6 +51,16 @@
         object.prop(key, String(value));
     }
 
+    /**
+     * Validates an optional or required integer input within an inclusive range.
+     * Used for the papers' discrete 0-4 maturity and 0-2 strategy-impact scales.
+     * @param {*} raw Input value.
+     * @param {string} key Property name, used in validation messages.
+     * @param {number} minimum Inclusive lower bound.
+     * @param {number} maximum Inclusive upper bound.
+     * @param {boolean} required Whether an empty input is invalid.
+     * @returns {{valid:boolean, value:(number|null), missing?:boolean, reason?:string}}
+     */
     function parseInteger(raw, key, minimum, maximum, required) {
         const text = raw === null || raw === undefined ? "" : String(raw).trim();
         if (!text) {
@@ -52,6 +79,15 @@
         return {valid: true, value: value};
     }
 
+    /**
+     * Validates an optional or required finite numeric input within an inclusive range.
+     * @param {*} raw Input value.
+     * @param {string} key Property name, used in validation messages.
+     * @param {number} minimum Inclusive lower bound.
+     * @param {number} maximum Inclusive upper bound.
+     * @param {boolean} required Whether an empty input is invalid.
+     * @returns {{valid:boolean, value:(number|null), missing?:boolean, reason?:string}}
+     */
     function parseNumber(raw, key, minimum, maximum, required) {
         const text = raw === null || raw === undefined ? "" : String(raw).trim();
         if (!text) {
@@ -70,6 +106,13 @@
         return {valid: true, value: value};
     }
 
+    /**
+     * Validates a positive assessment weight, applying the documented default of 1 if absent.
+     * Weights implement relative emphasis in the weighted means; they are not ratings from the papers.
+     * @param {*} raw Input value.
+     * @param {string} key Property name, used in validation messages.
+     * @returns {{valid:boolean, value?:number, reason?:string}}
+     */
     function parsePositiveWeight(raw, key) {
         const text = raw === null || raw === undefined ? "" : String(raw).trim();
         if (!text) return {valid: true, value: 1};
@@ -80,6 +123,12 @@
         return {valid: true, value: value};
     }
 
+    /**
+     * Validates a positive integer project priority; smaller values are ranked first.
+     * @param {*} raw Input value.
+     * @param {string} key Property name, used in validation messages.
+     * @returns {{valid:boolean, value?:number, missing?:boolean, reason?:string}}
+     */
     function parsePriority(raw, key) {
         const text = raw === null || raw === undefined ? "" : String(raw).trim();
         if (!text) return {valid: false, missing: true, reason: key + " is missing."};
@@ -90,6 +139,12 @@
         return {valid: true, value: value};
     }
 
+    /**
+     * Parses configured planning increments and requires unique consecutive four-digit years.
+     * These are architect-selected planning horizons, not values inferred by the CBP papers or script.
+     * @param {*} raw Comma-separated year text from {@code CBP.Increments}.
+     * @returns {{valid:boolean, years?:string[], reason?:string}}
+     */
     function parseIncrements(raw) {
         const text = raw === null || raw === undefined ? "" : String(raw).trim();
         if (!text) return {valid: false, reason: "CBP.Increments is required (for example 2027,2028)."};
@@ -114,6 +169,12 @@
         return {valid: true, years: years};
     }
 
+    /**
+     * Computes a normalized weighted arithmetic mean.
+     * @param {number[]} values Assessment values.
+     * @param {number[]} weights Positive weights corresponding by index to values.
+     * @returns {?number} Weighted mean, or null for empty/mismatched input.
+     */
     function weightedMean(values, weights) {
         if (!values.length || values.length !== weights.length) return null;
         let total = 0;
@@ -125,6 +186,14 @@
         return weightTotal > 0 ? total / weightTotal : null;
     }
 
+    // ===== MOVE 2: Calculate a Capability's weighted maturity assessment. =====
+    /**
+     * Calculates a Capability's overall maturity from People, Process, and Technology ratings.
+     * Implements the weighted-mean calculation used for CBP maturity assessment; all three
+     * dimensions must have valid 0-4 integer ratings for a score to be returned.
+     * @param {Object} capability Archi Capability carrying the maturity and optional weight properties.
+     * @returns {{score:(number|null), dimensions:Object, weights:number[], errors:string[]}}
+     */
     function calculateMaturity(capability) {
         const ratings = [];
         const weights = [];
@@ -156,6 +225,16 @@
         };
     }
 
+    // ===== MOVE 3: Calculate strategy-weighted Capability importance on the 0-4 scale. =====
+    /**
+     * Calculates one Capability's normalized strategic importance from selected Course of Action impacts.
+     * Each impact is an integer from 0 to 2; the weighted mean is multiplied by two to map it to 0-4.
+     * Strategy selection and impact judgments remain the user's responsibility, consistent with the
+     * papers' emphasis on explicit strategy-to-capability assessment.
+     * @param {Object} capability Archi Capability being assessed.
+     * @param {{element:Object, weight:number}[]} strategies Courses of Action marked as strategies.
+     * @returns {{score:(number|null), errors:string[]}}
+     */
     function calculateImportance(capability, strategies) {
         const impacts = [];
         const weights = [];
@@ -197,6 +276,11 @@
         parseNumber: parseNumber,
         parsePositiveWeight: parsePositiveWeight,
         parsePriority: parsePriority,
+        /**
+         * Builds the exact strategy property key that rates a Capability.
+         * @param {Object} capability Archi Capability with a stable CBP.InputCode.
+         * @returns {string} Impact key such as {@code CBP.Impact.CAP-001}.
+         */
         impactKey: function(capability) {
             return "CBP.Impact." + (readProperty(capability, "CBP.InputCode") || String(capability.id));
         },
