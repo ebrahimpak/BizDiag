@@ -1,5 +1,5 @@
 /**
- * Idempotent creation and rebuilding of CBP-managed Archi views.
+ * Copyright © 2026 Ebrahim Pak
  *
  * SPDX-License-Identifier: CECILL-B
  *

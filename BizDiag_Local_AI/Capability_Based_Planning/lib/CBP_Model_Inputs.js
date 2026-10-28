@@ -1,5 +1,5 @@
 /**
- * Pure CBP input parsing and calculation helpers shared by the Archi scripts.
+ * Copyright © 2026 Ebrahim Pak
  *
  * SPDX-License-Identifier: CECILL-B
  *
