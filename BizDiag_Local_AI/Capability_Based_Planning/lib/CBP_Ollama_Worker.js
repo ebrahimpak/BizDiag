@@ -1,5 +1,5 @@
 /**
- * Shared local Ollama worker for the CBP continuation.
+ * Copyright © 2026 Ebrahim Pak
  *
  * SPDX-License-Identifier: CECILL-B
  *

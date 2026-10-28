@@ -1,5 +1,5 @@
 /**
- * Pure CBP assessment and planning calculation engine.
+ * Copyright © 2026 Ebrahim Pak
  *
  * SPDX-License-Identifier: CECILL-B
  *
