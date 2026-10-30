@@ -17,10 +17,9 @@
  *
  * Move 1 reflects the capability identification and capability-map framing in "Capability-Based
  * Planning, The Link between Strategy and Enterprise Architecture" and "Capability-based Planning in
- * 7 moves!". The supported scope is intentionally limited to Capability, Value Stream, Course of
- * Action, and Resource. The script prepares an editable checkpoint; it does not infer a capability
- * map, transform business-layer elements into Capabilities, or decide which Course of Action is a
- * strategy.
+ * 7 moves!". The map contains existing Capability elements and their explicitly modeled hierarchy.
+ * It does not derive or create Capabilities from Value Streams, Resources, Courses of Action, or
+ * other elements. Courses of Action remain separate potential strategy inputs.
  */
 console.clear();
 console.show();
@@ -98,19 +97,27 @@ console.show();
         const discovered = cbpRunState.discoverScope();
         const capabilities = discovered.capabilities.slice();
         if (!capabilities.length) {
-            throw new Error("Move 1 requires at least one ArchiMate Capability. Only Capability, Value Stream, " +
-                "Course of Action, and Resource elements are in scope; Business-layer elements are not converted " +
+            throw new Error("Move 1 requires at least one existing ArchiMate Capability. Value Streams, Resources, " +
+                "Courses of Action, and other element types are not included in the Capability Map or converted " +
                 "into generated Capability candidates.");
         }
-        const contextElements = discovered.valueStreams.concat(discovered.resources);
         const potentialStrategies = cbpRunState.discoverPotentialStrategies();
+        const stableViewIds = {};
+        Object.keys(priorRun && priorRun.views || {}).forEach(function(key) {
+            stableViewIds[key] = priorRun.views[key];
+        });
+        if (stableViewIds.profile) {
+            stableViewIds["CBP - Capability Profiles and Inputs"] = stableViewIds.profile;
+        }
         const viewPlans = cbpViewGenerator.preflightViews(activeModel, [
+            cbpViewGenerator.NAMES.capabilityMap,
             cbpViewGenerator.NAMES.profile,
             cbpViewGenerator.NAMES.strategies
-        ], priorRun && priorRun.views);
+        ], stableViewIds, {
+            "CBP - Capability Profiles and Inputs": "CBP - Capability Map and Profiles"
+        });
 
-        // ===== MOVE 1: Identify the capability-map scope and prepare editable model inputs. =====
-        // Scope is limited to Capabilities, Value Streams, Courses of Action, and Resources.
+        // ===== MOVE 1: Map existing Capabilities and prepare editable model inputs. =====
         const stableModelIdentity = cbpRunState.ensureModelIdentity(activeModel);
         if (!cbpRunState.property(activeModel, "CBP.Increments")) {
             cbpModelInputs.writeProperty(activeModel, "CBP.Increments", incrementResult.years.join(","));
@@ -147,8 +154,6 @@ console.show();
             model: stableModelIdentity,
             capabilityIds: capabilities.map(cbpRunState.idOf),
             capabilityCodes: capabilityCodes,
-            valueStreamIds: discovered.valueStreams.map(cbpRunState.idOf),
-            resourceIds: discovered.resources.map(cbpRunState.idOf),
             potentialStrategyIds: potentialStrategies.map(cbpRunState.idOf),
             strategyIds: potentialStrategies.filter(function(strategy) {
                 return cbpRunState.property(strategy, "CBP.Role") === "Strategy";
@@ -159,8 +164,9 @@ console.show();
             views: {}
         };
         const setupViews = cbpViewGenerator.drawSetup(
-            activeModel, capabilities, potentialStrategies, contextElements, run, viewPlans
+            activeModel, capabilities, potentialStrategies, run, viewPlans
         );
+        run.views.capabilityMap = cbpRunState.idOf(setupViews.capabilityMap);
         run.views.profile = cbpRunState.idOf(setupViews.profile);
         run.views.strategies = cbpRunState.idOf(setupViews.strategies);
         cbpRunState.writeRun(activeModel, run);
@@ -168,11 +174,15 @@ console.show();
         console.log("[OK] Move 1 setup complete. Run ID: " + runId);
         console.log("Model: " + modelIdentity.name +
             " | Capabilities: " + capabilities.length +
-            " | Value Streams: " + discovered.valueStreams.length +
-            " | Resources: " + discovered.resources.length +
             " | Courses of Action: " + potentialStrategies.length +
             " | Increments: " + incrementResult.years.join(", "));
-        console.log("Open the two CBP input worklists, enter the listed properties on their model elements, and save " +
+        if (!setupViews.capabilityRelationshipCount && capabilities.length > 1) {
+            console.log("[WARN] No existing Capability-to-Capability composition or aggregation relationships were " +
+                "found in scope. The map shows the Capabilities without inventing a hierarchy; model their " +
+                "decomposition to make the map structured.");
+        }
+        console.log("Open the Capability Map and the two CBP input worklists, enter the listed properties on their " +
+            "model elements, and save " +
             "the model before running CBP_Continue_Moves_2_to_7.ajs.");
         if (!run.strategyIds.length) {
             console.log("[WARN] No Course of Action is currently marked CBP.Role=Strategy. Mark intended Courses of " +

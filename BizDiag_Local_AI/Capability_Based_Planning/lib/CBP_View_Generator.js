@@ -13,7 +13,7 @@
  *
  * Author: Ebrahim Pak
  *
- * @fileoverview Renders the editable Move 1 worklists and analytical Moves 2-7 views.
+ * @fileoverview Renders the Capability-only Move 1 map, input worklists, and analytical Moves 2-7 views.
  *
  * The view sequence mirrors the seven-move workflow described in "Capability-Based Planning,
  * The Link between Strategy and Enterprise Architecture" and "Capability-based Planning in 7 moves!".
@@ -26,8 +26,10 @@
     const OWNER = root.cbpRunState.OWNER;
     const VIEW_MARKER = "CBP.ManagedBy";
     const VIEW_KEY = "CBP.ViewKey";
+    const LEGACY_PROFILE_NAME = "CBP - Capability Map and Profiles";
     const NAMES = {
-        profile: "CBP - Capability Map and Profiles",
+        capabilityMap: "CBP - Capability Map",
+        profile: "CBP - Capability Profiles and Inputs",
         strategies: "CBP - Strategy Inputs",
         maturity: "CBP - Maturity and Strategic Importance - Maturity Heatmap",
         importance: "CBP - Maturity and Strategic Importance - Strategic Importance Heatmap",
@@ -36,7 +38,9 @@
         overview: "Capability-based Planning View"
     };
     const KEYS_BY_NAME = {};
+    KEYS_BY_NAME[NAMES.capabilityMap] = "move-1-capability-map";
     KEYS_BY_NAME[NAMES.profile] = "move-1-profile";
+    KEYS_BY_NAME[LEGACY_PROFILE_NAME] = "move-1-profile";
     KEYS_BY_NAME[NAMES.strategies] = "move-1-strategy-inputs";
     KEYS_BY_NAME[NAMES.maturity] = "moves-2-maturity";
     KEYS_BY_NAME[NAMES.importance] = "moves-3-importance";
@@ -174,16 +178,41 @@
      * @param {Object} activeModel Active Archi model.
      * @param {string[]} names Expected managed view names.
      * @param {Object<string,string>} stableIds Previously recorded view IDs keyed by name.
+     * @param {Object<string,string>} legacyNames Optional previous view names keyed by current name.
      * @returns {Object<string,?Object>} Existing managed views or null slots for views to create.
      * @throws {Error} On duplicate names, ownership-marker mismatches, or identity conflicts.
      */
-    function preflightViews(activeModel, names, stableIds) {
+    function preflightViews(activeModel, names, stableIds, legacyNames) {
         const views = allViews(activeModel);
         const plans = {};
         stableIds = stableIds || {};
+        legacyNames = legacyNames || {};
         names.forEach(function(name) {
             const matches = views.filter(function(view) { return viewName(view) === name; });
             const expectedId = stableIds[name];
+            const legacyName = legacyNames[name];
+            const legacyMatches = legacyName
+                ? views.filter(function(view) { return viewName(view) === legacyName; })
+                : [];
+            if (legacyMatches.length > 1 || (matches.length && legacyMatches.length)) {
+                throw new Error("The current or legacy managed view for '" + name +
+                    "' is ambiguous. Resolve duplicate views before running CBP.");
+            }
+            if (!matches.length && legacyMatches.length === 1) {
+                const legacyView = legacyMatches[0];
+                if (expectedId && root.cbpRunState.idOf(legacyView) &&
+                    root.cbpRunState.idOf(legacyView) !== String(expectedId)) {
+                    throw new Error("The legacy view for '" + name +
+                        "' does not match the recorded view identity.");
+                }
+                if (viewProperty(legacyView, VIEW_MARKER) !== OWNER ||
+                    viewProperty(legacyView, VIEW_KEY) !== KEYS_BY_NAME[legacyName]) {
+                    throw new Error("The legacy view '" + legacyName +
+                        "' is not a recognized CBP-managed view; it will not be renamed or overwritten.");
+                }
+                plans[name] = legacyView;
+                return;
+            }
             if (expectedId) {
                 const recorded = views.filter(function(view) {
                     return root.cbpRunState.idOf(view) === String(expectedId);
@@ -235,6 +264,7 @@
             view = activeModel.createArchimateView(name);
             if (!view) throw new Error("Could not create the view '" + name + "'.");
         }
+        if (viewName(view) !== name) view.name = name;
         root.cbpModelInputs.writeProperty(view, VIEW_MARKER, OWNER);
         root.cbpModelInputs.writeProperty(view, VIEW_KEY, key);
         return view;
@@ -334,27 +364,110 @@
     }
 
     /**
-     * Builds Move 1's Capability profile and Course of Action input worklists.
-     *
-     * Capabilities carry maturity/target inputs, Value Streams and Resources provide map context,
-     * and Courses of Action are presented for explicit user designation as strategies. This reflects
-     * the papers' strategy-capability and capability-map focus without inventing relationships or
-     * assigning strategic intent.
+     * Builds a Capability-only map, a Capability profile/input worklist, and a Course of Action
+     * strategy-input worklist. The map uses only existing Capability concepts and existing
+     * Capability-to-Capability composition or aggregation relationships.
      * @param {Object} activeModel Active Archi model.
      * @param {Object[]} capabilities In-scope Capability assessment subjects.
      * @param {Object[]} potentialStrategies In-scope Course of Action elements.
-     * @param {Object[]} contextElements Value Streams and Resources to show as map context.
      * @param {Object} run Pending workflow record, including configured increments.
      * @param {Object<string,?Object>} plans Preflight-approved Move 1 views.
-     * @returns {{profile:Object, strategies:Object}} The two input views.
+     * @returns {{capabilityMap:Object, profile:Object, strategies:Object,
+     *     capabilityRelationshipCount:number}} The map and two input views.
      */
-    function drawSetup(activeModel, capabilities, potentialStrategies, contextElements, run, plans) {
-        // ===== MOVE 1 RENDERING: Build the editable Capability, context, and Course of Action worklists. =====
-        let view = obtainView(activeModel, NAMES.profile, "move-1-profile", plans);
+    function drawSetup(activeModel, capabilities, potentialStrategies, run, plans) {
+        let view = obtainView(activeModel, NAMES.capabilityMap, "move-1-capability-map", plans);
+        const capabilityMapView = view;
+        clearView(view);
+        const capabilityIds = {};
+        capabilities.forEach(function(capability) {
+            capabilityIds[root.cbpRunState.idOf(capability)] = true;
+        });
+        const hierarchyRelationships = root.cbpRunState.query("relationship").filter(function(relationship) {
+            const type = root.cbpRunState.typeOf(relationship);
+            if (type !== "composition-relationship" && type !== "aggregation-relationship") return false;
+            const source = relationship.getSource();
+            const target = relationship.getTarget();
+            return source && target && capabilityIds[root.cbpRunState.idOf(source)] &&
+                capabilityIds[root.cbpRunState.idOf(target)];
+        });
+        const childrenByParent = {};
+        const parentByChild = {};
+        hierarchyRelationships.forEach(function(relationship) {
+            const parentId = root.cbpRunState.idOf(relationship.getSource());
+            const childId = root.cbpRunState.idOf(relationship.getTarget());
+            if (!childrenByParent[parentId]) childrenByParent[parentId] = [];
+            if (!parentByChild[childId]) parentByChild[childId] = [];
+            childrenByParent[parentId].push(childId);
+            parentByChild[childId].push(parentId);
+        });
+        Object.keys(childrenByParent).forEach(function(parentId) {
+            childrenByParent[parentId].sort();
+        });
+        const levels = {};
+        const orderedCapabilities = capabilities.slice().sort(function(left, right) {
+            const leftName = root.cbpRunState.nameOf(left);
+            const rightName = root.cbpRunState.nameOf(right);
+            return leftName < rightName ? -1 : leftName > rightName ? 1 :
+                root.cbpRunState.idOf(left).localeCompare(root.cbpRunState.idOf(right));
+        });
+        function assignLevels(startId) {
+            const queue = [{id: startId, level: 0}];
+            while (queue.length) {
+                const item = queue.shift();
+                if (levels[item.id] !== undefined) continue;
+                levels[item.id] = item.level;
+                (childrenByParent[item.id] || []).forEach(function(childId) {
+                    if (levels[childId] === undefined) {
+                        queue.push({id: childId, level: item.level + 1});
+                    }
+                });
+            }
+        }
+        orderedCapabilities.filter(function(capability) {
+            return !(parentByChild[root.cbpRunState.idOf(capability)] || []).length;
+        }).forEach(function(capability) {
+            assignLevels(root.cbpRunState.idOf(capability));
+        });
+        orderedCapabilities.forEach(function(capability) {
+            const id = root.cbpRunState.idOf(capability);
+            if (levels[id] === undefined) assignLevels(id);
+        });
+        const columns = {};
+        orderedCapabilities.forEach(function(capability) {
+            const id = root.cbpRunState.idOf(capability);
+            const level = levels[id];
+            if (!columns[level]) columns[level] = [];
+            columns[level].push(capability);
+        });
+        const mapObjects = {};
+        Object.keys(columns).forEach(function(level) {
+            columns[level].forEach(function(capability, index) {
+                mapObjects[root.cbpRunState.idOf(capability)] = object(
+                    capabilityMapView, capability, 50 + Number(level) * 260, 50 + index * 100, 220, 70
+                );
+            });
+        });
+        hierarchyRelationships.forEach(function(relationship) {
+            const sourceObject = mapObjects[root.cbpRunState.idOf(relationship.getSource())];
+            const targetObject = mapObjects[root.cbpRunState.idOf(relationship.getTarget())];
+            capabilityMapView.add(relationship, sourceObject, targetObject);
+        });
+        capabilityMapView.documentation =
+            "Capability-only map. Contains the in-scope Capability elements and only their existing direct " +
+            "Composition/Aggregation relationships to other in-scope Capabilities. The view does not contain " +
+            "Value Streams, Resources, Courses of Action, generated Capability candidates, or inferred relationships." +
+            (hierarchyRelationships.length
+                ? ""
+                : " No Capability hierarchy is modeled in the current scope; model decomposition using explicit " +
+                    "Capability-to-Capability Composition or Aggregation relationships.");
+
+        view = obtainView(activeModel, NAMES.profile, "move-1-profile", plans);
         const profileView = view;
         view.documentation =
-            "Move 1 capability map worklist. This view includes only Capabilities, Value Streams, and Resources. " +
-            "Enter maturity and per-year target/action properties on each Capability in its Properties panel.";
+            "Move 1 Capability profile and input worklist. The separate Capability Map view contains only Capability " +
+            "elements and their explicitly modeled hierarchy. Enter maturity and per-year target/action properties " +
+            "on each Capability in its Properties panel.";
         clearView(view);
         card(activeModel, view, "instructions:profile", "[CBP] Move 1 - Capability inputs",
             "Enter these Properties on each Capability:\nCBP.Maturity.People (0-4)\nCBP.Maturity.Process (0-4)\n" +
@@ -364,10 +477,6 @@
             "lower values rank first).\n" +
             "Do not enter the angle-bracket placeholders literally. Optional CBP.Weight.<Dimension> defaults to 1.",
             40, 35, 900, 120);
-        card(activeModel, view, "context:title", "[CBP] Value Stream and Resource context",
-            "These existing Value Stream and Resource elements are included as capability-map context only. " +
-            "Assessment inputs belong on Capability elements.",
-            1050, 35, 700, 80);
         capabilities.forEach(function(capability, index) {
             const candidateStatus = root.cbpRunState.property(capability, "CBP.CandidateStatus");
             const source = root.cbpRunState.property(capability, "CBP.Candidate.SourceType") +
@@ -410,21 +519,6 @@
             );
             view.add(association, info, conceptObject);
         });
-        contextElements.forEach(function(element, index) {
-            const y = 135 + index * 75;
-            const contextObject = object(view, element, 1050, y, 300, 60);
-            const description = card(activeModel, view, "capability-context:" + element.id,
-                "[CBP] " + root.cbpRunState.typeOf(element) + " context - " +
-                    root.cbpRunState.nameOf(element),
-                "Capability-map context element. No CBP assessment values are entered on this element.",
-                1380, y, 370, 60);
-            const association = ensureRelationship(
-                activeModel, "association-relationship", "Capability map context",
-                contextObject.concept, description.concept
-            );
-            view.add(association, contextObject, description);
-        });
-
         view = obtainView(activeModel, NAMES.strategies, "move-1-strategy-inputs", plans);
         view.documentation =
             "Course of Action worklist. Set CBP.Role=Strategy only on intended Course of Action elements. " +
@@ -471,7 +565,12 @@
             );
             view.add(association, info, elementObject);
         });
-        return {profile: profileView, strategies: view};
+        return {
+            capabilityMap: capabilityMapView,
+            profile: profileView,
+            strategies: view,
+            capabilityRelationshipCount: hierarchyRelationships.length
+        };
     }
 
     /**
@@ -787,11 +886,12 @@
      */
     function drawOverview(activeModel, run, results, plans) {
         const view = obtainView(activeModel, NAMES.overview, "workflow-overview", plans);
-        view.documentation = "CBP Moves 1-7 overview for run " + run.runId + ". See the two input worklists and " +
-            "assessment, matrix, and portfolio views for detailed evidence and unresolved inputs.";
+        view.documentation = "CBP Moves 1-7 overview for run " + run.runId + ". See the Capability Map, input " +
+            "worklists, and assessment, matrix, and portfolio views for detailed evidence and unresolved inputs.";
         clearView(view);
         const links = [
-            [NAMES.profile, "Move 1 Capability and profile inputs"],
+            [NAMES.capabilityMap, "Move 1 Capability-only map and modeled hierarchy"],
+            [NAMES.profile, "Move 1 Capability profile and input properties"],
             [NAMES.strategies, "Move 1 strategy-role and impact inputs"],
             [NAMES.maturity, "Move 2 maturity assessment"],
             [NAMES.importance, "Move 3 strategic-importance assessment"],
@@ -800,7 +900,7 @@
         ];
         links.forEach(function(item, index) {
             card(activeModel, view, "overview:" + index,
-                "[CBP] " + item[0], item[1], 40, 50 + index * 95, 900, 70);
+                "[CBP] " + item[0], item[1], 40, 40 + index * 80, 900, 70);
         });
         const unresolved = results.reduce(function(total, result) {
             return total + result.errors.length;
@@ -809,7 +909,7 @@
             "Run: " + run.runId + "\nCapabilities: " + results.length +
             "\nSelected strategies: " + run.strategyIds.length +
             "\nUnresolved input messages: " + unresolved +
-            "\nSave the model after reviewing all outputs.", 40, 650, 900, 90);
+            "\nSave the model after reviewing all outputs.", 40, 630, 900, 90);
         return view;
     }
 
