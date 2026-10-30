@@ -15,10 +15,9 @@
  *
  * @fileoverview Provides model queries, CBP's allowed element scope, and persisted two-stage run state.
  *
- * Move 1's capability-map scope follows the user's selected ArchiMate types: Capability, Value Stream,
- * Course of Action, and Resource. This supports the capability-map/value-stream/resource focus of the
- * cited CBP papers while deliberately avoiding inference of capabilities from unrelated business-layer
- * elements. Courses of Action are the only potential strategy type in this implementation.
+ * Move 1's capability-map scope contains Capability elements only. Courses of Action are discovered
+ * separately as potential strategy inputs; Value Streams and Resources remain outside the Capability
+ * Map and are never converted automatically into Capabilities.
  */
 (function(root) {
     "use strict";
@@ -26,8 +25,9 @@
     const RUN_KEY = "CBP.Internal.RunRecord";
     const MODEL_ID_KEY = "CBP.Internal.ModelID";
     const OWNER = "BizDiag CBP Workflow v1";
-    const SCOPE_TYPES = ["capability", "value-stream", "course-of-action", "resource"];
+    const SCOPE_TYPES = ["capability"];
     const STRATEGY_TYPES = ["course-of-action"];
+    const RUN_ELEMENT_TYPES = SCOPE_TYPES.concat(STRATEGY_TYPES);
 
     /**
      * Gets an Archi object's display name through either jArchi or a test adapter.
@@ -128,7 +128,7 @@
     }
 
     /**
-     * Tests whether an element belongs to the four approved Move 1 types and is not CBP-generated.
+     * Tests whether an element is an existing, non-generated Capability.
      * @param {Object} element Candidate model element.
      * @returns {boolean} True for an eligible user/model-owned scope element.
      */
@@ -140,24 +140,18 @@
     /**
      * Discovers Move 1 scope from eligible selection, or from the active model if none is selected.
      *
-     * The selected-scope behavior lets architects focus the capability map; a selection containing
-     * no approved element types falls back to the full supported-type query. The return value keeps
-     * Capability assessment subjects separate from Value Stream and Resource context elements.
-     * @returns {{scope:Object[], capabilities:Object[], valueStreams:Object[], resources:Object[]}}
+     * The selected-scope behavior lets architects focus the Capability Map; a selection containing
+     * no Capabilities falls back to all non-generated Capabilities in the model.
+     * @returns {{scope:Object[], capabilities:Object[]}}
      */
     function discoverScope() {
         const selected = selectedConcepts().filter(isSupportedScopeElement);
         const candidates = selected.length ? selected : [].concat.apply([], SCOPE_TYPES.map(query))
             .filter(isSupportedScopeElement);
         const scope = uniqueById(candidates);
-        const capabilities = scope.filter(function(item) { return typeOf(item) === "capability"; });
-        const valueStreams = scope.filter(function(item) { return typeOf(item) === "value-stream"; });
-        const resources = scope.filter(function(item) { return typeOf(item) === "resource"; });
         return {
             scope: scope,
-            capabilities: capabilities,
-            valueStreams: valueStreams,
-            resources: resources
+            capabilities: scope
         };
     }
 
@@ -287,10 +281,10 @@
     /**
      * Resolves a recorded scope ID among the only element types admitted by the CBP workflow.
      * @param {string} id Archi model ID recorded in the Move 1 checkpoint.
-     * @returns {?Object} Matching Capability, Value Stream, Course of Action, or Resource.
+     * @returns {?Object} Matching Capability or Course of Action.
      */
     function findElement(id) {
-        const types = SCOPE_TYPES;
+        const types = RUN_ELEMENT_TYPES;
         for (let t = 0; t < types.length; t++) {
             const items = query(types[t]);
             for (let i = 0; i < items.length; i++) {

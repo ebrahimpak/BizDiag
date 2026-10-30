@@ -25,40 +25,45 @@ assessment inputs.
 
 ## 2. Scope and modeling rules
 
-### 2.1 Supported Move 1 element types
+### 2.1 Move 1 scope and Capability Map contents
 
-Move 1 accepts only these ArchiMate element types:
+The generated Capability Map contains only existing ArchiMate **Capability** elements and explicitly modeled
+Capability-to-Capability Composition or Aggregation relationships. The profile/input worklist also displays these
+Capabilities, but Value Streams, Resources, and Courses of Action are not placed in the Capability Map.
 
 | ArchiMate element | Role in the suite |
 |---|---|
-| Capability | Assessment subject; receives maturity, target, action, project, and priority properties. |
-| Value Stream | Capability-map context shown in the Move 1 profile worklist. |
-| Course of Action | Potential strategy; only these elements may be marked `CBP.Role=Strategy` and receive Capability-impact properties. |
-| Resource | Capability-map context shown in the Move 1 profile worklist. |
+| Capability | The only Capability Map node and assessment subject; receives maturity, target, action, project, and priority properties. |
+| Course of Action | Separate potential-strategy input; only these elements may be marked `CBP.Role=Strategy` and receive Capability-impact properties. Not a Capability Map node. |
 
-Business Functions, Business Processes, Business Services, Drivers, Goals, and Requirements are not in the Move 1
-discovery scope. In particular, the suite does not infer or generate Capability candidates from business-layer
-elements. At least one existing Capability must be in the discovered Move 1 scope. Goals may be generated later as
-outputs of the planning workflow; their existence does not make existing Goal elements Move 1 strategy inputs.
+Value Streams, Resources, Business Functions, Business Processes, Business Services, Drivers, Goals, and Requirements
+are not Move 1 Capability Map scope. At least one existing Capability must be in the discovered scope. Goals may be
+generated later as workflow outputs; existing Goal elements are not Move 1 strategy inputs.
 
 ### 2.2 Selection and discovery
 
-The scope resolver first reads the current element selection and filters it to the four supported types, excluding
-CBP-generated concepts. If the selection contains at least one supported element, those supported selected elements
-form the scope. If it contains none, the resolver queries the active model for all four supported types and deduplicates
-them by model ID.
+The scope resolver first reads the current element selection and filters it to non-generated Capability elements. If
+the selection contains at least one Capability, those selected Capabilities form the exact run scope. If it contains
+none, the resolver queries the active model for all non-generated Capabilities and deduplicates them by model ID.
 
-Capability assessment subjects and context are kept separate:
+The map generator displays only in-scope Capability concepts and existing Composition/Aggregation relationships whose
+two endpoints are both in scope. It lays out the modeled hierarchy; it does not invent parent-child links, infer
+relationships from names, or add Capability concepts. If no such relationships exist in scope, it shows the
+Capabilities without a hierarchy and records that condition in the map documentation; when multiple Capabilities are
+in scope, it also warns that decomposition must be modeled explicitly.
 
-- Capabilities in scope are assessed.
-- Value Streams and Resources in scope are displayed as context; they do not receive CBP assessment inputs.
-- Potential strategy Courses of Action are discovered model-wide, independently of the user's selection. They are
-  displayed in the Strategy Inputs worklist but are not treated as strategies unless the user sets
-  `CBP.Role=Strategy`.
+Potential strategy Courses of Action are still discovered model-wide, independently of the Capability selection.
+They appear only in the separate Strategy Inputs worklist and are not treated as strategies unless the user sets
+`CBP.Role=Strategy`. A prior run's legacy Value Stream and Resource IDs are ignored; new run records do not capture
+those IDs.
 
-The current Move 1 view generator displays Value Streams and Resources as context rows. It does not infer
-Capability-to-Value-Stream or Capability-to-Resource semantics from relationships. The strategy worklist displays
-up to eight modeled relationship-neighbor labels for each Course of Action as context only.
+The supplied “Capability-based Planning in 7 moves!” paper (Move #1, PDF pp. 2–3) describes using strategic documents
+to analytically extract needed capabilities and analyzing value streams to identify capabilities needed for their
+stages. It calls for combining approaches and refining the draft with business owners; it does not define a
+deterministic transformation from ArchiMate Value Stream, Resource, or Course of Action elements into Capability
+elements. Accordingly, the suite does not auto-create capabilities from these element types. They may inform the
+architect's analysis outside the Capability Map; any resulting Capability and hierarchy must be explicitly modeled
+and reviewed.
 
 ### 2.3 Human decisions and automated checks
 
@@ -80,15 +85,11 @@ Prepare an ArchiMate model
         v
 Run CBP_Move_1_Setup.ajs
         |
-        +-- validate/select consecutive planning years
-        +-- discover supported model elements and require a Capability
-        +-- assign stable short codes to in-scope Capabilities
-        +-- prepare blank required input properties when possible
-        +-- create/update the two Move 1 input worklists
+        +-- create/update a Capability-only map and input worklists
         +-- store model-local run state
         |
         v
-Review the two input views, edit underlying model-element Properties, and save
+Enter and review planning inputs in model Properties
         |
         v
 Run CBP_Continue_Moves_2_to_7.ajs
@@ -104,9 +105,8 @@ Run CBP_Continue_Moves_2_to_7.ajs
 Review outputs and save the Archi model
 ```
 
-These are separate script invocations. The pause between them is intentional: it lets the architect inspect the
-capability-map worklists and edit properties on actual model elements. Running the continuation without an
-`INPUTS_PENDING` run fails with a message directing the user to run Move 1 first.
+These are separate script invocations. Enter and review evidence-based inputs manually in the model's Properties tab.
+Running the continuation without an `INPUTS_PENDING` run fails with a message directing the user to run Move 1 first.
 
 ### 3.1 Move 1 details
 
@@ -118,17 +118,20 @@ capability-map worklists and edit properties on actual model elements. Running t
 3. Reads `CBP.Increments` from the model. If absent, asks the user to enter planning years. Cancellation occurs before
    setup changes are made.
 4. Validates that increments are unique consecutive four-digit years.
-5. Discovers the supported scope and stops if there is no Capability.
-6. Preflights the two managed Move 1 views before rebuilding them.
+5. Discovers the Capability-only scope and stops if there is no Capability.
+6. Preflights the Capability Map and two managed Move 1 worklists before rebuilding them.
 7. Assigns `CBP.InputCode` values to in-scope Capabilities that do not already have one.
 8. Adds empty entries for required maturity and per-year target/action/project/priority property names where absent.
    Archi versions that do not preserve blank custom properties are handled by showing exact keys in the views for the
    user to add manually.
 9. Adds `CBP.Role` and one `CBP.Impact.<CapabilityCode>` field to potential Course of Action elements when absent.
-10. Builds or updates the two input worklists and saves a pending run record on the model.
+10. Builds or updates the Capability-only Map, profile/input worklist, and strategy-input worklist; then saves a pending
+    run record on the model.
 
-The script does not prefill assessment values, assign `CBP.Role=Strategy`, or create generated capability candidates.
-Optional weight properties are not initialized by Move 1.
+The map displays only in-scope Capability elements and their existing direct Composition/Aggregation relationships.
+The script does not infer a hierarchy, create Capability candidates from Value Streams, Resources, Courses of Action,
+or other elements, prefill assessment values, or assign `CBP.Role=Strategy`. Optional weight properties are not
+initialized by Move 1.
 
 ### 3.2 User checkpoint
 
@@ -277,9 +280,10 @@ increment, dimension, start and target levels, project name, priority, and sourc
 
 ### Move 1 — Identify and frame the capability map
 
-Move 1 performs scope discovery, Capability code allocation, property preparation, and checkpoint creation. It is not
-a quantitative assessment. It requires at least one existing Capability. Value Streams and Resources are displayed as
-context; Courses of Action are potential strategy inputs. No business-layer element is converted into a Capability.
+Move 1 performs Capability-only scope discovery, hierarchy visualization from existing Composition/Aggregation
+relationships, Capability code allocation, property preparation, and checkpoint creation. It is not a quantitative
+assessment. It requires at least one existing Capability and never derives map nodes or hierarchy from other element
+types. Courses of Action remain potential strategy inputs in a separate worklist.
 
 ### Move 2 — Assess maturity
 
@@ -296,17 +300,34 @@ nearest integer band for color/placement.
 
 ### Move 3 — Assess strategic importance
 
-For one Capability and each Course of Action marked as a strategy, let `I_i` be that strategy's integer impact in
-`[0,2]`, and `s_i` its positive `CBP.StrategyWeight` (default `1`).
+Move 3 estimates how strongly a capability supports the selected sttrategies, the expresses that estimate on the same
+0-4 scale used for maturity.
+
+- Iᵢ is the impact rating for one Capability against strategy i: 0 = no contribution, 1 = moderate contribution, 2 = strong contribution.
+
+- sᵢ is that strategy’s relative weight. If it is not set, the script uses 1, so all strategies count equally by default.
+
+The script computes a weighted average of the impact ratings, then multiplies by 2 to convert the original 0–2 scale to 0–4.
+For one Capability and each Course of Action marked as a strategy, let `Iᵢ` be that strategy's integer impact in
+`[0,2]`, and `sᵢ` its positive `CBP.StrategyWeight` (default `1`).
 
 ```text
-StrategicImportance = 2 * sum(I_i*s_i) / sum(s_i)
+StrategicImportance = 2 * Σ(Iᵢ*sᵢ) / Σ(sᵢ)
 ```
 
 Multiplication by two maps the 0–2 impact scale to the 0–4 importance scale. The score is unavailable when no Course
 of Action is marked as a strategy, or when any selected strategy's impact for that Capability is missing or invalid.
 The engine does not omit incomplete strategies from the weighted mean. The result is stored in
 `CBP.Result.StrategicImportance` with two decimal places.
+
+For example, suppose a Capability has impact 2 for Strategy A (weight 1) and impact 1 for Strategy B (weight 2):
+
+```text
+StrategicImportance = 2 × ((2×1 + 1×2) / (1+2)) = 2 × (4/3) ≈ 2.67
+```
+So the Capability’s strategic importance is 2.67 out of 4. A higher strategy weight gives that strategy more influence; 
+it does not change the impact rating itself. If any selected strategy is missing a valid impact rating for the 
+Capability, its importance score is unresolved rather than calculated from only the strategies that have values.
 
 ### Move 4 — Analyze the maturity/importance landscape
 
@@ -365,13 +386,14 @@ Names are exact and are used for ownership checks.
 
 | Move(s) | View name | Contents and purpose |
 |---|---|---|
-| 1 | `CBP - Capability Map and Profiles` | Capability input checklist; Value Stream and Resource context; profile-property display; exact maturity and per-increment property names. |
+| 1 | `CBP - Capability Map` | Only in-scope Capability elements and their existing direct Composition/Aggregation relationships to other in-scope Capabilities. |
+| 1 | `CBP - Capability Profiles and Inputs` | Capability profile-property display, input checklist, and exact maturity and per-increment property names. |
 | 1 | `CBP - Strategy Inputs` | Potential Course of Action concepts, current role, adjacent modeled context, and one impact-key mapping per in-scope Capability. |
 | 2 | `CBP - Maturity and Strategic Importance - Maturity Heatmap` | Five maturity bands, Capability cards with exact score, and unresolved maturity/weight messages. |
 | 3 | `CBP - Maturity and Strategic Importance - Strategic Importance Heatmap` | Five importance bands, Capability cards with exact score, and unresolved strategy/impact messages. |
 | 4–5 | `CBP - ML-SI Matrix and Improvement Goals` | Integer-coordinate Maturity-Level/Strategic-Importance matrix, zone colors, unresolved-input cards, and validated Goals. |
 | 6–7 | `CBP - Actions and Change Portfolio` | Validated dimension-level Work Packages grouped into projects, project priority, conflict warnings, and unresolved planning input messages. |
-| Overview | `Capability-based Planning View` | Navigational summary of the six work/analysis views plus run and unresolved-input counts. |
+| Overview | `Capability-based Planning View` | Navigational summary of the seven work/analysis views plus run and unresolved-input counts. |
 
 Heatmap colors are generated from low to high maturity (red through green) and low to high strategic importance
 (green through red). In the ML-SI matrix, `Gap` is red, `Comfort` green, and `Acceptance` yellow.
@@ -383,7 +405,9 @@ use the same Gap/Comfort/Acceptance colors as the matrix, with a legend at the t
 Before creating or rebuilding a view, the generator checks the model's view collection (with a fallback query for
 diagram views). An existing view with a managed name is reusable only when its `CBP.ManagedBy` and `CBP.ViewKey`
 properties match the expected CBP identities. Duplicate names, changed identities, or user-owned name collisions stop
-generation instead of overwriting unrelated views.
+generation instead of overwriting unrelated views. On upgrade, the previously managed `CBP - Capability Map and
+Profiles` view is renamed and reused for the new Capability Profiles and Inputs view only when its ownership identity
+matches; otherwise generation stops.
 
 Generated cards are Business Object concepts. Generated Goals and Work Packages use stable `CBP.GeneratedKey` values
 so repeat runs can update owned concepts rather than duplicate them. Relationships are reused by type and endpoint
@@ -476,7 +500,6 @@ uses schema version `1` and includes:
 | `model` | Stable model ID and readable name. |
 | `capabilityIds` | Exact Capability IDs used in the run. |
 | `capabilityCodes` | Capability ID/code pairs preserved for the run. |
-| `valueStreamIds`, `resourceIds` | Context element IDs discovered during Move 1. |
 | `potentialStrategyIds` | Model-wide Course of Action IDs shown in Strategy Inputs. |
 | `strategyIds` | Potential strategies currently marked `CBP.Role=Strategy` at setup; the continuation refreshes this list when it completes. |
 | `increments` | Validated ordered year strings. |
@@ -496,16 +519,17 @@ This section describes how to recreate the suite from first principles without r
 
 1. Read the capability-based planning sources and identify which decisions are intended to be made by an architect.
 2. Separate repeatable arithmetic and validation from judgments that require organizational evidence.
-3. Adopt the supported element scope: Capability, Value Stream, Course of Action, and Resource.
-4. Require actual Capability elements; do not generate Capability hypotheses from unrelated element types.
+3. Keep the Capability Map semantically pure: Capability nodes and explicitly modeled Capability hierarchy only.
+4. Require actual Capability elements; do not auto-generate candidates from Value Streams, Resources, Courses of Action,
+   or unrelated element types.
 5. Make strategy selection explicit and prevent the software from treating every Course of Action as a strategy.
 6. Record any new interpretation or behavior change as a design decision rather than attributing it to a paper without
    evidence.
 
 ### 10.2 Define the two-stage workflow and persistent contract
 
-1. Implement a setup entry point that validates model/increments, discovers supported elements, assigns stable short
-   Capability codes, creates editable worklists, and writes a pending model-local checkpoint.
+1. Implement a setup entry point that validates model/increments, discovers Capabilities, assigns stable short codes,
+   creates the Capability Map and editable worklists, and writes a pending model-local checkpoint.
 2. Keep the two stages in distinct script invocations so the user can edit/save the model between them.
 3. Persist exact model IDs and planning years so continuation does not silently recalculate a different scope.
 4. Include lifecycle statuses, ownership markers, and explicit abort behavior for an uncompleted run.
@@ -525,7 +549,8 @@ This section describes how to recreate the suite from first principles without r
 ### 10.4 Implement Archi integration and managed views
 
 1. Use jArchi queries and selection adapters to discover only supported types and deduplicate by model ID.
-2. Make Move 1 display the Capability fields, context elements, and short-code impact mappings in editable worklists.
+2. Make Move 1 display the Capability-only hierarchy map, Capability fields, and short-code impact mappings in
+   separate editable worklists.
 3. Preflight view names, ownership metadata, and stable IDs before rebuilding views.
 4. Generate the maturity and importance heatmaps, matrix/goals view, portfolio, and overview from assessment result
    records.
@@ -547,9 +572,12 @@ This section describes how to recreate the suite from first principles without r
 
 ### 10.6 Acceptance criteria for a reproduction
 
-- Move 1 accepts only Capability, Value Stream, Course of Action, and Resource elements.
+- The Capability Map contains only in-scope Capability elements and existing Composition/Aggregation relationships
+  between them.
+- Value Streams, Resources, and Courses of Action do not appear in the Capability Map or create automatic Capability
+  candidates.
 - No Capability means Move 1 stops before generating the workflow.
-- Move 1 persists an exact run scope and creates the two input views once.
+- Move 1 persists an exact Capability run scope and creates the Capability Map and two input worklists once.
 - A user can edit properties and save/reopen between Move 1 and continuation.
 - The continuation rejects model, scope, and increment mismatches.
 - Maturity requires three valid integer dimension ratings and returns the documented weighted mean.
@@ -568,10 +596,10 @@ This section describes how to recreate the suite from first principles without r
 
 ## 11. Known constraints and implementation observations
 
-- Move 1's scope is determined by current selection when it contains supported elements; otherwise it is model-wide
-  for supported types. Potential strategy Courses of Action are discovered model-wide regardless of selected scope.
-- Current `findElement` restores recorded IDs only among the four approved types. Deleting or changing the type of a
-  scoped element prevents continuation.
+- Move 1's Capability scope is determined by current selection when it contains Capabilities; otherwise it is
+  model-wide. Potential strategy Courses of Action are discovered model-wide regardless of selected scope.
+- Current `findElement` restores recorded IDs only among Capability and Course of Action elements. Deleting or
+  changing the type of a scoped element prevents continuation.
 - The suite requires a nonempty `CBP.Increments` property with consecutive years. It does not default to the current
   year.
 - Move 1 requests all per-year action/project/priority keys on Capabilities, even though the engine only reads them
@@ -594,7 +622,7 @@ mapping is:
 
 | Planning concern | Implemented subsystem behavior |
 |---|---|
-| Identify/model capabilities | Capability-only assessment subjects; Value Streams/Resources as context; no inferred map generation. |
+| Identify/model capabilities | Capability-only map from existing Capability elements and modeled hierarchy; candidate discovery and validation remain architect responsibilities. |
 | Assess maturity | Weighted People/Process/Technology score. |
 | Assess strategic importance | Explicit Course of Action role and Capability-impact ratings, strategy-weighted and normalized. |
 | Analyze the landscape | Strategic-importance-minus-maturity gap, tolerance-based zone, ML-SI matrix. |

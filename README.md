@@ -368,7 +368,7 @@ directory management. The following are the jArchi scripts and JavaScript files 
 | `BizDiag_Local_AI/DocMaker/Ollama_Olalla.ajs`                                   | Provides integration with the locally installed Ollama AI runtime                                                                                                                              |
 | `BizDiag_Local_AI/UML/sendToAI.js`                                              | Simple HTTP client wrapper for querying Ollama (used by Application_View_to_UML.ajs only; independent of AI_REST_JSON.js)                                                                      |
 | `BizDiag_Local_AI/Capability_Based_Planning/lib/CBP_Ollama_Worker.js` | Provides optional local Ollama model discovery and asynchronous requests for CBP input suggestions; loaded only when the user chooses AI assistance |
-| `BizDiag_Local_AI/Capability_Based_Planning/CBP_Move_1_Setup.ajs` | Creates Move 1 worklists using only Capability, Value Stream, Course of Action, and Resource elements |
+| `BizDiag_Local_AI/Capability_Based_Planning/CBP_Move_1_Setup.ajs` | Creates a Capability-only map from existing Capability relationships, profile inputs, and a separate Course of Action strategy worklist |
 | `BizDiag_Local_AI/Capability_Based_Planning/CBP_Continue_Moves_2_to_7.ajs` | Validates inputs, optionally requests local AI suggestions, and generates the remaining CBP views |
 
 
@@ -740,12 +740,12 @@ requirements.
 #### 3.3) Capability-Based Planning
 
 The Capability-Based Planning (CBP) module implements the seven moves described in "Capability-Based Planning, The Link
-between Strategy and Enterprise Architecture" and "Capability-based Planning in 7 moves!" through two separately run
-jArchi scripts: [`CBP_Move_1_Setup.ajs`](BizDiag_Local_AI/Capability_Based_Planning/CBP_Move_1_Setup.ajs) and
+between Strategy and Enterprise Architecture" and "Capability-based Planning in 7 moves!" through
+[`CBP_Move_1_Setup.ajs`](BizDiag_Local_AI/Capability_Based_Planning/CBP_Move_1_Setup.ajs) and
 [`CBP_Continue_Moves_2_to_7.ajs`](BizDiag_Local_AI/Capability_Based_Planning/CBP_Continue_Moves_2_to_7.ajs).
-Move 1 creates input worklists and a durable model-local run record. The user edits properties on the model elements,
-saves the model, and then runs the continuation. The scripts use explicit model properties and do not infer maturity
-ratings, strategic impact, targets, actions, or priorities from element names or counts.
+Move 1 creates the Capability Map, input worklists, and durable model-local run record. For production planning, the
+architect enters and validates evidence-based values in model Properties, saves, and runs the continuation. The planning
+scripts do not infer maturity ratings, strategic impact, targets, actions, or priorities from element names or counts.
 
 #### CBP data-entry properties and values
 
@@ -812,14 +812,21 @@ that Capability's contribution to the strategy. Impact ratings must be whole num
 
 The seven moves are implemented as follows:
 
-Move 1 is limited to these ArchiMate element types: **Capability, Value Stream, Course of Action, and Resource**.
-Capabilities are the assessment subjects; Value Streams and Resources appear as context in the capability map;
-Courses of Action are the only elements eligible for `CBP.Role=Strategy`. Business-layer elements such as Business
-Functions, Business Processes, and Business Services are not selected, transformed, or used to generate Capability
-candidates. Move 1 requires at least one existing Capability in scope.
+The **Capability Map** contains only in-scope Capability elements and their explicitly modeled Composition or
+Aggregation relationships to other in-scope Capabilities. Value Streams, Resources, and Courses of Action are not
+map nodes. Courses of Action remain separate potential strategy inputs and are the only elements eligible for
+`CBP.Role=Strategy`. Move 1 requires at least one existing Capability and never generates Capability candidates from
+other model elements. If no Capability hierarchy is modeled, Move 1 shows the Capabilities without inventing
+relationships and warns that decomposition must be modeled.
 
-1. **Identify and model capabilities:** show in-scope Capability concepts and their input properties, with Value
-Streams and Resources as capability-map context. Move 1 does not create Capability candidates from other element types.
+The supplied “Capability-based Planning in 7 moves!” paper recommends analytically extracting capabilities from
+strategic documents and analyzing value streams for capabilities needed by each stage, followed by combining
+approaches and validation with business owners. It does not provide a deterministic conversion from ArchiMate Value
+Stream, Resource, or Course of Action elements into Capability elements; those concepts may inform human analysis
+but are not automatically transformed into capabilities by the suite.
+
+1. **Identify and model capabilities:** show a structured, Capability-only map from existing Capability concepts and
+their modeled hierarchy, plus a separate Capability profile/input worklist.
 2. **Assess maturity:** calculate a weighted overall score from People, Process, and Technology ratings, and present the
 result in a maturity heatmap.
 3. **Assess strategic importance:** calculate weighted impact from strategy elements explicitly marked
@@ -838,7 +845,7 @@ inputs.
 
 | Move | EA purpose in the paper | What the script does | What remains a human responsibility |
 |---|---|---|---|
-| **1. Identify and model business capabilities** | Build and refine a capability map from strategy, value streams, organization, and reference models; profile the capabilities and check coverage and granularity. | Uses only Capability, Value Stream, Course of Action, and Resource elements. Capabilities are assessment subjects; Value Streams and Resources provide map context; Courses of Action are potential strategies. It does not create Capability candidates from Business-layer elements. | Discovering capabilities from strategy and value streams, assuring completeness, agreeing scope/granularity, validating definitions, and deciding which Courses of Action represent strategies. The script does not infer the map from strategy documents. |
+| **1. Identify and model business capabilities** | Build and refine a capability map from strategy, value streams, organization, and reference models; profile the capabilities and check coverage and granularity. | Displays only existing Capability elements and modeled Capability Composition/Aggregation hierarchy in the map; profiles and Course of Action strategy inputs are separate. It does not auto-create capabilities or infer relationships from Value Streams, Resources, or Courses of Action. | Analyzing strategic documents, value streams, organizational structure, and reference models to identify candidate capabilities; validating names, scope, coverage, granularity, hierarchy, and strategy relevance with business owners. |
 | **2. Assess maturity** | Assess each Capability's People, Process, and Technology maturity and calculate an overall maturity using a weighted mean; display a maturity heatmap. | Reads three 0–4 ratings, applies optional positive weights, calculates the weighted mean, writes `CBP.Result.Maturity`, and displays the nearest integer band. | Assigning defensible ratings using the paper's dimension rubrics and choosing weights. Ratings are not inferred from process counts, applications, or model structure. |
 | **3. Assess strategic importance** | Evaluate how each Capability contributes to the enterprise's strategies; consolidate and normalize impacts; display strategic importance. | Reads impact scores on explicitly tagged strategy concepts, applies optional strategy weights, normalizes the weighted average to 0–4, writes `CBP.Result.StrategicImportance`, and creates a heatmap. | Selecting relevant strategies, deciding their weights, and judging every Capability/strategy impact pair. The code's score is only as sound as those inputs. |
 | **4. Analyze the capability landscape** | Combine maturity and importance in an ML-SI matrix; interpret gaps, comfort, and an acceptance band. | Plots fully assessed concepts in rounded matrix cells, classifies using exact score difference and tolerance, and records `CBP.Result.Zone` and `CBP.Result.Gap`. | Interpreting strategic risk, deciding what constitutes acceptable capability risk, and validating that the threshold suits the enterprise. |
@@ -853,8 +860,9 @@ lists locally installed models, and validates every returned property key, range
 suggestion. It does not use heatmap cards as a work queue and does not infer targets, actions, project names, or
 priorities. Review and save the model after AI-assisted completion.
 
-Move 1 creates the Capability/profile and Strategy Inputs worklists only; it does not create analytical views. The
-continuation creates the maturity and strategic-importance heatmaps, ML-SI matrix and valid Goals, actions and change
+Move 1 creates the Capability-only Map, Capability Profiles and Inputs, and Strategy Inputs views; it does not create
+analytical assessment views. The continuation creates the maturity and strategic-importance heatmaps, ML-SI matrix and
+valid Goals, actions and change
 portfolio, and overview. Managed views use ownership markers and stop on ambiguous name collisions rather than
 overwriting user-owned views. Only Courses of Action marked exactly `CBP.Role=Strategy` are included; without any
 selected Courses of Action, strategic importance remains unresolved rather than being treated as zero.
