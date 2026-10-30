@@ -170,7 +170,8 @@
     }
 
     /**
-     * Computes a normalized weighted arithmetic mean.
+     * Computes a normalized weighted arithmetic mean.<br/>
+     * weightedMean = Σ(Iᵢsᵢ) / Σ(sᵢ)
      * @param {number[]} values Assessment values.
      * @param {number[]} weights Positive weights corresponding by index to values.
      * @returns {?number} Weighted mean, or null for empty/mismatched input.
@@ -228,7 +229,9 @@
     // ===== MOVE 3: Calculate strategy-weighted Capability importance on the 0-4 scale. =====
     /**
      * Calculates one Capability's normalized strategic importance from selected Course of Action impacts.
-     * Each impact is an integer from 0 to 2; the weighted mean is multiplied by two to map it to 0-4.
+     * For impact I_i and strategy weight s_i, the score is
+     * StrategicImportance = 2 * Σ(Iᵢ*sᵢ) / Σ(sᵢ). The weighted mean is on the 0-2 impact scale; multiplying by two
+     * maps it to the 0-4 strategic-importance scale.
      * Strategy selection and impact judgments remain the user's responsibility, consistent with the
      * papers' emphasis on explicit strategy-to-capability assessment.
      * @param {Object} capability Archi Capability being assessed.
@@ -263,6 +266,7 @@
             weights.push(strategy.weight);
         }
         return {
+            // weightedMean is StrategicImportance = 2 * Σ(Iᵢ*sᵢ) / Σ(sᵢ); scale its 0-2 result to 0-4.
             score: impacts.length === strategies.length ? weightedMean(impacts, weights) * 2 : null,
             errors: errors
         };
