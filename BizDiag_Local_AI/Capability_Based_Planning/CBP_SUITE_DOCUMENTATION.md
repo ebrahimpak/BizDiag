@@ -10,7 +10,7 @@ suite.
 The suite operationalizes selected, repeatable parts of the capability-based planning approach discussed in:
 
 - A. Aldea, I.E. Maria, M. Lankhorst, D. Quartel and B. Wimsatt, "Capability-Based Planning, The Link between Strategy and Enterprise Architecture," November 2016. [Online]. Available: https://publications.opengroup.org/d183.
-- Reza Karami, “Capability-based Planning in 7 moves!,” December 2022.
+- R. Karami, “Capability-based Planning in 7 moves!” LinkedIn, Dec. 21, 2022. [Online]. Available: https://www.linkedin.com/pulse/capability-based-planning-7-moves-reza-karami/.
 - The Open Group, "Capability-Based Planning Supporting Project/Portfolio and Digital Capabilities Mapping Using the TOGAF® and ArchiMate® Standards," 16 July 2019. [Online]. Available: https://publications.opengroup.org/g193.
 
 The 2019 and 2022 papers share a capability-centered, strategy-driven approach to enterprise transformation, in which
