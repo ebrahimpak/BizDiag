@@ -9,15 +9,25 @@ suite.
 
 The suite operationalizes selected, repeatable parts of the capability-based planning approach discussed in:
 
-- A. Aldea, I. E. Maria, M. Lankhorst, D. Quartel, and B. Wimsatt, “Capability-Based Planning, The Link between
-  Strategy and Enterprise Architecture,” The Open Group, November 2016.
+- A. Aldea, I.E. Maria, M. Lankhorst, D. Quartel and B. Wimsatt, "Capability-Based Planning, The Link between Strategy and Enterprise Architecture," November 2016. [Online]. Available: https://publications.opengroup.org/d183.
 - Reza Karami, “Capability-based Planning in 7 moves!,” December 2022.
+- The Open Group, "Capability-Based Planning Supporting Project/Portfolio and Digital Capabilities Mapping Using the TOGAF® and ArchiMate® Standards," 16 July 2019. [Online]. Available: https://publications.opengroup.org/g193.
 
-These publications provide the method and motivation; they do not prescribe this software's property names, code
-structure, score normalization, views, or implementation details. Those are explicit BizDiag design decisions
-documented below. The software validates and visualizes supplied information. It does not replace the human work of
-discovering and validating capabilities, selecting strategies, assessing evidence, setting targets, designing actions,
-or governing a change portfolio.
+The 2019 and 2022 papers share a capability-centered, strategy-driven approach to enterprise transformation, in which
+business capabilities provide the link between strategic objectives and coordinated organizational change. The 
+seven-moves methodology operationalizes the Open Group’s four CBP stages—Map, Assess, Plan, and Control, through a 
+practical sequence of identifying capabilities, assessing their maturity and strategic importance, analyzing capability 
+gaps, setting improvement goals, defining actions, and designing a change portfolio. While the Open Group Guide, 
+published in 2019, establishes the broader framework and connects CBP to Enterprise Architecture, TOGAF ADM, and 
+ArchiMate, the seven-moves methodology provides more specific techniques for capability assessment and improvement 
+planning. Both emphasize aligning change initiatives with strategy, prioritizing capability development, and 
+monitoring progress through an iterative planning cycle.
+
+On the whole, these three publications provide the method and motivation; they do not prescribe this software's property
+names, code structure, score normalization, views, or implementation details. Those are explicit BizDiag design 
+decisions documented below. The software validates and visualizes supplied information. It does not replace the human 
+work of discovering and validating capabilities, selecting strategies, assessing evidence, setting targets, designing 
+actions, or governing a change portfolio.
 
 The current implementation is a two-stage, user-controlled workflow. It requires Archi with jArchi and an active
 ArchiMate model. Local Ollama is optional and is used only when the user requests suggestions for eligible missing
