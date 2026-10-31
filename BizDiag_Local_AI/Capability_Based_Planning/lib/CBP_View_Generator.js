@@ -639,6 +639,9 @@
      */
     function drawMatrix(activeModel, results, plans) {
         const view = obtainView(activeModel, NAMES.matrix, "moves-4-5-matrix", plans);
+        const matrixLeft = 260;
+        const matrixColumnStep = 205;
+        const matrixRowStep = 145;
         view.documentation =
             "Move 4 compares exact maturity and strategic-importance scores; Move 5 lists validated increment Goals. " +
             "Matrix placement is rounded for display only.";
@@ -648,10 +651,13 @@
         for (let score = 0; score <= 4; score++) {
             card(activeModel, view, "matrix:maturity-axis:" + score,
                 "[CBP] Maturity " + score, "Maturity level " + score + " of 4.",
-                80 + score * 205, 75, 190, 40);
-            card(activeModel, view, "matrix:importance-axis:" + score,
+                matrixLeft + score * matrixColumnStep, 75, 190, 40);
+            const importanceAxis = card(activeModel, view, "matrix:importance-axis:" + score,
                 "[CBP] Importance " + score, "Strategic importance level " + score + " of 4.",
-                40, 100 + (4 - score) * 145, 35, 60);
+                40, 100 + (4 - score) * matrixRowStep, 190, 60);
+            importanceAxis.showIcon = SHOW_ICON.NEVER;
+            importanceAxis.textAlignment = TEXT_ALIGNMENT.CENTER;
+            importanceAxis.textPosition = TEXT_POSITION.CENTER;
         }
         const cellCounts = {};
         const capabilityObjects = {};
@@ -665,7 +671,10 @@
                 const key = mx + ":" + sy;
                 const row = cellCounts[key] || 0;
                 cellCounts[key] = row + 1;
-                const diagramObject = object(view, result.capability, 80 + mx * 205, 100 + (4 - sy) * 145 + row * 75, 190, 60);
+                const diagramObject = object(
+                    view, result.capability,
+                    matrixLeft + mx * matrixColumnStep, 100 + (4 - sy) * matrixRowStep + row * 75, 190, 60
+                );
                 capabilityObjects[root.cbpRunState.idOf(result.capability)] = diagramObject;
                 if (diagramObject && diagramObject.setFillColor) {
                     diagramObject.setFillColor(result.zone === "Gap" ? "#F4CCCC" :
@@ -676,7 +685,7 @@
                     "Maturity " + result.maturity.toFixed(2) + " | Importance " + result.importance.toFixed(2) +
                     "\nZone: " + result.zone + " | SI-ML: " + result.gap.toFixed(2) +
                     candidateContext(result.capability),
-                    80 + mx * 205, 165 + (4 - sy) * 145 + row * 75, 190, 50);
+                    matrixLeft + mx * matrixColumnStep, 165 + (4 - sy) * matrixRowStep + row * 75, 190, 50);
                 const association = ensureRelationship(
                     activeModel, "association-relationship", "ML-SI assessment for capability",
                     detailObject.concept, result.capability
