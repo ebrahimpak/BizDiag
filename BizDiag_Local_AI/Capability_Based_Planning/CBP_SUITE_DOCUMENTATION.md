@@ -401,7 +401,7 @@ Names are exact and are used for ownership checks.
 | 1 | `CBP - Strategy Inputs` | Potential Course of Action concepts, current role, adjacent modeled context, and one impact-key mapping per in-scope Capability. |
 | 2 | `CBP - Maturity and Strategic Importance - Maturity Heatmap` | Five maturity bands, Capability cards with exact score, and unresolved maturity/weight messages. |
 | 3 | `CBP - Maturity and Strategic Importance - Strategic Importance Heatmap` | Five importance bands, Capability cards with exact score, and unresolved strategy/impact messages. |
-| 4–5 | `CBP - ML-SI Matrix and Improvement Goals` | Integer-coordinate Maturity-Level/Strategic-Importance matrix, zone colors, unresolved-input cards, and validated Goals. |
+| 4–5 | `CBP - ML-SI Matrix and Improvement Goals` | Readable 0–4 maturity and strategic-importance axis labels, integer-coordinate matrix, zone colors, unresolved-input cards, and validated Goals. |
 | 6–7 | `CBP - Actions and Change Portfolio` | Validated dimension-level Work Packages grouped into projects, project priority, conflict warnings, and unresolved planning input messages. |
 | Overview | `Capability-based Planning View` | Navigational summary of the seven work/analysis views plus run and unresolved-input counts. |
 

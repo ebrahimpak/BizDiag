@@ -229,7 +229,7 @@
     // ===== MOVE 3: Calculate strategy-weighted Capability importance on the 0-4 scale. =====
     /**
      * Calculates one Capability's normalized strategic importance from selected Course of Action impacts.
-     * For impact I_i and strategy weight s_i, the score is
+     * For impact Iᵢ and strategy weight sᵢ, the score is
      * StrategicImportance = 2 * Σ(Iᵢ*sᵢ) / Σ(sᵢ). The weighted mean is on the 0-2 impact scale; multiplying by two
      * maps it to the 0-4 strategic-importance scale.
      * Strategy selection and impact judgments remain the user's responsibility, consistent with the
