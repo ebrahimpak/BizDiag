@@ -62,11 +62,22 @@
             };
             if (maturity.score !== null && importance.score !== null) {
                 // ===== MOVE 4: Compare importance with maturity and classify the landscape position. =====
+                // The paper's Strategic Importance/Maturity Level matrix compares these two scores:
+                // a positive gap means strategic importance is higher than current maturity.
                 result.gap = importance.score - maturity.score;
+                // Gap Zone: SI - ML > tolerance; the capability is strategically important relative
+                // to its maturity, so the difference is greater than the accepted alignment band.
+                // Comfort Zone: SI - ML < -tolerance; maturity is ahead of strategic importance by
+                // more than the accepted band.
+                // Acceptance Band: -tolerance <= SI - ML <= tolerance; the scores are close enough
+                // to be treated as aligned. The boundary values are included in this band.
+                // These labels classify the landscape; they do not automatically prescribe actions.
                 result.zone = result.gap > tolerance ? "Gap" :
                     (result.gap < -tolerance ? "Comfort" : "Acceptance");
             }
 
+            // Move 5 compares each year's target with the starting maturity, then with the most
+            // recent earlier target that passed all goal validations.
             let previous = {};
             for (let d = 0; d < inputs.DIMENSIONS.length; d++) {
                 const dimension = inputs.DIMENSIONS[d];
@@ -112,6 +123,8 @@
                     }
                     target.dimensions[dimension] = parsed.value;
                     dimensionValues.push(parsed.value);
+                    // Reuse the maturity weights (default 1 per dimension) so the entered overall
+                    // target is checked against the same weighted People/Process/Technology mean.
                     const weight = inputs.parsePositiveWeight(
                         inputs.readProperty(capability, "CBP.Weight." + dimension),
                         "CBP.Weight." + dimension
@@ -127,6 +140,10 @@
                         target.valid = false;
                     }
                     // ===== MOVE 6: Require explicit action, project, and priority inputs for improvements. =====
+                    // An action is needed only when this dimension improves over its starting level.
+                    // All three user-entered fields must be complete and valid before an action
+                    // record is emitted; missing action data is reported but does not invalidate
+                    // the target Goal itself.
                     if (start !== undefined && parsed.value > start) {
                         const actionKey = "CBP.Action." + dimension + "." + year;
                         const projectKey = "CBP.Project." + dimension + "." + year;
@@ -140,6 +157,8 @@
                         if (!projectName) target.errors.push(projectKey + " is required for an improvement.");
                         if (!priority.valid) target.errors.push(priority.reason);
                         if (description && projectName && priority.valid) {
+                            // Preserve the capability, increment, dimension transition, and
+                            // portfolio fields needed to create and trace this action later.
                             target.actions.push({
                                 capability: capability,
                                 year: year,
@@ -155,6 +174,8 @@
                 }
 
                 if (overall.valid && allDimensions && dimensionValues.length === inputs.DIMENSIONS.length) {
+                    // Require the overall target to agree with the weighted dimension target mean
+                    // within 0.01; otherwise the two representations of the goal conflict.
                     const targetMean = inputs.weightedMean(dimensionValues, dimensionWeights);
                     if (Math.abs(overall.value - targetMean) > 0.01) {
                         target.errors.push(overallKey + " does not match the weighted dimension-target mean (" +
@@ -162,6 +183,8 @@
                         target.valid = false;
                     }
                 }
+                // The final planned maturity must reach strategic importance, allowing the same
+                // acceptance tolerance used to classify the Move 4 landscape.
                 if (y === increments.length - 1 && overall.valid && importance.score !== null &&
                     overall.value + tolerance < importance.score) {
                     target.errors.push(overallKey + " remains below strategic importance outside the tolerance.");
@@ -172,6 +195,8 @@
                     target.valid = false;
                 }
 
+                // Only a fully valid target becomes a Goal and advances the baseline for the next
+                // increment. An invalid target is reported and does not become a later starting point.
                 if (target.valid) {
                     target.actions.forEach(function(action) { result.actions.push(action); });
                     result.goals.push(target);
