@@ -34,7 +34,9 @@
         maturity: "CBP - Maturity and Strategic Importance - Maturity Heatmap",
         importance: "CBP - Maturity and Strategic Importance - Strategic Importance Heatmap",
         matrix: "CBP - ML-SI Matrix and Improvement Goals",
+        landscapeDiagrams: "CBP - Strategic Importance and Maturity Diagrams",
         portfolio: "CBP - Actions and Change Portfolio",
+        tables: "CBP - Improvement Roadmap Tables",
         overview: "Capability-based Planning View"
     };
     const KEYS_BY_NAME = {};
@@ -45,7 +47,9 @@
     KEYS_BY_NAME[NAMES.maturity] = "moves-2-maturity";
     KEYS_BY_NAME[NAMES.importance] = "moves-3-importance";
     KEYS_BY_NAME[NAMES.matrix] = "moves-4-5-matrix";
+    KEYS_BY_NAME[NAMES.landscapeDiagrams] = "moves-4-7-landscape-diagrams";
     KEYS_BY_NAME[NAMES.portfolio] = "moves-6-7-portfolio";
+    KEYS_BY_NAME[NAMES.tables] = "moves-5-7-tables";
     KEYS_BY_NAME[NAMES.overview] = "workflow-overview";
 
     /**
@@ -749,6 +753,31 @@
     }
 
     /**
+     * Groups validated actions by planning increment and project, matching the portfolio view.
+     * @param {Object[]} results Assessment engine results.
+     * @returns {Object[]} Project groups with conflict state.
+     */
+    function groupActions(results) {
+        const groups = {};
+        results.forEach(function(result) {
+            result.actions.forEach(function(action) {
+                const groupKey = action.year + "|" + action.projectName;
+                if (!groups[groupKey]) groups[groupKey] = {
+                    year: action.year, name: action.projectName, priority: action.priority, actions: [], conflict: false
+                };
+                if (groups[groupKey].priority !== action.priority) groups[groupKey].conflict = true;
+                groups[groupKey].actions.push(action);
+            });
+        });
+        return Object.keys(groups).map(function(key) { return groups[key]; })
+            .sort(function(a, b) {
+                return a.year === b.year
+                    ? a.priority - b.priority
+                    : a.year.localeCompare(b.year);
+            });
+    }
+
+    /**
      * Renders validated improvement Work Packages grouped into increment projects.
      * Implements Moves 6-7 from explicitly entered action, project, and priority properties.
      * @param {Object} activeModel Active Archi model.
@@ -791,21 +820,14 @@
                 40 + (index % 3) * 260, 25 + Math.floor(index / 3) * 55, 245, 45);
             if (legend && legend.setFillColor) legend.setFillColor(item[1]);
         });
-        const groups = {};
         // ===== MOVE 6: Materialize validated dimension-level improvement actions as Work Packages. =====
-        results.forEach(function(result) {
-            result.actions.forEach(function(action) {
-                const groupKey = action.year + "|" + action.projectName;
-                if (!groups[groupKey]) groups[groupKey] = {
-                    year: action.year, name: action.projectName, priority: action.priority, actions: [], conflict: false
-                };
-                if (groups[groupKey].priority !== action.priority) groups[groupKey].conflict = true;
-                groups[groupKey].actions.push(action);
-            });
-        });
+        // Build one project group per (increment, project name). An action is already present here
+        // only if Move 6 found its description, project name, and positive integer priority.
+        const list = groupActions(results);
         // ===== MOVE 7: Group actions into increment/project packages and order projects by declared priority. =====
-        const list = Object.keys(groups).map(function(key) { return groups[key]; })
-            .sort(function(a, b) { return a.year === b.year ? a.priority - b.priority : a.year.localeCompare(b.year); });
+        // A project/increment must have one consistent priority across all of its actions. Keep a
+        // conflicting group visible as a warning instead of silently choosing one priority.
+        // Otherwise, order projects chronologically, then by ascending priority (1 precedes 2).
         let row = 0;
         list.forEach(function(group) {
             if (group.conflict) {
@@ -826,6 +848,8 @@
             if (projectObject && projectObject.setFillColor) projectObject.setFillColor("#D9D9D9");
             group.actions.forEach(function(action, index) {
                 // ===== MOVE 6 RENDERING: Create the validated action Work Package and its traceable links. =====
+                // Store the increment, dimension, start/target levels, project, priority, and source
+                // Capability ID on the action package so the diagram remains traceable to its inputs.
                 const actionElement = generatedConcept(activeModel, "work-package",
                     "action:" + action.capability.id + ":" + action.year + ":" + action.dimension,
                     "CBP Action - " + action.year + " - " + elementLabel(action.capability) +
@@ -905,7 +929,9 @@
             [NAMES.maturity, "Move 2 maturity assessment"],
             [NAMES.importance, "Move 3 strategic-importance assessment"],
             [NAMES.matrix, "Moves 4-5 landscape and improvement goals"],
-            [NAMES.portfolio, "Moves 6-7 actions and change portfolio"]
+            [NAMES.landscapeDiagrams, "Strategic importance/maturity diagrams and increment paths"],
+            [NAMES.portfolio, "Moves 6-7 actions and change portfolio"],
+            [NAMES.tables, "Calculated roadmap, capability increments, and required actions"]
         ];
         links.forEach(function(item, index) {
             card(activeModel, view, "overview:" + index,
@@ -918,7 +944,7 @@
             "Run: " + run.runId + "\nCapabilities: " + results.length +
             "\nSelected strategies: " + run.strategyIds.length +
             "\nUnresolved input messages: " + unresolved +
-            "\nSave the model after reviewing all outputs.", 40, 630, 900, 90);
+            "\nSave the model after reviewing all outputs.", 40, 790, 900, 90);
         return view;
     }
 
@@ -930,6 +956,10 @@
         drawHeatmap: drawHeatmap,
         drawMatrix: drawMatrix,
         drawPortfolio: drawPortfolio,
-        drawOverview: drawOverview
+        drawOverview: drawOverview,
+        obtainManagedView: obtainView,
+        clearManagedView: clearView,
+        elementLabel: elementLabel,
+        groupActions: groupActions
     });
 })(typeof globalThis !== "undefined" ? globalThis : this);

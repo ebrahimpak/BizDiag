@@ -38,6 +38,8 @@ console.show();
     load(__DIR__ + "lib/CBP_Run_State.js");
     load(__DIR__ + "lib/CBP_Assessment_Engine.js");
     load(__DIR__ + "lib/CBP_View_Generator.js");
+    load(__DIR__ + "lib/CBP_Strategic_Importance_Maturity_Diagrams.js");
+    load(__DIR__ + "lib/CBP_Improvement_Tables.js");
 
     const derivedKeys = [
         "CBP.Result.Maturity",
@@ -334,7 +336,8 @@ console.show();
 
         const outputNames = [
             cbpViewGenerator.NAMES.maturity, cbpViewGenerator.NAMES.importance,
-            cbpViewGenerator.NAMES.matrix, cbpViewGenerator.NAMES.portfolio,
+            cbpViewGenerator.NAMES.matrix, cbpViewGenerator.NAMES.landscapeDiagrams,
+            cbpViewGenerator.NAMES.portfolio, cbpViewGenerator.NAMES.tables,
             cbpViewGenerator.NAMES.overview
         ];
         const viewPlans = cbpViewGenerator.preflightViews(activeModel, outputNames, run.views);
@@ -402,8 +405,14 @@ console.show();
         );
         // ===== MOVES 4-5 RENDERING: Show the landscape matrix and validated improvement Goals. =====
         cbpViewGenerator.drawMatrix(activeModel, results, viewPlans);
+        // ===== MOVES 4-7 LANDSCAPE DIAGRAMS: Render the paper's three score/roadmap forms from these same results. =====
+        cbpStrategicLandscapeDiagrams.draw(
+            activeModel, results, run.increments, tolerance.value, viewPlans
+        );
         // ===== MOVES 6-7 RENDERING: Show validated improvement actions and the grouped change portfolio. =====
         cbpViewGenerator.drawPortfolio(activeModel, results, viewPlans);
+        // ===== MOVES 5-7 TABLES: Summarize the same accepted goals and validated actions as tables. =====
+        cbpImprovementTables.draw(activeModel, results, run.increments, viewPlans);
         cbpViewGenerator.drawOverview(activeModel, run, results, viewPlans);
 
         run.status = "COMPLETED";

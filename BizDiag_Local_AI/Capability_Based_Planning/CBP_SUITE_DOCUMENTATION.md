@@ -154,7 +154,7 @@ before running the continuation.
 
 `CBP_Continue_Moves_2_to_7.ajs`:
 
-1. Loads the model-input, run-state, assessment, and view-generation helpers.
+1. Loads the model-input, run-state, assessment, view-generation, landscape-diagram, and improvement-table helpers.
 2. Requires a valid `INPUTS_PENDING` run and verifies that the active model identity and `CBP.Increments` still match
    the Move 1 checkpoint.
 3. Restores Capabilities and potential Courses of Action by model ID. If an ID no longer resolves within the supported
@@ -164,7 +164,7 @@ before running the continuation.
 5. If there are eligible missing/invalid maturity or impact inputs, asks whether to use local Ollama. A decline or
    cancelled model selection leaves those inputs unresolved. If there are no eligible gaps, Ollama is not loaded.
 6. Calculates the results and writes derived result properties to Capabilities.
-7. Preflights and creates or updates the five analytical views.
+7. Preflights and creates or updates the six analytical views.
 8. Marks the model-local run record `COMPLETED`, records selected strategy IDs, AI suggestion count, completion time,
    and managed view IDs, and presents a completion summary.
 
@@ -402,13 +402,29 @@ Names are exact and are used for ownership checks.
 | 2 | `CBP - Maturity and Strategic Importance - Maturity Heatmap` | Five maturity bands, Capability cards with exact score, and unresolved maturity/weight messages. |
 | 3 | `CBP - Maturity and Strategic Importance - Strategic Importance Heatmap` | Five importance bands, Capability cards with exact score, and unresolved strategy/impact messages. |
 | 4–5 | `CBP - ML-SI Matrix and Improvement Goals` | Readable 0–4 maturity and strategic-importance axis labels, integer-coordinate matrix, zone colors, unresolved-input cards, and validated Goals. |
+| 4–7 | `CBP - Strategic Importance and Maturity Diagrams` | Three chart forms inspired by the paper's pp. 9, 10, and 12 figures: score landscape, three-zone matrix, and validated increment paths. |
 | 6–7 | `CBP - Actions and Change Portfolio` | Validated dimension-level Work Packages grouped into projects, project priority, conflict warnings, and unresolved planning input messages. |
-| Overview | `Capability-based Planning View` | Navigational summary of the seven work/analysis views plus run and unresolved-input counts. |
+| 5–7 | `CBP - Improvement Roadmap Tables` | Tables for every in-scope Capability's roadmap, validated dimension increments, and validated actions with project priority and portfolio status. |
+| Overview | `Capability-based Planning View` | Navigational summary of the work/analysis views plus run and unresolved-input counts. |
 
 Heatmap colors are generated from low to high maturity (red through green) and low to high strategic importance
 (green through red). In the ML-SI matrix, `Gap` is red, `Comfort` green, and `Acceptance` yellow.
 In the portfolio view, action Work Packages are colored by People, Process, or Technology; Capability diagram objects
 use the same Gap/Comfort/Acceptance colors as the matrix, with a legend at the top of the view.
+The Strategic Importance and Maturity Diagrams view contains three panels modeled on the paper's figures: (1) a
+neutral 0–4 maturity/importance grid with a diagonal alignment reference, (2) a Gap Zone / Acceptance Band /
+Comfort Zone landscape, and (3) maturity targets by configured increment at each Capability's current strategic
+importance. All panels use the exact Move 1 run scope and the already-calculated assessment results. The first two
+panels show assessed Capabilities at rounded grid coordinates while labeling their exact scores; the zone panel
+displays the exact calculated zone. The roadmap panel plots only accepted Goals and connects consecutive validated
+increments; it does not interpolate across an unvalidated increment. Capabilities without both current scores and
+increments without an accepted Goal are explicitly labeled as unavailable or not validated rather than inferred.
+The colored zone cells are a visual guide; the assessment engine's exact gap and configured tolerance remain
+authoritative for each Capability's zone.
+The Improvement Roadmap Tables view uses the same assessment results, accepted Goals, validated action records, and
+project-priority conflict groups as the analytical views. It includes every Capability in the Move 1 run scope;
+unvalidated per-increment targets are labeled rather than inferred. Actions in priority-conflicted projects remain
+visible in the action table with an explicit excluded-from-portfolio status.
 
 ### 6.1 Managed-view safety and generated concepts
 
@@ -426,8 +442,10 @@ relationship and both diagram endpoints, as required by jArchi's `view.add` cont
 
 ## 7. Software architecture and file responsibilities
 
-The suite's ArchiMate planning module is under `BizDiag_Local_AI/Capability_Based_Planning/`. Its optional Ollama
-transport worker is in the module's `lib/` directory.
+The suite's ArchiMate planning module is under `BizDiag_Local_AI/Capability_Based_Planning/`. The independent
+`lib/CBP_Strategic_Importance_Maturity_Diagrams.js` module renders the three landscape/roadmap chart forms; the
+continuation script loads it after the managed-view helpers and supplies the same processed results. Its optional
+Ollama transport worker is in the module's `lib/` directory.
 
 | File | Responsibility |
 |---|---|
@@ -437,6 +455,8 @@ transport worker is in the module's `lib/` directory.
 | `lib/CBP_Run_State.js` | Archi/jArchi adapters, supported element types, selected-scope discovery, stable Capability input codes, model identity, and model-local run-record persistence. |
 | `lib/CBP_Assessment_Engine.js` | Pure assessment orchestration across Moves 2–7: result records, gap/zone, target consistency/progression, Goals, and validated action records. |
 | `lib/CBP_View_Generator.js` | View enumeration/preflight, ownership markers, idempotent concepts and relationships, Move 1 worklists, heatmaps, matrix, portfolio, and overview. |
+| `lib/CBP_Strategic_Importance_Maturity_Diagrams.js` | Separate managed-view renderer for the paper-inspired score, zone, and increment-roadmap panels; consumes assessment results without recalculation. |
+| `lib/CBP_Improvement_Tables.js` | Separate managed-view renderer for the roadmap, dimension-increment, and required-action tables; consumes assessment results, validated Goals/actions, and shared project-grouping helpers. |
 | `lib/CBP_Ollama_Worker.js` | Optional local Ollama HTTP transport, model discovery, asynchronous request wait with SWT event dispatch, timeout/error handling, and response transport validation. |
 
 The helper modules expose APIs on `globalThis`:
@@ -445,6 +465,8 @@ The helper modules expose APIs on `globalThis`:
 - `cbpRunState`
 - `cbpAssessmentEngine`
 - `cbpViewGenerator`
+- `cbpStrategicLandscapeDiagrams`
+- `cbpImprovementTables`
 - optional `cbpOllamaWorker`
 
 The entry scripts load CBP helpers in dependency order. The continuation loads the Ollama worker lazily and only after
