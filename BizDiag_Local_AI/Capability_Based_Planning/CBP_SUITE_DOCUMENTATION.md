@@ -69,7 +69,7 @@ Potential strategy Courses of Action are discovered model-wide, independently of
 appear only in the separate Strategy Inputs worklist and are not treated as strategies unless the user sets
 `CBP.Role=Strategy`.
 
-The supplied “Capability-based Planning in 7 moves!” paper (Move #1, PDF pp. 2–3) describes extracting needed
+The “Capability-based Planning in 7 moves!” artcile describes extracting needed
 capabilities from strategic documents and analyzing value streams to identify the capabilities needed at their
 stages. Optional Move 1 discovery supports this analysis with a single compact Ollama request containing up to 10
 non-generated Value Stream names, up to 15 directly composed stage names (maximum three per selected stream), up to
@@ -420,24 +420,24 @@ Generated project Work Packages contain generated action Work Packages; action p
 
 Names are exact and are used for ownership checks.
 
-| Move(s) | View name | Contents and purpose |
-|---|---|---|
-| 1 | `CBP - Capability Map` | Only in-scope Capability elements and their existing direct Composition/Aggregation relationships to other in-scope Capabilities. |
-| 1 | `CBP - Capability Profiles and Inputs` | Capability profile-property display, input checklist, and exact maturity and per-increment property names. |
-| 1 | `CBP - Strategy Inputs` | Potential Course of Action concepts, current role, adjacent modeled context, and one impact-key mapping per in-scope Capability. |
-| 2 | `CBP - Maturity and Strategic Importance - Maturity Heatmap` | Five maturity bands, Capability cards with exact score, and unresolved maturity/weight messages. |
-| 3 | `CBP - Maturity and Strategic Importance - Strategic Importance Heatmap` | Five importance bands, Capability cards with exact score, and unresolved strategy/impact messages. |
-| 4–5 | `CBP - ML-SI Matrix and Improvement Goals` | Readable 0–4 maturity and strategic-importance axis labels, integer-coordinate matrix, zone colors, unresolved-input cards, and validated Goals. |
-| 4–7 | `CBP - Strategic Importance and Maturity Diagrams` | Three chart forms inspired by the paper's pp. 9, 10, and 12 figures: score landscape, three-zone matrix, and validated increment paths. |
-| 6–7 | `CBP - Actions and Change Portfolio` | Validated dimension-level Work Packages grouped into projects, project priority, conflict warnings, and unresolved planning input messages. |
+| Move(s) | View name | Contents and purpose                                                                                                                              |
+|---|---|---------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1 | `CBP - Capability Map` | Only in-scope Capability elements and their existing direct Composition/Aggregation relationships to other in-scope Capabilities.                 |
+| 1 | `CBP - Capability Profiles and Inputs` | Capability profile-property display, input checklist, and exact maturity and per-increment property names.                                        |
+| 1 | `CBP - Strategy Inputs` | Potential Course of Action concepts, current role, adjacent modeled context, and one impact-key mapping per in-scope Capability.                  |
+| 2 | `CBP - Maturity and Strategic Importance - Maturity Heatmap` | Five maturity bands, Capability cards with exact score, and unresolved maturity/weight messages.                                                  |
+| 3 | `CBP - Maturity and Strategic Importance - Strategic Importance Heatmap` | Five importance bands, Capability cards with exact score, and unresolved strategy/impact messages.                                                |
+| 4–5 | `CBP - ML-SI Matrix and Improvement Goals` | Readable 0–4 maturity and strategic-importance axis labels, integer-coordinate matrix, zone colors, unresolved-input cards, and validated Goals.  |
+| 4–7 | `CBP - Strategic Importance and Maturity Diagrams` | Three chart forms inspired by the 7-Moves article figures: score landscape, three-zone matrix, and validated increment paths.                     |
+| 6–7 | `CBP - Actions and Change Portfolio` | Validated dimension-level Work Packages grouped into projects, project priority, conflict warnings, and unresolved planning input messages.       |
 | 5–7 | `CBP - Improvement Roadmap Tables` | Tables for every in-scope Capability's roadmap, validated dimension increments, and validated actions with project priority and portfolio status. |
-| Overview | `Capability-based Planning View` | Navigational summary of the work/analysis views plus run and unresolved-input counts. |
+| Overview | `Capability-based Planning View` | Navigational summary of the work/analysis views plus run and unresolved-input counts.                                                             |
 
 Heatmap colors are generated from low to high maturity (red through green) and low to high strategic importance
 (green through red). In the ML-SI matrix, `Gap` is red, `Comfort` green, and `Acceptance` yellow.
 In the portfolio view, action Work Packages are colored by People, Process, or Technology; Capability diagram objects
 use the same Gap/Comfort/Acceptance colors as the matrix, with a legend at the top of the view.
-The Strategic Importance and Maturity Diagrams view contains three panels modeled on the paper's figures: (1) a
+The Strategic Importance and Maturity Diagrams view contains three panels modeled on the  7-Moves article's figures: (1) a
 neutral 0–4 maturity/importance grid with a diagonal alignment reference, (2) a Gap Zone / Acceptance Band /
 Comfort Zone landscape, and (3) maturity targets by configured increment at each Capability's current strategic
 importance. All panels use the current managed Capability Map scope and the already-calculated assessment results. The first two
@@ -472,18 +472,18 @@ The suite's ArchiMate planning module is under `BizDiag_Local_AI/Capability_Base
 continuation script loads it after the managed-view helpers and supplies the same processed results. Its optional
 Ollama transport worker is in the module's `lib/` directory.
 
-| File | Responsibility |
-|---|---|
-| `CBP_Move_1_Setup.ajs` | First-stage entry point; preflight, year validation, scope preparation, property creation, Move 1 views, and pending run checkpoint. |
-| `CBP_Continue_Moves_2_to_7.ajs` | Second-stage entry point; checkpoint verification, edited-map scope, calculations, output-view generation, completion record, and UI summary. |
+| File | Responsibility                                                                                                                                                                                                                             |
+|---|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `CBP_Move_1_Setup.ajs` | First-stage entry point; preflight, year validation, scope preparation, property creation, Move 1 views, and pending run checkpoint.                                                                                                       |
+| `CBP_Continue_Moves_2_to_7.ajs` | Second-stage entry point; checkpoint verification, edited-map scope, calculations, output-view generation, completion record, and UI summary.                                                                                              |
 | `lib/CBP_Model_Inputs.js` | Property access, numeric/range parsing, increment parsing, weighted mean, maturity calculation, importance calculation, and impact-key generation. This helper is independent of Archi queries except for the model object's property API. |
-| `lib/CBP_Run_State.js` | Archi/jArchi adapters, supported element types, selected-scope discovery, managed-map scope, stable Capability input codes, model identity, and model-local run-record persistence. |
-| `lib/CBP_Capability_Discovery.js` | Bounded strategic-label and identified BMC content extraction, grounded Ollama proposal validation, deduplication, and creation of traceable provisional Capability elements. |
-| `lib/CBP_Assessment_Engine.js` | Pure assessment orchestration across Moves 2–7: result records, gap/zone, target consistency/progression, Goals, and validated action records. |
-| `lib/CBP_View_Generator.js` | View enumeration/preflight, ownership markers, idempotent concepts and relationships, Move 1 worklists, heatmaps, matrix, portfolio, and overview. |
-| `lib/CBP_Strategic_Importance_Maturity_Diagrams.js` | Separate managed-view renderer for the paper-inspired score, zone, and increment-roadmap panels; consumes assessment results without recalculation. |
-| `lib/CBP_Improvement_Tables.js` | Separate managed-view renderer for the roadmap, dimension-increment, and required-action tables; consumes assessment results, validated Goals/actions, and shared project-grouping helpers. |
-| `lib/CBP_Ollama_Worker.js` | Optional local Ollama HTTP transport, model discovery, asynchronous request wait with SWT event dispatch, timeout/error handling, and response transport validation. |
+| `lib/CBP_Run_State.js` | Archi/jArchi adapters, supported element types, selected-scope discovery, managed-map scope, stable Capability input codes, model identity, and model-local run-record persistence.                                                        |
+| `lib/CBP_Capability_Discovery.js` | Bounded strategic-label and identified BMC content extraction, grounded Ollama proposal validation, deduplication, and creation of traceable provisional Capability elements.                                                              |
+| `lib/CBP_Assessment_Engine.js` | Pure assessment orchestration across Moves 2–7: result records, gap/zone, target consistency/progression, Goals, and validated action records.                                                                                             |
+| `lib/CBP_View_Generator.js` | View enumeration/preflight, ownership markers, idempotent concepts and relationships, Move 1 worklists, heatmaps, matrix, portfolio, and overview.                                                                                         |
+| `lib/CBP_Strategic_Importance_Maturity_Diagrams.js` | Separate managed-view renderer for the article-inspired score, zone, and increment-roadmap panels; consumes assessment results without recalculation.                                                                                      |
+| `lib/CBP_Improvement_Tables.js` | Separate managed-view renderer for the roadmap, dimension-increment, and required-action tables; consumes assessment results, validated Goals/actions, and shared project-grouping helpers.                                                |
+| `lib/CBP_Ollama_Worker.js` | Optional local Ollama HTTP transport, model discovery, asynchronous request wait with SWT event dispatch, timeout/error handling, and response transport validation.                                                                       |
 
 The helper modules expose APIs on `globalThis`:
 

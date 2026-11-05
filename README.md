@@ -148,7 +148,7 @@ knowledge and the practical challenges faced by enterprise architects.
 BizDiag builds on established academic research in Enterprise Architecture, software architecture, and Design 
 Science Research. Its Business–IT Alignment module, UML module, and BizModelCanvas operationalize these 
 foundations through an original, research-driven assessment methodology developed by the author. A forthcoming 
-academic paper will elaborate on the methodology and its research contributions.
+white paper will elaborate on the methodology and its research contributions.
 
 ---
 
@@ -197,7 +197,7 @@ architecture teams systematically examine areas such as:
 
 #### Business-IT Alignment Research Methodology
 
-The Business-IT Alignment module implements a five-phase Enterprise Architecture (EA) assessment process, conceptually based on extensive conducted research. This module is grounded in original research conducted by the Ebrahim Pak (2026). A paper presenting the prior literature review, research methodology, and study findings is forthcoming. In the meanwhile, the five main phases are as follows:
+The Business-IT Alignment module implements a five-phase Enterprise Architecture (EA) assessment process, conceptually based on extensive conducted research. This module is grounded in original research conducted by the Ebrahim Pak (2026).The five main phases are as follows:
 1.	Preliminary Review: Examines six EA aspects, Strategy (S.01-S.10, STR.61-STR.67); Business Process (B.11-B.20); Data Governance (D.21-D.30); Application Portfolio (A.31-A.40); Technology Infrastructure (T.41-T.48); and Cross-Layer Alignment (X.49-X.60), to identify potential misalignments.
 2.	Malfunctioning Area Analysis: Detects and codes misalignments using aspect-based identifiers. During this phase, each detected misalignment is coded in a bipartite system: [ASPECT].[NUMBER], e.g., S.01 Strategy: Goal without Outcome/KPI.
 3.	Symptom Categorization: Classifies findings by EA aspect; severity (CRITICAL, HIGH, MEDIUM, LOW); description; and analyzability.
@@ -828,7 +828,7 @@ remain evidence sources rather than map nodes. Courses of Action are separate po
 only elements eligible for `CBP.Role=Strategy`. If no Capability hierarchy is modeled, Move 1 shows the Capabilities
 without inventing relationships and warns that decomposition must be modeled.
 
-The supplied “Capability-based Planning in 7 moves!” paper recommends analytically extracting capabilities from
+The supplied “Capability-based Planning in 7 moves!” article recommends analytically extracting capabilities from
 strategic documents and analyzing value streams for capabilities needed by each stage, followed by combining
 approaches and validation with business owners. Optional Move 1 discovery supports this analysis by sending one
 compact Ollama request with bounded names/types of Value Streams, their directly composed stage names, selected
@@ -856,19 +856,19 @@ for valid target states.
 7. **Design the change portfolio:** group actions into projects by increment and project name, then order projects by
 declared priority.
 
-The paper's moves are an architecture-and-planning method. The script operationalizes the parts that can be represented
+The article's moves are an architecture-and-planning method. The script operationalizes the parts that can be represented
 as explicit model inputs and repeatable checks. It cannot replace the human analysis that creates and governs those
 inputs.
 
-| Move | EA purpose in the paper | What the script does | What remains a human responsibility |
-|---|---|---|---|
+| Move | EA purpose in the paper | What the script does | What remains a human responsibility                                                                                                                                                                                                        |
+|---|---|---|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **1. Identify and model business capabilities** | Build and refine a capability map from strategy, value streams, organization, and reference models; profile the capabilities and check coverage and granularity. | Displays existing Capability elements, modeled Capability Composition/Aggregation hierarchy, and optionally up to three provisional Ollama proposals grounded in bounded strategic labels, Value Stream stages, and Canvas content. Profiles and Course of Action strategy inputs are separate. No hierarchy is inferred. | Reviewing candidate capabilities and analyzing strategic documents, value streams, organizational structure, and reference models; validating names, scope, coverage, granularity, hierarchy, and strategy relevance with business owners. |
-| **2. Assess maturity** | Assess each Capability's People, Process, and Technology maturity and calculate an overall maturity using a weighted mean; display a maturity heatmap. | Reads three 0–4 ratings, applies optional positive weights, calculates the weighted mean, writes `CBP.Result.Maturity`, and displays the nearest integer band. | Assigning defensible ratings using the paper's dimension rubrics and choosing weights. Ratings are not inferred from process counts, applications, or model structure. |
-| **3. Assess strategic importance** | Evaluate how each Capability contributes to the enterprise's strategies; consolidate and normalize impacts; display strategic importance. | Reads impact scores on explicitly tagged strategy concepts, applies optional strategy weights, normalizes the weighted average to 0–4, writes `CBP.Result.StrategicImportance`, and creates a heatmap. | Selecting relevant strategies, deciding their weights, and judging every Capability/strategy impact pair. The code's score is only as sound as those inputs. |
-| **4. Analyze the capability landscape** | Combine maturity and importance in an ML-SI matrix; interpret gaps, comfort, and an acceptance band. | Plots fully assessed concepts in rounded matrix cells, classifies using exact score difference and tolerance, and records `CBP.Result.Zone` and `CBP.Result.Gap`. | Interpreting strategic risk, deciding what constitutes acceptable capability risk, and validating that the threshold suits the enterprise. |
-| **5. Set improvement goals** | Define target maturity and staged increments, informed by strategy, resources, timelines, and management judgment. | Validates supplied overall and dimension targets, progression, weighted consistency, and the final target relative to strategic importance; creates a Goal per valid increment. | Choosing targets, timelines, resource feasibility, and which capabilities should be improved. The paper explicitly treats goal setting as contextual, not a rigid algorithm. |
-| **6. Define actions** | Translate each planned dimension-level maturity transition into concrete People, Process, and Technology actions. | For every dimension whose target rises, requires an action description, project name, and priority. Validated records become traceable Work Package concepts and links. | Defining actions that are sufficient, feasible, sequenced, owned, resourced, and appropriate to the actual capability. Text is supplied by the architect; the script does not invent it. |
-| **7. Design the change portfolio** | Consolidate actions into coordinated projects/programs using capability-based, dimension-based, or hybrid grouping and organizational context. | Groups actions by increment and entered project name, requires a consistent priority within a project/year, sorts lower priorities first, creates project Work Packages, and displays containment links. | Selecting a grouping strategy, resolving dependencies, capacity and budget trade-offs, preparing charters, and governing implementation. |
+| **2. Assess maturity** | Assess each Capability's People, Process, and Technology maturity and calculate an overall maturity using a weighted mean; display a maturity heatmap. | Reads three 0–4 ratings, applies optional positive weights, calculates the weighted mean, writes `CBP.Result.Maturity`, and displays the nearest integer band. | Assigning defensible ratings using the article's dimension rubrics and choosing weights. Ratings are not inferred from process counts, applications, or model structure.                                                                   |
+| **3. Assess strategic importance** | Evaluate how each Capability contributes to the enterprise's strategies; consolidate and normalize impacts; display strategic importance. | Reads impact scores on explicitly tagged strategy concepts, applies optional strategy weights, normalizes the weighted average to 0–4, writes `CBP.Result.StrategicImportance`, and creates a heatmap. | Selecting relevant strategies, deciding their weights, and judging every Capability/strategy impact pair. The code's score is only as sound as those inputs.                                                                               |
+| **4. Analyze the capability landscape** | Combine maturity and importance in an ML-SI matrix; interpret gaps, comfort, and an acceptance band. | Plots fully assessed concepts in rounded matrix cells, classifies using exact score difference and tolerance, and records `CBP.Result.Zone` and `CBP.Result.Gap`. | Interpreting strategic risk, deciding what constitutes acceptable capability risk, and validating that the threshold suits the enterprise.                                                                                                 |
+| **5. Set improvement goals** | Define target maturity and staged increments, informed by strategy, resources, timelines, and management judgment. | Validates supplied overall and dimension targets, progression, weighted consistency, and the final target relative to strategic importance; creates a Goal per valid increment. | Choosing targets, timelines, resource feasibility, and which capabilities should be improved. The article explicitly treats goal setting as contextual, not a rigid algorithm.                                                             |
+| **6. Define actions** | Translate each planned dimension-level maturity transition into concrete People, Process, and Technology actions. | For every dimension whose target rises, requires an action description, project name, and priority. Validated records become traceable Work Package concepts and links. | Defining actions that are sufficient, feasible, sequenced, owned, resourced, and appropriate to the actual capability. Text is supplied by the architect; the script does not invent it.                                                   |
+| **7. Design the change portfolio** | Consolidate actions into coordinated projects/programs using capability-based, dimension-based, or hybrid grouping and organizational context. | Groups actions by increment and entered project name, requires a consistent priority within a project/year, sorts lower priorities first, creates project Work Packages, and displays containment links. | Selecting a grouping strategy, resolving dependencies, capacity and budget trade-offs, preparing charters, and governing implementation.                                                                                                   |
 
 Move 1 optionally uses local Ollama to propose provisional Capabilities from a single compact request containing
 bounded strategic element names/types, directly composed Value Stream stage names, and capped content from
@@ -1250,16 +1250,16 @@ BizDiag/
 │   ├── Capability_Based_Planning/
 │   │   ├── CBP_Move_1_Setup.ajs
 │   │   ├── CBP_Continue_Moves_2_to_7.ajs
-│   │   ├── lib/
-│   │   │   ├── CBP_Capability_Discovery.js
-│   │   │   ├── CBP_Improvement_Tables.js
-│   │   │   ├── CBP_Strategic_Importance_Maturity_Diagrams.js
-│   │   │   ├── CBP_Assessment_Engine.js
-│   │   │   ├── CBP_Model_Inputs.js
-│   │   │   ├── CBP_Run_State.js
-│   │   │   ├── CBP_View_Generator.js
-│   │   │   └── CBP_Ollama_Worker.js
-│   │   ├── papers/
+│   │   └── lib/
+│   │       ├── CBP_Capability_Discovery.js
+│   │       ├── CBP_Improvement_Tables.js
+│   │       ├── CBP_Strategic_Importance_Maturity_Diagrams.js
+│   │       ├── CBP_Assessment_Engine.js
+│   │       ├── CBP_Model_Inputs.js
+│   │       ├── CBP_Run_State.js
+│   │       ├── CBP_View_Generator.js
+│   │       └── CBP_Ollama_Worker.js
+│   │   
 │   ├── DocMaker/
 │   └── UML/
 ├── BizModelCanvas/
