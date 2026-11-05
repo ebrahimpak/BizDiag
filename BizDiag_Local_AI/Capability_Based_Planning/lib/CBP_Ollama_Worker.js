@@ -15,12 +15,9 @@
  *
  * @fileoverview Optional transport adapter for local Ollama model discovery and generation requests.
  *
- * The worker is invoked only when the CBP continuation user opts in to suggestions for missing maturity
- * or strategy-impact ratings. It supplies transport and model discovery only: it does not calculate CBP
- * scores or make strategy, target, action, or priority decisions. Those assessments operationalize the
- * explicit-input approach in "Capability-Based Planning, The Link between Strategy and Enterprise
- * Architecture" and "Capability-based Planning in 7 moves!", where assessment evidence and planning
- * choices remain subject to architect judgment.
+ * The worker is invoked only when the Move 1 user opts in to strategic-context Capability discovery.
+ * It supplies transport and model discovery only: it does not validate proposals, write model elements,
+ * calculate CBP scores, or make assessment and planning decisions. Human review remains mandatory.
  */
 
 "use strict";
@@ -175,13 +172,23 @@
    * @param {string} prompt Evidence-based instruction and context sent to the model.
    * @param {string} model Installed Ollama model tag selected by the user.
    * @param {number} [maxTokens=256] Maximum generated tokens requested from Ollama.
+   * @param {number} [timeoutMs=120000] Maximum generation request time in milliseconds.
+   * @param {number} [contextTokens=2048] Ollama context-window size for the request.
    * @returns {{model: string, content: string}} Selected model tag and generated response text.
    * @throws {Error} If the model tag is empty, the request fails, Ollama returns a non-200 status,
    *   its response body is invalid JSON, or generated content is missing.
    */
-  function request(prompt, model, maxTokens) {
+  function request(prompt, model, maxTokens, timeoutMs, contextTokens) {
     if (typeof model !== "string" || !model.trim()) {
-      throw new Error("Choose an installed Ollama model before requesting assessments.");
+      throw new Error("Choose an installed Ollama model before requesting generation.");
+    }
+    const requestTimeout = timeoutMs === undefined ? requestTimeoutMs : Number(timeoutMs);
+    if (!isFinite(requestTimeout) || requestTimeout <= 0) {
+      throw new Error("The Ollama request timeout must be a positive finite number of milliseconds.");
+    }
+    const requestContext = contextTokens === undefined ? 4096 : Number(contextTokens);
+    if (!isFinite(requestContext) || requestContext < 1024) {
+      throw new Error("The Ollama context size must be at least 1024 tokens.");
     }
     // Non-streaming JSON keeps response parsing and validation predictable.
     const response = send("POST", "/api/generate", {
@@ -191,9 +198,10 @@
       format: "json",
       options: {
         temperature: 0,
-        num_predict: maxTokens || 256
+        num_predict: maxTokens || 256,
+        num_ctx: requestContext
       }
-    }, requestTimeoutMs, "Ollama request for model '" + model + "'");
+    }, requestTimeout, "Ollama request for model '" + model + "'");
     if (response.statusCode() !== 200) {
       const errorText = String(response.body() || "");
       throw new Error("Ollama returned HTTP " + response.statusCode() + ": " +

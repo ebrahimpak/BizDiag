@@ -15,9 +15,8 @@
  *
  * @fileoverview Provides model queries, CBP's allowed element scope, and persisted two-stage run state.
  *
- * Move 1's capability-map scope contains Capability elements only. Courses of Action are discovered
- * separately as potential strategy inputs; Value Streams and Resources remain outside the Capability
- * Map and are never converted automatically into Capabilities.
+ * The Capability Map contains Capability elements only. Optional AI-proposed Capabilities are marked
+ * provisional and traced to strategic model evidence; Courses of Action remain separate inputs.
  */
 (function(root) {
     "use strict";
@@ -105,6 +104,23 @@
             seen[id] = true;
             return true;
         });
+    }
+
+    /**
+     * Gets the current Capability concepts visually present in a view.
+     * Move 2-7 uses the user-edited managed Capability Map as its effective scope.
+     * @param {Object} view jArchi view proxy.
+     * @returns {Object[]} Unique Capability concepts in the view.
+     */
+    function capabilitiesInView(view) {
+        const found = [];
+        $(view).find("element").each(function(diagramElement) {
+            const concept = diagramElement && diagramElement.concept
+                ? diagramElement.concept
+                : diagramElement;
+            if (isSupportedScopeElement(concept)) found.push(concept);
+        });
+        return uniqueById(found);
     }
 
     /**
@@ -306,6 +322,7 @@
         setIfAbsent: setIfAbsent,
         query: query,
         uniqueById: uniqueById,
+        capabilitiesInView: capabilitiesInView,
         discoverScope: discoverScope,
         discoverPotentialStrategies: discoverPotentialStrategies,
         allCapabilities: allCapabilities,

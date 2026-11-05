@@ -15,11 +15,9 @@
  *
  * @fileoverview Archi/jArchi entry point for identifying the capability-map scope and preparing inputs.
  *
- * Move 1 reflects the capability identification and capability-map framing in "Capability-Based
- * Planning, The Link between Strategy and Enterprise Architecture" and "Capability-based Planning in
- * 7 moves!". The map contains existing Capability elements and their explicitly modeled hierarchy.
- * It does not derive or create Capabilities from Value Streams, Resources, Courses of Action, or
- * other elements. Courses of Action remain separate potential strategy inputs.
+ * Move 1 maps existing Capabilities and can optionally propose provisional, evidence-linked
+ * Capabilities from strategic ArchiMate context through a local Ollama model. Human review remains
+ * required before the separate assessment stage.
  */
 console.clear();
 console.show();
@@ -39,6 +37,7 @@ console.show();
     load(rootDirectory + "lib/CBP_Model_Inputs.js");
     load(rootDirectory + "lib/CBP_Run_State.js");
     load(rootDirectory + "lib/CBP_View_Generator.js");
+    load(rootDirectory + "lib/CBP_Capability_Discovery.js");
 
     /**
      * Writes a visible phase header to the Archi script console.
@@ -51,6 +50,19 @@ console.show();
      * @param {string} text Error message.
      */
     function logError(text) { console.error("[ERROR] " + text); }
+
+    function loadOllamaWorker() {
+        if (typeof globalThis.cbpOllamaWorker !== "undefined" &&
+            typeof globalThis.cbpOllamaWorker.request === "function" &&
+            typeof globalThis.cbpOllamaWorker.listModels === "function") return;
+        const File = Java.type("java.io.File");
+        const workerFile = new File(rootDirectory + "lib/CBP_Ollama_Worker.js");
+        if (!workerFile.isFile()) throw new Error("Ollama worker not found: " + workerFile.getCanonicalPath());
+        load(workerFile.getCanonicalPath());
+        if (typeof globalThis.cbpOllamaWorker === "undefined") {
+            throw new Error("The Ollama worker did not initialize.");
+        }
+    }
 
     try {
         logHeader("CBP Move 1 - Setup");
@@ -95,12 +107,7 @@ console.show();
         if (!incrementResult.valid) throw new Error(incrementResult.reason);
 
         const discovered = cbpRunState.discoverScope();
-        const capabilities = discovered.capabilities.slice();
-        if (!capabilities.length) {
-            throw new Error("Move 1 requires at least one existing ArchiMate Capability. Value Streams, Resources, " +
-                "Courses of Action, and other element types are not included in the Capability Map or converted " +
-                "into generated Capability candidates.");
-        }
+        let capabilities = discovered.capabilities.slice();
         const potentialStrategies = cbpRunState.discoverPotentialStrategies();
         const stableViewIds = {};
         Object.keys(priorRun && priorRun.views || {}).forEach(function(key) {
@@ -116,6 +123,64 @@ console.show();
         ], stableViewIds, {
             "CBP - Capability Profiles and Inputs": "CBP - Capability Map and Profiles"
         });
+
+        let aiDiscovery = {created: [], proposed: 0, rejected: 0, sourceCount: 0};
+        let aiModelName = "";
+        let aiDiscoveryRequested = false;
+        const discoveryContext = cbpCapabilityDiscovery.collectContext();
+        const availableSources = cbpCapabilityDiscovery.contextSourceCount(discoveryContext);
+        aiDiscovery.sourceCount = availableSources;
+        if (availableSources) {
+            const bmcContentCount = discoveryContext.bmcContents.length;
+            const bmcDisclosure = bmcContentCount
+                ? "The request will also include up to " + bmcContentCount +
+                    " non-empty text items from at most 3 identified Business Model Canvas views " +
+                    "(12 items per view, 24 items total; 180 characters per item and 2,400 BMC text characters total). "
+                : "No non-empty text was found in identified Business Model Canvas views, so no BMC content will be sent. ";
+            const useAi = window.confirm(
+                "Send the bounded strategic model labels, directly composed Value Stream stage names, and existing " +
+                "Capability names to local Ollama for provisional Capability suggestions?\n\n" + bmcDisclosure +
+                "A view qualifies when its name identifies a Business Model Canvas or at least six standard BMC block " +
+                "headings are recognized; folder names are ignored. Included content is limited to Canvas block/sticky labels and text, BMC model-element " +
+                "labels/documentation, and notes inside qualifying views."
+            );
+            if (useAi) {
+                try {
+                    loadOllamaWorker();
+                    const models = globalThis.cbpOllamaWorker.listModels();
+                    const selected = window.promptSelection(
+                        "Choose an installed local Ollama model for provisional Capability discovery:", models
+                    );
+                    if (selected !== null && selected !== undefined && String(selected).trim()) {
+                        aiModelName = String(selected);
+                        aiDiscoveryRequested = true;
+                        aiDiscovery = cbpCapabilityDiscovery.discover(activeModel, aiModelName, discoveryContext);
+                        capabilities = cbpRunState.uniqueById(capabilities.concat(aiDiscovery.created));
+                        console.log("[AI] Added " + aiDiscovery.created.length +
+                            " provisional Capabilities from " + aiDiscovery.sourceCount + " source records; " +
+                            aiDiscovery.rejected + " unsupported or invalid proposals were rejected.");
+                    } else {
+                        console.log("[AI] Model selection cancelled; no candidate Capabilities were created.");
+                    }
+                } catch (aiError) {
+                    const discoveryError = aiError && aiError.message ? aiError.message : String(aiError);
+                    console.error("[AI] Capability discovery failed: " +
+                        discoveryError);
+                    window.alert("Local Ollama capability discovery failed:\n" +
+                        discoveryError +
+                        (discoveryError.indexOf("No proposed Capabilities have been created") >= 0
+                            ? ""
+                            : "\nReview the model before continuing in case model-element creation had already begun."));
+                    if (!capabilities.length) throw aiError;
+                }
+            } else {
+                console.log("[AI] Capability discovery declined; only existing Capabilities will be mapped.");
+            }
+        }
+        if (!capabilities.length) {
+            throw new Error("Move 1 requires at least one existing or Ollama-proposed Capability. Add or select " +
+                "Capabilities, or run the optional discovery step against modeled strategic elements and identified Business Model Canvas content.");
+        }
 
         // ===== MOVE 1: Map existing Capabilities and prepare editable model inputs. =====
         const stableModelIdentity = cbpRunState.ensureModelIdentity(activeModel);
@@ -161,6 +226,14 @@ console.show();
             increments: incrementResult.years,
             status: "INPUTS_PENDING",
             createdAt: new Date().toISOString(),
+            aiDiscovery: {
+                enabled: aiDiscoveryRequested,
+                model: aiModelName,
+                candidateIds: aiDiscovery.created.map(cbpRunState.idOf),
+                sourceCount: aiDiscovery.sourceCount,
+                proposed: aiDiscovery.proposed,
+                rejected: aiDiscovery.rejected
+            },
             views: {}
         };
         const setupViews = cbpViewGenerator.drawSetup(

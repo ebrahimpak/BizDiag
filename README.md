@@ -118,6 +118,7 @@ BizDiag modules
       ├── BizDiag_Local_AI
       │   ├── Capability_Based_Planning
       │   │   └── lib
+      │   │       ├── CBP_Capability_Discovery.js
       │   │       └── CBP_Ollama_Worker.js
       │   ├── DocMaker
       │   └── UML
@@ -320,7 +321,7 @@ Architecture model interaction from AI inference. It is organized around three c
 
 - an AI-enhanced ArchiMate Application View to UML transformation script
 - an AI-driven DocMaker subsystem for generating documentation
-- the Capability-Based Planning workflow and its optional Ollama input-assistance worker
+- the Capability-Based Planning workflow with optional Move 1 Ollama Capability discovery
 
 ```
 BizDiag_Local_AI/
@@ -328,6 +329,13 @@ BizDiag_Local_AI/
 │   ├── CBP_Move_1_Setup.ajs
 │   ├── CBP_Continue_Moves_2_to_7.ajs
 │   └── lib/
+│       ├── CBP_Capability_Discovery.js
+│       ├── CBP_Improvement_Tables.js
+│       ├── CBP_Strategic_Importance_Maturity_Diagrams.js
+│       ├── CBP_Assessment_Engine.js
+│       ├── CBP_Model_Inputs.js
+│       ├── CBP_Run_State.js
+│       ├── CBP_View_Generator.js
 │       └── CBP_Ollama_Worker.js
 ├── DocMaker
 │   ├── AI_Element_DocMaker_EN.ajs
@@ -367,9 +375,10 @@ directory management. The following are the jArchi scripts and JavaScript files 
 | `BizDiag_Local_AI/DocMaker/Mark_it_Down.ajs`                                    | Provides Markdown export functionality for selected Archi views and elements                                                                                                                   |
 | `BizDiag_Local_AI/DocMaker/Ollama_Olalla.ajs`                                   | Provides integration with the locally installed Ollama AI runtime                                                                                                                              |
 | `BizDiag_Local_AI/UML/sendToAI.js`                                              | Simple HTTP client wrapper for querying Ollama (used by Application_View_to_UML.ajs only; independent of AI_REST_JSON.js)                                                                      |
-| `BizDiag_Local_AI/Capability_Based_Planning/lib/CBP_Ollama_Worker.js` | Provides optional local Ollama model discovery and asynchronous requests for CBP input suggestions; loaded only when the user chooses AI assistance |
-| `BizDiag_Local_AI/Capability_Based_Planning/CBP_Move_1_Setup.ajs` | Creates a Capability-only map from existing Capability relationships, profile inputs, and a separate Course of Action strategy worklist |
-| `BizDiag_Local_AI/Capability_Based_Planning/CBP_Continue_Moves_2_to_7.ajs` | Validates inputs, optionally requests local AI suggestions, and generates the remaining CBP views |
+| `BizDiag_Local_AI/Capability_Based_Planning/lib/CBP_Capability_Discovery.js` | Builds a bounded strategic-label and Business Model Canvas context, validates grounded Ollama proposals, and creates traceable provisional Capability elements |
+| `BizDiag_Local_AI/Capability_Based_Planning/lib/CBP_Ollama_Worker.js` | Discovers installed local Ollama models and transports asynchronous generation requests with timeout and error handling |
+| `BizDiag_Local_AI/Capability_Based_Planning/CBP_Move_1_Setup.ajs` | Creates the Capability map and input worklists; optionally discovers provisional Capabilities from bounded strategic labels and Canvas content |
+| `BizDiag_Local_AI/Capability_Based_Planning/CBP_Continue_Moves_2_to_7.ajs` | Validates user-entered inputs, calculates Moves 2–7, and generates the analytical CBP views without invoking Ollama |
 
 
 
@@ -381,10 +390,10 @@ UML-like view  generation script designed for architectural transformation and s
 generate idiomatic UML, but instead it generates a UML-inspired component-diagram view from the selected ArchiMate 
 Application View.
 
-Application_View_to_UML.ajs 
-converts the currently selected ArchiMate view into a new UML-style view displayed directly in Archi’s Models panel. The
-latest version of this script uses Ollama through `sendToAI.js` to semantically analyze each element and generate more 
-informed UML stereotypes and enriched documentation. It reads a user-selected source view—typically a Phase C - 
+Application_View_to_UML.ajs
+converts the currently selected ArchiMate view into a new UML-style view displayed directly in Archi’s Models panel.
+The script uses Ollama through `sendToAI.js` to semantically analyze each element and generate more informed UML
+stereotypes and enriched documentation. It reads a user-selected source view—typically a Phase C -
 Information Systems Architecture view—extracts application-layer concepts and relationships, and creates a new Archi 
 view using UML-style diagram notation enhanced with AI-generated semantic classifications.
 
@@ -720,7 +729,7 @@ based on Ollama.
 
 **Ollama model selection (interactive)**
 
-- The DocMaker scripts (Element and View variants, English & Persian) now include an interactive Ollama model selector.
+- The DocMaker scripts (Element and View variants, English & Persian) provide an interactive Ollama model selector.
 - When you run a DocMaker script, the initial confirmation dialog will show an optional dropdown listing the locally-installed Ollama models (discovered by running `ollama list`).
 - Choose an installed model to have the script use it for the AI request; the selected model is passed to the REST client (`AI_REST_JSON.js`) and included in the JSON request as `model: "<your-selected-model>"`.
 - If no models are detected, or you cancel selection, the scripts fall back to the previous default model — preserving backward compatibility.
@@ -812,21 +821,29 @@ that Capability's contribution to the strategy. Impact ratings must be whole num
 
 The seven moves are implemented as follows:
 
-The **Capability Map** contains only in-scope Capability elements and their explicitly modeled Composition or
-Aggregation relationships to other in-scope Capabilities. Value Streams, Resources, and Courses of Action are not
-map nodes. Courses of Action remain separate potential strategy inputs and are the only elements eligible for
-`CBP.Role=Strategy`. Move 1 requires at least one existing Capability and never generates Capability candidates from
-other model elements. If no Capability hierarchy is modeled, Move 1 shows the Capabilities without inventing
-relationships and warns that decomposition must be modeled.
+The **Capability Map** contains in-scope Capability elements and their explicitly modeled Composition or
+Aggregation relationships to other in-scope Capabilities. When the user opts in, Move 1 can add provisional
+Capability candidates proposed from bounded strategic model labels. Value Streams, Resources, and Courses of Action
+remain evidence sources rather than map nodes. Courses of Action are separate potential strategy inputs and are the
+only elements eligible for `CBP.Role=Strategy`. If no Capability hierarchy is modeled, Move 1 shows the Capabilities
+without inventing relationships and warns that decomposition must be modeled.
 
 The supplied “Capability-based Planning in 7 moves!” paper recommends analytically extracting capabilities from
 strategic documents and analyzing value streams for capabilities needed by each stage, followed by combining
-approaches and validation with business owners. It does not provide a deterministic conversion from ArchiMate Value
-Stream, Resource, or Course of Action elements into Capability elements; those concepts may inform human analysis
-but are not automatically transformed into capabilities by the suite.
+approaches and validation with business owners. Optional Move 1 discovery supports this analysis by sending one
+compact Ollama request with bounded names/types of Value Streams, their directly composed stage names, selected
+strategy/resource/goal/outcome/driver labels, and existing Capability names. Ollama can propose up to three
+provisional Capabilities with grounded source-label or BMC-content evidence. The request also includes bounded text
+from native `canvas-model` or `archimate-diagram-model` views. A view qualifies when at least six of the nine
+standard Business Model Canvas block headings are recognized among its Canvas blocks or ArchiMate elements, or its
+name identifies it as a Business Model Canvas. Folder names do not affect selection. Included text can contain Canvas block/sticky labels and text, ArchiMate element
+labels/documentation, and diagram-note text inside qualifying views. At most three qualifying content-bearing views,
+12 items per view, 24 items total, 180 characters per item, and 2,400 BMC text characters total are included.
+View and item names are limited to 60 characters. These labels and excerpts are limited evidence, so architects must
+review proposals and determine coverage, granularity, hierarchy, and strategic relevance.
 
-1. **Identify and model capabilities:** show a structured, Capability-only map from existing Capability concepts and
-their modeled hierarchy, plus a separate Capability profile/input worklist.
+1. **Identify and model capabilities:** show a structured, Capability-only map from existing Capability concepts,
+their modeled hierarchy, and any provisional discovery candidates for architect review, plus separate input worklists.
 2. **Assess maturity:** calculate a weighted overall score from People, Process, and Technology ratings, and present the
 result in a maturity heatmap.
 3. **Assess strategic importance:** calculate weighted impact from strategy elements explicitly marked
@@ -845,7 +862,7 @@ inputs.
 
 | Move | EA purpose in the paper | What the script does | What remains a human responsibility |
 |---|---|---|---|
-| **1. Identify and model business capabilities** | Build and refine a capability map from strategy, value streams, organization, and reference models; profile the capabilities and check coverage and granularity. | Displays only existing Capability elements and modeled Capability Composition/Aggregation hierarchy in the map; profiles and Course of Action strategy inputs are separate. It does not auto-create capabilities or infer relationships from Value Streams, Resources, or Courses of Action. | Analyzing strategic documents, value streams, organizational structure, and reference models to identify candidate capabilities; validating names, scope, coverage, granularity, hierarchy, and strategy relevance with business owners. |
+| **1. Identify and model business capabilities** | Build and refine a capability map from strategy, value streams, organization, and reference models; profile the capabilities and check coverage and granularity. | Displays existing Capability elements, modeled Capability Composition/Aggregation hierarchy, and optionally up to three provisional Ollama proposals grounded in bounded strategic labels, Value Stream stages, and Canvas content. Profiles and Course of Action strategy inputs are separate. No hierarchy is inferred. | Reviewing candidate capabilities and analyzing strategic documents, value streams, organizational structure, and reference models; validating names, scope, coverage, granularity, hierarchy, and strategy relevance with business owners. |
 | **2. Assess maturity** | Assess each Capability's People, Process, and Technology maturity and calculate an overall maturity using a weighted mean; display a maturity heatmap. | Reads three 0–4 ratings, applies optional positive weights, calculates the weighted mean, writes `CBP.Result.Maturity`, and displays the nearest integer band. | Assigning defensible ratings using the paper's dimension rubrics and choosing weights. Ratings are not inferred from process counts, applications, or model structure. |
 | **3. Assess strategic importance** | Evaluate how each Capability contributes to the enterprise's strategies; consolidate and normalize impacts; display strategic importance. | Reads impact scores on explicitly tagged strategy concepts, applies optional strategy weights, normalizes the weighted average to 0–4, writes `CBP.Result.StrategicImportance`, and creates a heatmap. | Selecting relevant strategies, deciding their weights, and judging every Capability/strategy impact pair. The code's score is only as sound as those inputs. |
 | **4. Analyze the capability landscape** | Combine maturity and importance in an ML-SI matrix; interpret gaps, comfort, and an acceptance band. | Plots fully assessed concepts in rounded matrix cells, classifies using exact score difference and tolerance, and records `CBP.Result.Zone` and `CBP.Result.Gap`. | Interpreting strategic risk, deciding what constitutes acceptable capability risk, and validating that the threshold suits the enterprise. |
@@ -853,27 +870,33 @@ inputs.
 | **6. Define actions** | Translate each planned dimension-level maturity transition into concrete People, Process, and Technology actions. | For every dimension whose target rises, requires an action description, project name, and priority. Validated records become traceable Work Package concepts and links. | Defining actions that are sufficient, feasible, sequenced, owned, resourced, and appropriate to the actual capability. Text is supplied by the architect; the script does not invent it. |
 | **7. Design the change portfolio** | Consolidate actions into coordinated projects/programs using capability-based, dimension-based, or hybrid grouping and organizational context. | Groups actions by increment and entered project name, requires a consistent priority within a project/year, sorts lower priorities first, creates project Work Packages, and displays containment links. | Selecting a grouping strategy, resolving dependencies, capacity and budget trade-offs, preparing charters, and governing implementation. |
 
-The continuation offers AI assistance only if maturity ratings or strategy impacts are missing or invalid. After the
-user opts in, it loads the CBP module's local worker
-[`CBP_Ollama_Worker.js`](BizDiag_Local_AI/Capability_Based_Planning/lib/CBP_Ollama_Worker.js),
-lists locally installed models, and validates every returned property key, range, and rationale before applying a
-suggestion. It does not use heatmap cards as a work queue and does not infer targets, actions, project names, or
-priorities. Review and save the model after AI-assisted completion.
+Move 1 optionally uses local Ollama to propose provisional Capabilities from a single compact request containing
+bounded strategic element names/types, directly composed Value Stream stage names, and capped content from
+identified Business Model Canvas views. Proposals must cite supplied source references and quote an
+exact source/stage name or BMC excerpt; the script validates that evidence and rejects duplicates before creating
+any candidates. Review, edit, or remove each proposal before continuing. Ollama does not provide maturity ratings,
+strategic impacts, weights, targets, actions, projects, or priorities; those remain user-entered.
 
 Move 1 creates the Capability-only Map, Capability Profiles and Inputs, and Strategy Inputs views; it does not create
-analytical assessment views. The continuation creates the maturity and strategic-importance heatmaps, ML-SI matrix and
-valid Goals, actions and change
+analytical assessment views. The continuation creates the maturity and strategic-importance heatmaps, ML-SI matrix,
+three-form Strategic Importance and Maturity Diagrams, Improvement Roadmap Tables, valid Goals, actions and change
 portfolio, and overview. Managed views use ownership markers and stop on ambiguous name collisions rather than
 overwriting user-owned views. Only Courses of Action marked exactly `CBP.Role=Strategy` are included; without any
 selected Courses of Action, strategic importance remains unresolved rather than being treated as zero.
 
 
-_Why Ollama?_
+_Local Ollama discovery_
 
-I have, again, utilized Ollama as the on-premises AI runtime instead of requiring a cloud-based AI service and an 
-external API key. As a Digital Business Practitioner, I wanted AI-assisted CBP input completion to provide 
-greater control over potentially sensitive data because even anonymizing the EA model and delivering it to a 
-cloud-based AI service could not yield any semantically meaningful outputs.
+Ollama is optional and is called only when the user enables Capability discovery in Move 1 and selects an installed
+model. The single request contains bounded strategic element names/types, directly composed Value Stream stage names,
+existing Capability names, and text from `canvas-model` or `archimate-diagram-model` views whose Canvas block or
+ArchiMate element headings match at least six standard BMC categories, or the view name identifies it as a Business
+Model Canvas. Folder names do not affect selection. Included text is limited to Canvas block/sticky labels and text, ArchiMate element labels/documentation, and
+diagram-note text inside qualifying views. Content is capped at three qualifying views, 12 items per view,
+24 items total, 180 characters per item, and 2,400 BMC text characters total; view and item names are limited to
+60 characters. The worker communicates with the local endpoint at
+`http://localhost:11434`; discovery is limited to one request and up to three provisional candidates. All candidates
+require architect review.
 
 
 <a id="bizmodelcanvas"></a>
@@ -890,7 +913,7 @@ scripts/ folder. The scripts in this script-suite are the result of deeply resea
 model, and applying the findings of the conducted research on these scripts. These scripts perform a wide range of 
 operations on the BMC, namely, they analyze models for all the nine building blocks of their business model canvas.
 
-BizDiag now has a fully functional, bilingual, unified GUI system for managing nine BizModelCanvas jArchi scripts. This
+BizDiag provides a bilingual, unified GUI system for managing nine BizModelCanvas jArchi scripts. This
 system provides professional access to enterprise architecture analysis tools with full English and Persian language 
 support.
 
@@ -1228,11 +1251,15 @@ BizDiag/
 │   │   ├── CBP_Move_1_Setup.ajs
 │   │   ├── CBP_Continue_Moves_2_to_7.ajs
 │   │   ├── lib/
-│   │   │   ├── CBP_Ollama_Worker.js
+│   │   │   ├── CBP_Capability_Discovery.js
+│   │   │   ├── CBP_Improvement_Tables.js
+│   │   │   ├── CBP_Strategic_Importance_Maturity_Diagrams.js
+│   │   │   ├── CBP_Assessment_Engine.js
 │   │   │   ├── CBP_Model_Inputs.js
 │   │   │   ├── CBP_Run_State.js
-│   │   │   ├── CBP_Assessment_Engine.js
-│   │   │   └── CBP_View_Generator.js
+│   │   │   ├── CBP_View_Generator.js
+│   │   │   └── CBP_Ollama_Worker.js
+│   │   ├── papers/
 │   ├── DocMaker/
 │   └── UML/
 ├── BizModelCanvas/

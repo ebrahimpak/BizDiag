@@ -30,16 +30,17 @@ work of discovering and validating capabilities, selecting strategies, assessing
 actions, or governing a change portfolio.
 
 The current implementation is a two-stage, user-controlled workflow. It requires Archi with jArchi and an active
-ArchiMate model. Local Ollama is optional and is used only when the user requests suggestions for eligible missing
-assessment inputs.
+ArchiMate model. Local Ollama is optional and, when explicitly requested in Move 1, proposes evidence-linked
+provisional Capabilities from strategic model context. It does not suggest assessment ratings.
 
 ## 2. Scope and modeling rules
 
 ### 2.1 Move 1 scope and Capability Map contents
 
-The generated Capability Map contains only existing ArchiMate **Capability** elements and explicitly modeled
-Capability-to-Capability Composition or Aggregation relationships. The profile/input worklist also displays these
-Capabilities, but Value Streams, Resources, and Courses of Action are not placed in the Capability Map.
+The generated Capability Map contains existing and, when the user opts in, AI-proposed provisional ArchiMate
+**Capability** elements, plus explicitly modeled Capability-to-Capability Composition or Aggregation relationships.
+The profile/input worklist also displays these Capabilities, but Value Streams, Resources, and Courses of Action are
+not placed in the Capability Map.
 
 | ArchiMate element | Role in the suite |
 |---|---|
@@ -47,8 +48,10 @@ Capabilities, but Value Streams, Resources, and Courses of Action are not placed
 | Course of Action | Separate potential-strategy input; only these elements may be marked `CBP.Role=Strategy` and receive Capability-impact properties. Not a Capability Map node. |
 
 Value Streams, Resources, Business Functions, Business Processes, Business Services, Drivers, Goals, and Requirements
-are not Move 1 Capability Map scope. At least one existing Capability must be in the discovered scope. Goals may be
-generated later as workflow outputs; existing Goal elements are not Move 1 strategy inputs.
+are evidence sources, not Move 1 Capability Map nodes. Optional Ollama discovery proposes provisional Capabilities
+from bounded element names/types, directly composed Value Stream stage names, and capped text from structurally
+identified native Canvas or ArchiMate BMC views; only proposals that pass evidence validation become separate
+Capability elements.
 
 ### 2.2 Selection and discovery
 
@@ -62,18 +65,26 @@ relationships from names, or add Capability concepts. If no such relationships e
 Capabilities without a hierarchy and records that condition in the map documentation; when multiple Capabilities are
 in scope, it also warns that decomposition must be modeled explicitly.
 
-Potential strategy Courses of Action are still discovered model-wide, independently of the Capability selection.
-They appear only in the separate Strategy Inputs worklist and are not treated as strategies unless the user sets
-`CBP.Role=Strategy`. A prior run's legacy Value Stream and Resource IDs are ignored; new run records do not capture
-those IDs.
+Potential strategy Courses of Action are discovered model-wide, independently of the Capability selection. They
+appear only in the separate Strategy Inputs worklist and are not treated as strategies unless the user sets
+`CBP.Role=Strategy`.
 
-The supplied “Capability-based Planning in 7 moves!” paper (Move #1, PDF pp. 2–3) describes using strategic documents
-to analytically extract needed capabilities and analyzing value streams to identify capabilities needed for their
-stages. It calls for combining approaches and refining the draft with business owners; it does not define a
-deterministic transformation from ArchiMate Value Stream, Resource, or Course of Action elements into Capability
-elements. Accordingly, the suite does not auto-create capabilities from these element types. They may inform the
-architect's analysis outside the Capability Map; any resulting Capability and hierarchy must be explicitly modeled
-and reviewed.
+The supplied “Capability-based Planning in 7 moves!” paper (Move #1, PDF pp. 2–3) describes extracting needed
+capabilities from strategic documents and analyzing value streams to identify the capabilities needed at their
+stages. Optional Move 1 discovery supports this analysis with a single compact Ollama request containing up to 10
+non-generated Value Stream names, up to 15 directly composed stage names (maximum three per selected stream), up to
+10 Course of Action, Resource, Goal, Outcome, or Driver names, and up to 20 existing Capability names. These labels
+are truncated to 60 characters. The request also includes non-empty content items from native `canvas-model` or
+`archimate-diagram-model` views. A view qualifies when at least six of the nine standard Business Model Canvas block
+headings are recognized among its Canvas blocks or ArchiMate elements, or its name identifies it as a Business Model
+Canvas; folder names do not affect discovery. From qualifying views, the script includes Canvas block/sticky labels and text, ArchiMate element labels and
+documentation, and diagram-note text. It includes at most three content-bearing views, 12 items per view, and 24
+items total; each item's text is limited to 180 characters and BMC text to 2,400 characters total. View and item
+names are truncated to 60 characters. Each item is labeled with its type, name, and view name. Ollama may return up to
+three provisional proposals with source references
+and an exact source/stage quotation or BMC-content excerpt; the script validates grounding and duplicate names
+before creating them. Proposals require architect review and do not establish completeness or correctness. No
+hierarchy is inferred.
 
 ### 2.3 Human decisions and automated checks
 
@@ -96,6 +107,7 @@ Prepare an ArchiMate model
 Run CBP_Move_1_Setup.ajs
         |
         +-- create/update a Capability-only map and input worklists
+        +-- optionally propose provisional Capabilities from strategic model evidence via local Ollama
         +-- store model-local run state
         |
         v
@@ -104,9 +116,9 @@ Enter and review planning inputs in model Properties
         v
 Run CBP_Continue_Moves_2_to_7.ajs
         |
-        +-- restore the exact Move 1 Capability and Course of Action IDs
+        +-- use the current Capability concepts on the managed Capability Map
         +-- validate run/model/year identity
-        +-- optionally request local Ollama suggestions for missing ratings
+        +-- leave missing or invalid assessment inputs unresolved
         +-- calculate assessments, landscape, goals, and actions
         +-- generate/update the analytical views
         +-- mark the run completed
@@ -128,27 +140,37 @@ Running the continuation without an `INPUTS_PENDING` run fails with a message di
 3. Reads `CBP.Increments` from the model. If absent, asks the user to enter planning years. Cancellation occurs before
    setup changes are made.
 4. Validates that increments are unique consecutive four-digit years.
-5. Discovers the Capability-only scope and stops if there is no Capability.
-6. Preflights the Capability Map and two managed Move 1 worklists before rebuilding them.
-7. Assigns `CBP.InputCode` values to in-scope Capabilities that do not already have one.
-8. Adds empty entries for required maturity and per-year target/action/project/priority property names where absent.
+5. Discovers the existing Capability scope and preflights the Capability Map and two managed Move 1 worklists.
+6. Optionally asks permission to send bounded strategic element names/types, directly composed Value Stream stage
+   names, and bounded text from identified Business Model Canvas views to local Ollama. A view
+   qualifies when at least six of the nine standard BMC block headings are recognized among its Canvas blocks or
+   ArchiMate elements, or its name identifies it as a Business Model Canvas; folder names are not used to select it.
+   The user selects an installed model; no
+   model is contacted when discovery is declined or no source content exists.
+7. Validates all returned proposals before creating provisional Capability elements, and adds them to the map scope.
+   If there are no existing Capabilities and discovery is declined or yields no valid candidate, Move 1 stops.
+8. Assigns `CBP.InputCode` values to in-scope Capabilities that do not already have one.
+9. Adds empty entries for required maturity and per-year target/action/project/priority property names where absent.
    Archi versions that do not preserve blank custom properties are handled by showing exact keys in the views for the
    user to add manually.
-9. Adds `CBP.Role` and one `CBP.Impact.<CapabilityCode>` field to potential Course of Action elements when absent.
-10. Builds or updates the Capability-only Map, profile/input worklist, and strategy-input worklist; then saves a pending
+10. Adds `CBP.Role` and one `CBP.Impact.<CapabilityCode>` field to potential Course of Action elements when absent.
+11. Builds or updates the Capability-only Map, profile/input worklist, and strategy-input worklist; then saves a pending
     run record on the model.
 
 The map displays only in-scope Capability elements and their existing direct Composition/Aggregation relationships.
-The script does not infer a hierarchy, create Capability candidates from Value Streams, Resources, Courses of Action,
-or other elements, prefill assessment values, or assign `CBP.Role=Strategy`. Optional weight properties are not
-initialized by Move 1.
+AI-proposed candidates are marked `CBP.AI.Provisional=true`, shaded green in the map, and include source IDs,
+evidence quotations, and the model's rationale in their properties/profile card. The script does not infer a hierarchy,
+prefill assessment values, or assign `CBP.Role=Strategy`. Optional weight properties are not initialized by Move 1.
 
 ### 3.2 User checkpoint
 
+The user may edit or remove Capability concepts from the managed Capability Map before continuing; that current map
+membership defines the assessment scope. AI candidates are ordinary Capability model elements with review metadata.
 The user edits custom properties on the underlying Capability or Course of Action shown in a worklist; view cards are
-instructions, not the data store. The user should verify candidate names and model evidence, select intended Courses
-of Action using `CBP.Role=Strategy`, complete required assessment fields, review all values, and save the Archi model
-before running the continuation.
+instructions, not the data store. Verify candidate names/evidence, select intended Courses of Action using
+`CBP.Role=Strategy`, complete required assessment fields, review all values, and save the Archi model before running
+the continuation. If a Capability is added to the map after Move 1, the continuation prepares its codes and required
+fields, reports the codes, and pauses so the user can enter the new ratings and strategy-impact values first.
 
 ### 3.3 Continuation details
 
@@ -157,19 +179,19 @@ before running the continuation.
 1. Loads the model-input, run-state, assessment, view-generation, landscape-diagram, and improvement-table helpers.
 2. Requires a valid `INPUTS_PENDING` run and verifies that the active model identity and `CBP.Increments` still match
    the Move 1 checkpoint.
-3. Restores Capabilities and potential Courses of Action by model ID. If an ID no longer resolves within the supported
-   element types, it stops rather than silently changing the run scope.
-4. Selects Courses of Action explicitly marked `CBP.Role=Strategy`, validates their weights, and identifies missing or
-   invalid maturity and impact properties.
-5. If there are eligible missing/invalid maturity or impact inputs, asks whether to use local Ollama. A decline or
-   cancelled model selection leaves those inputs unresolved. If there are no eligible gaps, Ollama is not loaded.
+3. Resolves the managed Capability Map by its recorded view identity; the Capability concepts currently displayed
+   in that view define the effective scope, so a deleted/removed member is excluded.
+4. Prepares input codes and required property keys for any newly added map Capability. If the scope has expanded, it
+   pauses before calculation to let the user fill the new keys and rerun.
+5. Restores potential Courses of Action by model ID and selects only those explicitly marked `CBP.Role=Strategy`;
+   maturity and impact inputs remain user-supplied and unresolved values are reported.
 6. Calculates the results and writes derived result properties to Capabilities.
 7. Preflights and creates or updates the six analytical views.
-8. Marks the model-local run record `COMPLETED`, records selected strategy IDs, AI suggestion count, completion time,
+8. Marks the model-local run record `COMPLETED`, records selected strategy IDs, Move 1 discovery metadata, completion time,
    and managed view IDs, and presents a completion summary.
 
-Ollama does not supply targets, actions, project names, weights, or priorities. The continuation continues to
-calculation and view generation when AI assistance is declined or fails, with missing inputs visible as unresolved.
+Ollama is not invoked during continuation and never supplies maturity, strategy impact, targets, actions, project
+names, weights, or priorities. Missing or invalid assessment inputs remain visibly unresolved.
 
 ## 4. Data contract: model properties
 
@@ -235,11 +257,8 @@ For a Capability and increment where a target dimension is greater than its star
 | `CBP.ProjectPriority.<Dimension>.<YYYY>` | `CBP.ProjectPriority.People.2027` | Positive integer; smaller numbers rank first. There is no upper bound in the current validation. |
 
 The action, project, and priority are read as required for an increase. The implementation reports missing values as
-errors and does not create an action record unless all three are present and valid. Notably, the current calculation
-does not set `target.valid=false` solely because one of these action inputs is missing; a target can therefore still
-appear as a valid Goal while its action details are reported as unresolved. Reproduction work should preserve this
-distinction only if it is intentional; otherwise treat making the goal/action dependency explicit as a separately
-reviewed behavior change.
+errors and does not create an action record unless all three are present and valid. A target can still be a valid
+Goal when action inputs are incomplete; those action details are reported as unresolved.
 
 ### 4.4 Course of Action strategy properties
 
@@ -253,9 +272,9 @@ its role property is exactly the case-sensitive text `Strategy`.
 | `CBP.Impact.<CapabilityCode>` | Yes for every selected strategy/Capability pair | Integer `0`, `1`, or `2`: `0` no contribution, `1` some contribution, `2` strong contribution. Example: `CBP.Impact.CAP-001`. |
 
 The impact property's short code identifies the Capability being rated. Its value describes that Capability's
-contribution to the Course of Action. The property is entered on the Course of Action, not on the Capability. Legacy
-properties named `CBP.Impact.<fullCapabilityID>` remain a calculation fallback when the new short-code property is
-empty. The Move 1 worklist displays the short-code-to-Capability-name mapping.
+contribution to the Course of Action. The property is entered on the Course of Action, not on the Capability. If the
+short-code property is empty, the calculation also checks `CBP.Impact.<fullCapabilityID>`. The Move 1 worklist
+displays the short-code-to-Capability-name mapping.
 
 ### 4.5 Model-level properties
 
@@ -280,8 +299,15 @@ The scripts write additional properties; users normally do not edit these:
 | `CBP.GeneratedKey` | Generated model concept | Stable idempotency key for generated concepts. |
 | `CBP.ManagedBy` | Managed view | View ownership marker. |
 | `CBP.ViewKey` | Managed view | Stable internal identity of a managed view. |
-| `CBP.AI.Rationale.<PropertyKey>` | Element receiving a suggestion | Truncated rationale supplied with an accepted suggestion. |
-| `CBP.AI.Provisional` | Element receiving a suggestion | Set to `true` when the continuation applies one or more AI suggestions to that element. |
+| `CBP.CandidateStatus` | Provisional Capability | `AI-PROVISIONAL` until an architect reviews the candidate. |
+| `CBP.Candidate.SourceType` | Provisional Capability | Identifies local Ollama capability discovery as the source. |
+| `CBP.Candidate.SourceName` | Provisional Capability | Names of the cited source model elements. |
+| `CBP.Candidate.Rationale` | Provisional Capability | Discovery model's rationale, retained for review. |
+| `CBP.Candidate.Evidence` | Provisional Capability | Verbatim quotation grounded in the cited model context. |
+| `CBP.Candidate.SourceElementIDs` | Provisional Capability | Comma-separated source element IDs used to trace the proposal. |
+| `CBP.AI.Provisional` | Provisional Capability | Set to `true` for discovery-generated Capability candidates. |
+| `CBP.AI.DiscoveryKey` | Provisional Capability | Stable name-based key that prevents repeat discovery from duplicating the candidate. |
+| `CBP.AI.DiscoveryModel` | Provisional Capability | Selected Ollama model tag recorded for provenance. |
 
 Generated Goals also carry `CBP.SourceCapabilityID` and `CBP.Increment`. Generated project/action Work Packages carry
 increment, dimension, start and target levels, project name, priority, and source Capability ID as applicable.
@@ -290,10 +316,10 @@ increment, dimension, start and target levels, project name, priority, and sourc
 
 ### Move 1 — Identify and frame the capability map
 
-Move 1 performs Capability-only scope discovery, hierarchy visualization from existing Composition/Aggregation
-relationships, Capability code allocation, property preparation, and checkpoint creation. It is not a quantitative
-assessment. It requires at least one existing Capability and never derives map nodes or hierarchy from other element
-types. Courses of Action remain potential strategy inputs in a separate worklist.
+Move 1 performs Capability-only scope discovery, optional evidence-grounded proposal generation, hierarchy
+visualization from existing Composition/Aggregation relationships, Capability code allocation, property preparation,
+and checkpoint creation. It is not a quantitative assessment. AI proposals become reviewable Capability elements;
+hierarchy is never inferred. Courses of Action remain potential strategy inputs in a separate worklist.
 
 ### Move 2 — Assess maturity
 
@@ -414,7 +440,7 @@ use the same Gap/Comfort/Acceptance colors as the matrix, with a legend at the t
 The Strategic Importance and Maturity Diagrams view contains three panels modeled on the paper's figures: (1) a
 neutral 0–4 maturity/importance grid with a diagonal alignment reference, (2) a Gap Zone / Acceptance Band /
 Comfort Zone landscape, and (3) maturity targets by configured increment at each Capability's current strategic
-importance. All panels use the exact Move 1 run scope and the already-calculated assessment results. The first two
+importance. All panels use the current managed Capability Map scope and the already-calculated assessment results. The first two
 panels show assessed Capabilities at rounded grid coordinates while labeling their exact scores; the zone panel
 displays the exact calculated zone. The roadmap panel plots only accepted Goals and connects consecutive validated
 increments; it does not interpolate across an unvalidated increment. Capabilities without both current scores and
@@ -422,7 +448,7 @@ increments without an accepted Goal are explicitly labeled as unavailable or not
 The colored zone cells are a visual guide; the assessment engine's exact gap and configured tolerance remain
 authoritative for each Capability's zone.
 The Improvement Roadmap Tables view uses the same assessment results, accepted Goals, validated action records, and
-project-priority conflict groups as the analytical views. It includes every Capability in the Move 1 run scope;
+project-priority conflict groups as the analytical views. It includes every Capability in the effective map scope;
 unvalidated per-increment targets are labeled rather than inferred. Actions in priority-conflicted projects remain
 visible in the action table with an explicit excluded-from-portfolio status.
 
@@ -431,9 +457,8 @@ visible in the action table with an explicit excluded-from-portfolio status.
 Before creating or rebuilding a view, the generator checks the model's view collection (with a fallback query for
 diagram views). An existing view with a managed name is reusable only when its `CBP.ManagedBy` and `CBP.ViewKey`
 properties match the expected CBP identities. Duplicate names, changed identities, or user-owned name collisions stop
-generation instead of overwriting unrelated views. On upgrade, the previously managed `CBP - Capability Map and
-Profiles` view is renamed and reused for the new Capability Profiles and Inputs view only when its ownership identity
-matches; otherwise generation stops.
+generation instead of overwriting unrelated views. A view named `CBP - Capability Map and Profiles` can be reused
+for `CBP - Capability Profiles and Inputs` only when its ownership identity matches; otherwise generation stops.
 
 Generated cards are Business Object concepts. Generated Goals and Work Packages use stable `CBP.GeneratedKey` values
 so repeat runs can update owned concepts rather than duplicate them. Relationships are reused by type and endpoint
@@ -450,9 +475,10 @@ Ollama transport worker is in the module's `lib/` directory.
 | File | Responsibility |
 |---|---|
 | `CBP_Move_1_Setup.ajs` | First-stage entry point; preflight, year validation, scope preparation, property creation, Move 1 views, and pending run checkpoint. |
-| `CBP_Continue_Moves_2_to_7.ajs` | Second-stage entry point; checkpoint verification, optional AI prompt/suggestion application, calculations, output-view generation, completion record, and UI summary. |
+| `CBP_Continue_Moves_2_to_7.ajs` | Second-stage entry point; checkpoint verification, edited-map scope, calculations, output-view generation, completion record, and UI summary. |
 | `lib/CBP_Model_Inputs.js` | Property access, numeric/range parsing, increment parsing, weighted mean, maturity calculation, importance calculation, and impact-key generation. This helper is independent of Archi queries except for the model object's property API. |
-| `lib/CBP_Run_State.js` | Archi/jArchi adapters, supported element types, selected-scope discovery, stable Capability input codes, model identity, and model-local run-record persistence. |
+| `lib/CBP_Run_State.js` | Archi/jArchi adapters, supported element types, selected-scope discovery, managed-map scope, stable Capability input codes, model identity, and model-local run-record persistence. |
+| `lib/CBP_Capability_Discovery.js` | Bounded strategic-label and identified BMC content extraction, grounded Ollama proposal validation, deduplication, and creation of traceable provisional Capability elements. |
 | `lib/CBP_Assessment_Engine.js` | Pure assessment orchestration across Moves 2–7: result records, gap/zone, target consistency/progression, Goals, and validated action records. |
 | `lib/CBP_View_Generator.js` | View enumeration/preflight, ownership markers, idempotent concepts and relationships, Move 1 worklists, heatmaps, matrix, portfolio, and overview. |
 | `lib/CBP_Strategic_Importance_Maturity_Diagrams.js` | Separate managed-view renderer for the paper-inspired score, zone, and increment-roadmap panels; consumes assessment results without recalculation. |
@@ -465,60 +491,73 @@ The helper modules expose APIs on `globalThis`:
 - `cbpRunState`
 - `cbpAssessmentEngine`
 - `cbpViewGenerator`
+- `cbpCapabilityDiscovery`
 - `cbpStrategicLandscapeDiagrams`
 - `cbpImprovementTables`
 - optional `cbpOllamaWorker`
 
-The entry scripts load CBP helpers in dependency order. The continuation loads the Ollama worker lazily and only after
-the user opts in and selects a local model. The suite does not require an npm package to run inside Archi.
+The entry scripts load CBP helpers in dependency order. Move 1 loads the Ollama worker only after the user opts in and
+selects a local model. The suite does not require an npm package to run inside Archi.
 
-## 8. Optional local AI assistance
+## 8. Optional local Ollama Capability discovery
 
-### 8.1 Activation and eligible inputs
+### 8.1 Activation, sources, and candidate grounding
 
-AI assistance is opt-in. The continuation asks only when one or more of these eligible values is missing or invalid:
+Discovery is opt-in in Move 1. The user chooses an installed local Ollama model after confirming the proposed
+analysis. The compact evidence set contains up to 10 non-generated Value Stream names, up to 15 directly composed
+Value Stream stage names (maximum three per stream), and up to 10 Course of Action, Resource, Goal, Outcome, or Driver
+names. Up to 20 existing Capability names are included only to help avoid duplicates. These labels are truncated to
+60 characters. The request also includes non-empty text from native `canvas-model` and `archimate-diagram-model`
+views. A view qualifies when at least six of the nine standard BMC block headings are recognized among its Canvas
+blocks or ArchiMate elements, or its name identifies it as a Business Model Canvas; folder names are not used to
+select it. At most three qualifying
+content-bearing views, 12 items per view, and 24 items total are included; each item's text is truncated to 180
+characters and total BMC text to 2,400 characters. View and item names are truncated to 60 characters and accompany
+each item with its type label. Text comes from Canvas block/sticky labels and `documentation`, ArchiMate element labels and
+`documentation`, and `text` on diagram notes inside qualifying views. It does not infer context that is absent from
+those names, modelled Value Stream stages, or included BMC text.
 
-- `CBP.Maturity.People`, `CBP.Maturity.Process`, or `CBP.Maturity.Technology` for an in-scope Capability; or
-- `CBP.Impact.<CapabilityCode>` for a selected strategy Course of Action and an in-scope Capability.
+All selected model evidence is sent in one Ollama request, rather than one request per batch. The prompt asks for at
+most three enduring organizational abilities (not activities, processes, projects, systems, or teams) and requires
+compact JSON with a source reference and a grounded source/stage name or Canvas-content excerpt. The script validates
+those references, quote/name match, field sizes, and duplicate names before creating candidates. Ollama generation is
+capped at 512 tokens with a 2,048 token context window and a ten-minute request timeout. If the response fails, no
+proposed Capability elements are created.
 
-The worker is not loaded when all eligible values are valid, when the user declines, or when model selection is
-cancelled. Ollama does not complete target, action, project, or priority fields.
+Creation writes the definition as Capability documentation and
+stores `CBP.CandidateStatus=AI-PROVISIONAL`, `CBP.AI.Provisional=true`, source type/name/IDs, rationale, evidence,
+discovery key, and Ollama model tag. These are review markers, not model-owned/generated concepts. The Capability Map
+shades provisional candidates green. No hierarchy is inferred.
 
-### 8.2 Request and acceptance flow
+### 8.2 Human checkpoint and assessment boundary
 
-When accepted, the continuation loads the worker from `Capability_Based_Planning/lib/`, queries installed models
-through `GET http://localhost:11434/api/tags`, and asks the user to select one. It then sends batches of up to eight
-requested ratings through `POST /api/generate` using non-streaming JSON mode, temperature `0`, and up to 768
-prediction tokens for each request.
-
-Each prompt record can include:
-
-- Archi model element ID, name, and type;
-- requested property key, intended rating, and allowed range;
-- up to 1,200 characters of element documentation;
-- selected CBP profile/candidate properties (truncated per property); and
-- up to eight related-element names/types with limited related documentation.
-
-The serialized records are bounded to 2,200 characters of evidence per element. A prompt explicitly instructs the
-model to return JSON, use only requested element/property pairs, suggest an integer only when evidence supports it,
-omit unsupported suggestions, and not follow instructions embedded in the evidence.
-
-The continuation independently validates the returned structure, exact requested element ID/property key, uniqueness,
-integer range, nonempty rationale, and current target property's still-invalid status. A valid manual value is never
-replaced. An accepted suggestion writes the value, a truncated rationale, and `CBP.AI.Provisional=true`. Rejected
-suggestions are counted and logged. AI suggestions remain provisional and should be reviewed by the architect.
+Review the candidates' names, definition, rationale, cited model-element IDs, and evidence before running the
+continuation. Edit or remove them from the model/map as appropriate. All maturity ratings, strategic impact,
+weights, targets, actions, projects, and priorities are human-entered; the continuation does not invoke Ollama.
+To record an accepted candidate as reviewed and remove its green map highlight, set
+`CBP.CandidateStatus=HUMAN-REVIEWED` and `CBP.AI.Provisional=false`; its source IDs, evidence, and rationale remain
+available as provenance.
+If an assessment property has a matching `CBP.AI.Rationale.<PropertyKey>` marker, the continuation pauses before
+using that value. Review or replace the value, remove the marker property, save, and rerun.
+When the user adds a Capability to the map after Move 1, the continuation assigns its input code and required blank
+properties, updates the pending scope, then pauses and reports the new codes so assessment and strategy-impact values
+can be entered before rerunning.
 
 ### 8.3 Transport behavior and privacy
 
 The worker calls only the local Ollama endpoint at `http://localhost:11434`. Model discovery has a seven-second
-timeout; generation requests have a 120-second timeout and a five-second scheduling allowance. HTTP requests use
-Java's asynchronous HTTP client. While waiting, the worker dispatches Archi SWT events and logs a heartbeat every
-20 seconds. The future is cancelled if the SWT display becomes unavailable/disposed or the request times out.
+timeout; ordinary generation requests have a 120-second timeout, while Move 1 discovery allows up to 600 seconds
+for its single compact request, plus the five-second scheduling allowance. HTTP requests use Java's asynchronous
+HTTP client. While waiting, the worker dispatches Archi SWT events and logs a heartbeat every 20 seconds. The future
+is cancelled if the SWT display becomes unavailable/disposed or the request times out.
 
 “Local” describes the configured endpoint, not a guarantee about the user's entire system. Model data are supplied by
-the user-installed Ollama runtime and model. The prompt includes element IDs, names, documentation, selected
-properties, and relationship context; users should review the data they choose to process and their local Ollama/model
-configuration.
+the user-installed Ollama runtime and model. The prompt includes bounded strategic element names/types, Value Stream
+stage names, existing Capability names, and bounded text from identified Business Model Canvas views.
+Included text is limited to Canvas block/sticky labels and text, ArchiMate element labels/documentation, and diagram notes
+inside qualifying views; BMC view names or their contents identify candidate views, regardless of folder name.
+Users should still review their local
+Ollama/model configuration.
 
 ## 9. Run-state schema and lifecycle
 
@@ -530,14 +569,14 @@ uses schema version `1` and includes:
 | `schema` | Run-record schema version (`1`). |
 | `runId` | Unique run label generated for the setup. |
 | `model` | Stable model ID and readable name. |
-| `capabilityIds` | Exact Capability IDs used in the run. |
-| `capabilityCodes` | Capability ID/code pairs preserved for the run. |
+| `capabilityIds` | Current Capability IDs on the managed Capability Map; updated to match the effective scope. |
+| `capabilityCodes` | Capability ID/code pairs preserved for the current scope. |
 | `potentialStrategyIds` | Model-wide Course of Action IDs shown in Strategy Inputs. |
 | `strategyIds` | Potential strategies currently marked `CBP.Role=Strategy` at setup; the continuation refreshes this list when it completes. |
 | `increments` | Validated ordered year strings. |
 | `status` | Lifecycle state, normally `INPUTS_PENDING`, then `COMPLETED`; explicit replacement can set `ABORTED`. |
 | `createdAt`, `completedAt`, `abortedAt` | ISO timestamp fields when applicable. |
-| `aiSuggestionsApplied` | Count of suggestions accepted during continuation. |
+| `aiDiscovery` | Optional Move 1 model tag, source count, proposal/rejection counts, and created candidate IDs. |
 | `views` | Managed view IDs recorded for reuse and identity checks. |
 
 Move 1 refuses unsupported existing status values. A pending run requires explicit user abort before a new setup.
@@ -552,8 +591,8 @@ This section describes how to recreate the suite from first principles without r
 1. Read the capability-based planning sources and identify which decisions are intended to be made by an architect.
 2. Separate repeatable arithmetic and validation from judgments that require organizational evidence.
 3. Keep the Capability Map semantically pure: Capability nodes and explicitly modeled Capability hierarchy only.
-4. Require actual Capability elements; do not auto-generate candidates from Value Streams, Resources, Courses of Action,
-   or unrelated element types.
+4. Permit opt-in, evidence-grounded AI proposals from strategic model context, but keep proposals provisional and
+   subject to architect review; never treat source elements themselves as Capabilities.
 5. Make strategy selection explicit and prevent the software from treating every Course of Action as a strategy.
 6. Record any new interpretation or behavior change as a design decision rather than attributing it to a paper without
    evidence.
@@ -592,26 +631,28 @@ This section describes how to recreate the suite from first principles without r
 7. Test behavior in the supported Archi/jArchi runtime, including save/reopen, blank custom-property behavior, view
    enumeration, and repeat-run idempotency.
 
-### 10.5 Add optional AI only after deterministic behavior is defined
+### 10.5 Keep optional AI limited to reviewed Move 1 discovery
 
-1. Request AI only for explicitly eligible missing/invalid assessment inputs and only after user opt-in.
-2. Send bounded and relevant local model evidence; make the selected property and allowed range explicit.
-3. Require structured output and validate the response independently of the model's claims.
-4. Never overwrite valid manual input; retain rationale and mark accepted values provisional.
-5. Leave unsupported values unresolved. Do not ask the model to invent targets, actions, priorities, or strategy
-   selections.
+1. Request strategic-context analysis only in Move 1, only after opt-in and explicit model selection.
+2. Send bounded names/types, directly composed Value Stream stage names, and capped content from Business Model
+   Canvas views identified by their name or block headings.
+3. Require structured candidates with source refs and exact quoted source/stage labels or BMC-content excerpts;
+   validate grounding and duplicates before creating any model elements.
+4. Mark accepted candidates provisional and preserve traceable source IDs, evidence, rationale, and model tag.
+5. Leave all assessments and planning inputs to the user. Never ask the model to choose maturity, importance,
+   targets, actions, projects, weights, priorities, or strategy selections.
 6. Make endpoint, model selection, timeouts, failure behavior, and data sent visible to users.
 
 ### 10.6 Acceptance criteria for a reproduction
 
-- The Capability Map contains only in-scope Capability elements and existing Composition/Aggregation relationships
-  between them.
-- Value Streams, Resources, and Courses of Action do not appear in the Capability Map or create automatic Capability
-  candidates.
-- No Capability means Move 1 stops before generating the workflow.
-- Move 1 persists an exact Capability run scope and creates the Capability Map and two input worklists once.
+- The Capability Map contains in-scope Capability elements and existing Composition/Aggregation relationships
+  between them; optional AI candidates are provisional and evidence-linked.
+- Value Streams, Resources, and Courses of Action remain evidence sources rather than Capability Map nodes.
+- If no Capability exists, opt-in discovery can propose candidates; without a valid reviewed proposal Move 1 stops.
+- Move 1 creates the Capability Map and two input worklists, and the continuation honors current map membership.
 - A user can edit properties and save/reopen between Move 1 and continuation.
-- The continuation rejects model, scope, and increment mismatches.
+- The continuation rejects model and increment mismatches, excludes removed map members, and pauses to prepare inputs
+  for newly added members.
 - Maturity requires three valid integer dimension ratings and returns the documented weighted mean.
 - Strategic importance requires complete 0–2 impacts for every selected Course of Action and uses the documented
   normalization.
@@ -621,17 +662,18 @@ This section describes how to recreate the suite from first principles without r
   generated.
 - Portfolio grouping exposes inconsistent priorities rather than hiding or arbitrarily choosing one.
 - Managed views/concepts are idempotent and do not overwrite user-owned content.
-- AI is optional, local-endpoint-configurable, strictly validated, never overwrites valid manual values, and leaves
-  unsupported suggestions unresolved.
+- AI is optional and confined to Move 1 capability discovery. Proposals require grounded source evidence and remain
+  provisional; all assessments and planning inputs remain human-entered.
 - All seven move calculations and rendered views are tested in the supported Archi/jArchi application as well as
   with isolated helper tests.
 
 ## 11. Known constraints and implementation observations
 
-- Move 1's Capability scope is determined by current selection when it contains Capabilities; otherwise it is
-  model-wide. Potential strategy Courses of Action are discovered model-wide regardless of selected scope.
-- Current `findElement` restores recorded IDs only among Capability and Course of Action elements. Deleting or
-  changing the type of a scoped element prevents continuation.
+- Move 1's initial Capability scope is determined by current selection when it contains Capabilities; otherwise it is
+  model-wide. Potential strategy Courses of Action are discovered model-wide regardless of selected scope. The
+  continuation uses current Capability membership in the identity-checked managed map.
+- Capability additions after Move 1 are prepared and cause the continuation to pause for manual ratings and impact
+  inputs; removed map members are excluded from the effective scope.
 - The suite requires a nonempty `CBP.Increments` property with consecutive years. It does not default to the current
   year.
 - Move 1 requests all per-year action/project/priority keys on Capabilities, even though the engine only reads them
@@ -640,10 +682,12 @@ This section describes how to recreate the suite from first principles without r
   weights. Optional maturity weights default in calculation without being created.
 - The current assessment engine's action-input errors do not alone invalidate the corresponding target record; this
   can permit a Goal to be generated while its action is incomplete. See Section 4.3.
-- AI applies to maturity and impact integers only, not optional weights or target/action data.
-- The currently inspected module tree contains the two entry scripts and four CBP helper files; it does not contain a
-  `tests/` directory. Future changes should add or restore automated regression coverage and validate actual
-  Archi/jArchi behavior.
+- Optional Ollama use is limited to provisional Capability discovery in Move 1; assessment and planning inputs remain
+  user-entered.
+- The `lib/` directory contains the capability-discovery, Ollama transport, model-input, run-state, assessment,
+  view-generation, strategic-landscape diagram, and improvement-table helpers.
+- There is no CBP `tests/` directory; isolated helper checks and in-application behavior should be validated when
+  changing the suite.
 - Archi/jArchi runtime behavior, model save/reopen semantics, and rendering should be verified in the target application;
   syntax checks alone do not prove GUI/runtime compatibility.
 
@@ -654,7 +698,7 @@ mapping is:
 
 | Planning concern | Implemented subsystem behavior |
 |---|---|
-| Identify/model capabilities | Capability-only map from existing Capability elements and modeled hierarchy; candidate discovery and validation remain architect responsibilities. |
+| Identify/model capabilities | Capability-only map from existing Capability elements and modeled hierarchy, with optional Ollama candidate proposals for architect review. |
 | Assess maturity | Weighted People/Process/Technology score. |
 | Assess strategic importance | Explicit Course of Action role and Capability-impact ratings, strategy-weighted and normalized. |
 | Analyze the landscape | Strategic-importance-minus-maturity gap, tolerance-based zone, ML-SI matrix. |
