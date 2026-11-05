@@ -104,9 +104,12 @@
     function candidateContext(capability) {
         const status = root.cbpRunState.property(capability, "CBP.CandidateStatus");
         if (!status) return "";
-        return "\nCandidate status: " + status + " (assessment is provisional)." +
+        return "\nCandidate status: " + status +
+            (status === "AI-PROVISIONAL" ? " (review before using assessments)." : "") +
             "\nSource: " + root.cbpRunState.property(capability, "CBP.Candidate.SourceType") +
-            " - " + root.cbpRunState.property(capability, "CBP.Candidate.SourceName");
+            " - " + root.cbpRunState.property(capability, "CBP.Candidate.SourceName") +
+            "\nAI rationale: " + root.cbpRunState.property(capability, "CBP.Candidate.Rationale") +
+            "\nEvidence: " + root.cbpRunState.property(capability, "CBP.Candidate.Evidence");
     }
 
     /**
@@ -369,8 +372,8 @@
 
     /**
      * Builds a Capability-only map, a Capability profile/input worklist, and a Course of Action
-     * strategy-input worklist. The map uses only existing Capability concepts and existing
-     * Capability-to-Capability composition or aggregation relationships.
+     * strategy-input worklist. The map uses in-scope Capability concepts (including reviewed AI
+     * proposals) and existing Capability-to-Capability composition or aggregation relationships.
      * @param {Object} activeModel Active Archi model.
      * @param {Object[]} capabilities In-scope Capability assessment subjects.
      * @param {Object[]} potentialStrategies In-scope Course of Action elements.
@@ -437,6 +440,9 @@
             const id = root.cbpRunState.idOf(capability);
             if (levels[id] === undefined) assignLevels(id);
         });
+        const hasAiProvisional = orderedCapabilities.some(function(capability) {
+            return root.cbpRunState.property(capability, "CBP.AI.Provisional") === "true";
+        });
         const columns = {};
         orderedCapabilities.forEach(function(capability) {
             const id = root.cbpRunState.idOf(capability);
@@ -447,9 +453,14 @@
         const mapObjects = {};
         Object.keys(columns).forEach(function(level) {
             columns[level].forEach(function(capability, index) {
-                mapObjects[root.cbpRunState.idOf(capability)] = object(
+                const capabilityObject = object(
                     capabilityMapView, capability, 50 + Number(level) * 260, 50 + index * 100, 220, 70
                 );
+                mapObjects[root.cbpRunState.idOf(capability)] = capabilityObject;
+                if (root.cbpRunState.property(capability, "CBP.AI.Provisional") === "true" &&
+                    capabilityObject && capabilityObject.setFillColor) {
+                    capabilityObject.setFillColor("#D9EAD3");
+                }
             });
         });
         hierarchyRelationships.forEach(function(relationship) {
@@ -457,10 +468,17 @@
             const targetObject = mapObjects[root.cbpRunState.idOf(relationship.getTarget())];
             capabilityMapView.add(relationship, sourceObject, targetObject);
         });
+        if (hasAiProvisional) {
+            const note = capabilityMapView.createObject(
+                "diagram-model-note", 50, 70 + orderedCapabilities.length * 100, 320, 65
+            );
+            note.text = "Green fill: AI-proposed provisional Capability. Review its evidence and properties.";
+        }
         capabilityMapView.documentation =
             "Capability-only map. Contains the in-scope Capability elements and only their existing direct " +
-            "Composition/Aggregation relationships to other in-scope Capabilities. The view does not contain " +
-            "Value Streams, Resources, Courses of Action, generated Capability candidates, or inferred relationships." +
+            "Composition/Aggregation relationships to other in-scope Capabilities. Green elements marked " +
+            "CBP.AI.Provisional=true are Ollama-proposed candidates and require architect review. The view does not " +
+            "contain Value Streams, Resources, Courses of Action, or inferred relationships." +
             (hierarchyRelationships.length
                 ? ""
                 : " No Capability hierarchy is modeled in the current scope; model decomposition using explicit " +
@@ -485,6 +503,12 @@
             const candidateStatus = root.cbpRunState.property(capability, "CBP.CandidateStatus");
             const source = root.cbpRunState.property(capability, "CBP.Candidate.SourceType") +
                 " - " + root.cbpRunState.property(capability, "CBP.Candidate.SourceName");
+            const candidateDetails = candidateStatus
+                ? "\n\nAI rationale: " + root.cbpRunState.property(capability, "CBP.Candidate.Rationale") +
+                    "\nEvidence: " + root.cbpRunState.property(capability, "CBP.Candidate.Evidence") +
+                    "\nSource element IDs: " +
+                    root.cbpRunState.property(capability, "CBP.Candidate.SourceElementIDs")
+                : "";
             const exactKeys = ["CBP.Maturity.People", "CBP.Maturity.Process", "CBP.Maturity.Technology"];
             run.increments.forEach(function(year) {
                 exactKeys.push("CBP.TargetML." + year);
@@ -506,7 +530,8 @@
                 return field[0] + ": " + (root.cbpRunState.property(capability, field[1]) || "MISSING");
             }).join("\n");
             const cardText = (candidateStatus
-                ? "Existing provisional candidate status: " + candidateStatus + "\nSource: " + source + "\n"
+                ? "Candidate status: " + candidateStatus + "\nSource: " + source +
+                    candidateDetails + "\n"
                 : "") +
                 "\nProfile:\n" + profileText +
                 "\nRequired exact property names (add manually if Archi does not retain blank keys):\n" +
