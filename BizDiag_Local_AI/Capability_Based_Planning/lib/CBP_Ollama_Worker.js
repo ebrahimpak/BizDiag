@@ -165,7 +165,8 @@
   /**
    * Requests one non-streaming JSON-formatted generation from a selected Ollama model.
    *
-   * Uses deterministic temperature 0 and the supplied prediction-token limit (default 256).
+   * Uses deterministic, non-thinking JSON generation with a small CPU-friendly batch and the
+   * supplied prediction-token limit (default 256).
    * The worker validates transport status and non-empty generated text but leaves interpretation
    * and validation of the returned JSON content to the caller.
    *
@@ -196,10 +197,13 @@
       prompt: prompt,
       stream: false,
       format: "json",
+      think: false,
       options: {
         temperature: 0,
         num_predict: maxTokens || 256,
-        num_ctx: requestContext
+        num_ctx: requestContext,
+        num_thread: 4,
+        num_batch: 128
       }
     }, requestTimeout, "Ollama request for model '" + model + "'");
     if (response.statusCode() !== 200) {

@@ -50,9 +50,10 @@
         /^(?:\[?c\$\]?(?:\s*[-:]\s*|\s+).+|c\$|cost structure)$/i,
         /^(?:\[?r\$\]?(?:\s*[-:]\s*|\s+).+|r\$|revenue streams?)$/i
     ];
-    const OLLAMA_REQUEST_TIMEOUT_MS = 600000;
-    const OLLAMA_MAX_TOKENS = 512;
-    const OLLAMA_CONTEXT_TOKENS = 2048;
+    const OLLAMA_REQUEST_TIMEOUT_MS = 900000;
+    //I increased this from 512 to 768, so as to maximize response length without forcing the model to generate more tokens.
+    const OLLAMA_MAX_TOKENS = 768;
+    const OLLAMA_CONTEXT_TOKENS = 4096;
 
     function normalizeName(value) {
         return String(value || "").toLowerCase().replace(/[\s_-]+/g, " ").trim();
@@ -313,7 +314,9 @@
         try {
             payload = JSON.parse(content);
         } catch (error) {
-            throw new Error("Ollama returned invalid JSON during capability discovery: " + error.message);
+            throw new Error("Ollama returned incomplete or invalid JSON during capability discovery: " +
+                error.message + ". The response may have reached its output-token limit; retry discovery " +
+                "with the selected model or choose the smaller 4B model.");
         }
         if (!payload || !Array.isArray(payload.candidates)) {
             throw new Error("Ollama discovery response must contain a candidates array.");
@@ -478,9 +481,18 @@
         };
     }
 
+    // Expose the discovery functions as a shared global API for the Move 1 setup script.
+    // Freezing the object prevents callers from replacing its methods at runtime.
     root.cbpCapabilityDiscovery = Object.freeze({
+        // Collect the bounded model evidence that may be sent to Ollama.
         collectContext: collectContext,
+        // Return the number of eligible evidence records in a collected context.
         contextSourceCount: contextSourceCount,
+        // Request grounded proposals, validate them, and create accepted candidates.
         discover: discover
     });
+// (function(root) { Module code uses root... }) (typeof globalThis !== "undefined" ? globalThis : this);
+// Pass the global object into the IIFE, with a fallback for older JavaScript runtimes.
+// Inside the IIFE, root refers to that object, so the module can publish its API with root.cbpCapabilityDiscovery = ...
+// without relying on a global variable name throughout the code.
 })(typeof globalThis !== "undefined" ? globalThis : this);

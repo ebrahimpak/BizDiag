@@ -520,9 +520,13 @@ those names, modelled Value Stream stages, or included BMC text.
 All selected model evidence is sent in one Ollama request, rather than one request per batch. The prompt asks for at
 most three enduring organizational abilities (not activities, processes, projects, systems, or teams) and requires
 compact JSON with a source reference and a grounded source/stage name or Canvas-content excerpt. The script validates
-those references, quote/name match, field sizes, and duplicate names before creating candidates. Ollama generation is
-capped at 512 tokens with a 2,048 token context window and a ten-minute request timeout. If the response fails, no
-proposed Capability elements are created.
+those references, quote/name match, field sizes, and duplicate names before creating candidates. Generation disables
+model thinking, uses temperature 0, caps output at 768 tokens, and uses a 4,096-token context window. CPU execution is
+limited to four threads and a 128-token batch to reduce contention and peak memory use on modest systems. The request
+timeout is 15 minutes to accommodate first-time loading and slower 8B inference; periodic progress is logged while it
+runs. These settings are sent for whichever installed model the user selects, including Qwen 3.5 4B and Qwen3 8B, which 
+were among the AI models I've been using for testing purposes. If the response fails, no proposed Capability elements 
+are created.
 
 Creation writes the definition as Capability documentation and
 stores `CBP.CandidateStatus=AI-PROVISIONAL`, `CBP.AI.Provisional=true`, source type/name/IDs, rationale, evidence,
@@ -546,7 +550,7 @@ can be entered before rerunning.
 ### 8.3 Transport behavior and privacy
 
 The worker calls only the local Ollama endpoint at `http://localhost:11434`. Model discovery has a seven-second
-timeout; ordinary generation requests have a 120-second timeout, while Move 1 discovery allows up to 600 seconds
+timeout; ordinary generation requests have a 120-second timeout, while Move 1 discovery allows up to 900 seconds
 for its single compact request, plus the five-second scheduling allowance. HTTP requests use Java's asynchronous
 HTTP client. While waiting, the worker dispatches Archi SWT events and logs a heartbeat every 20 seconds. The future
 is cancelled if the SWT display becomes unavailable/disposed or the request times out.
