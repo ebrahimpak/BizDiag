@@ -53,6 +53,11 @@ from bounded element names/types, directly composed Value Stream stage names, an
 identified native Canvas or ArchiMate BMC views; only proposals that pass evidence validation become separate
 Capability elements.
 
+The discovery method follows a value-exchange shortlist rather than attempting to synthesize a complete capability
+model: Key Activities are a primary clue, while other BMC blocks provide context for abilities that enable the value
+proposition, customers, channels, partners, or value creation, delivery, and capture. This does not imply a
+one-to-one mapping from blocks or stages to Capabilities.
+
 ### 2.2 Selection and discovery
 
 The scope resolver first reads the current element selection and filters it to non-generated Capability elements. If
@@ -65,6 +70,11 @@ relationships from names, or add Capability concepts. If no such relationships e
 Capabilities without a hierarchy and records that condition in the map documentation; when multiple Capabilities are
 in scope, it also warns that decomposition must be modeled explicitly.
 
+The default scope is every non-generated ArchiMate Capability in the active model. Selecting one or more Capability
+elements intentionally narrows the run to those selected Capabilities. Optional AI discovery adds newly proposed
+Capabilities to that scope; it does not replace or filter the existing scope. Duplicate-name checks use all
+non-generated model Capabilities, including names omitted from the prompt's bounded reference list.
+
 Potential strategy Courses of Action are discovered model-wide, independently of the Capability selection. They
 appear only in the separate Strategy Inputs worklist and are not treated as strategies unless the user sets
 `CBP.Role=Strategy`.
@@ -73,18 +83,29 @@ The “Capability-based Planning in 7 moves!” artcile describes extracting nee
 capabilities from strategic documents and analyzing value streams to identify the capabilities needed at their
 stages. Optional Move 1 discovery supports this analysis with a single compact Ollama request containing up to 10
 non-generated Value Stream names, up to 15 directly composed stage names (maximum three per selected stream), up to
-10 Course of Action, Resource, Goal, Outcome, or Driver names, and up to 20 existing Capability names. These labels
+10 Course of Action, Resource, Goal, Outcome, or Driver names, and up to 20 existing Capability names for duplicate
+avoidance context (the actual duplicate check searches all non-generated Capabilities). These labels
 are truncated to 60 characters. The request also includes non-empty content items from native `canvas-model` or
 `archimate-diagram-model` views. A view qualifies when at least six of the nine standard Business Model Canvas block
 headings are recognized among its Canvas blocks or ArchiMate elements, or its name identifies it as a Business Model
 Canvas; folder names do not affect discovery. From qualifying views, the script includes Canvas block/sticky labels and text, ArchiMate element labels and
 documentation, and diagram-note text. It includes at most three content-bearing views, 12 items per view, and 24
 items total; each item's text is limited to 180 characters and BMC text to 2,400 characters total. View and item
-names are truncated to 60 characters. Each item is labeled with its type, name, and view name. Ollama may return up to
-three provisional proposals with source references
-and an exact source/stage quotation or BMC-content excerpt; the script validates grounding and duplicate names
-before creating them. Proposals require architect review and do not establish completeness or correctness. No
-hierarchy is inferred.
+names are truncated to 60 characters. Each BMC item includes its recognized block category when available, alongside
+its type, name, and view name. The method is a strategic shortlist, not a complete capability-model generator:
+Key Activities are a primary clue to what the business must do; the other blocks are examined for abilities enabling
+the value proposition, customer relationships, channels, partners, or value creation, delivery, and capture. Resources,
+costs, and revenues are contextual evidence, not capabilities by themselves. A Value Stream stage is supporting
+context, never a Capability merely because it is a stage. The prompt prohibits one-to-one block/stage conversion,
+unsupported hierarchy, and build/buy or strategic-value ratings; the latter belong to the separate human-led
+investment decision.
+
+Ollama may return at most three provisional proposals. Each must define an enduring ability and explain both its
+evidence-to-ability reasoning and specific value-exchange link, with source references and an exact source/stage
+quotation or BMC-content excerpt. The script validates these fields, grounding, and duplicate names against all
+non-generated model Capabilities before creating candidates. This validates traceability and shape, not whether the
+model's reasoning is substantively correct; proposals still require architect review and do not establish
+completeness or correctness. No hierarchy is inferred.
 
 ### 2.3 Human decisions and automated checks
 
@@ -303,6 +324,7 @@ The scripts write additional properties; users normally do not edit these:
 | `CBP.Candidate.SourceType` | Provisional Capability | Identifies local Ollama capability discovery as the source. |
 | `CBP.Candidate.SourceName` | Provisional Capability | Names of the cited source model elements. |
 | `CBP.Candidate.Rationale` | Provisional Capability | Discovery model's rationale, retained for review. |
+| `CBP.Candidate.ValueExchangeLink` | Provisional Capability | Proposed link between the ability and value creation, delivery, or capture; review with the source evidence. |
 | `CBP.Candidate.Evidence` | Provisional Capability | Verbatim quotation grounded in the cited model context. |
 | `CBP.Candidate.SourceElementIDs` | Provisional Capability | Comma-separated source element IDs used to trace the proposal. |
 | `CBP.AI.Provisional` | Provisional Capability | Set to `true` for discovery-generated Capability candidates. |
@@ -506,21 +528,40 @@ selects a local model. The suite does not require an npm package to run inside A
 Discovery is opt-in in Move 1. The user chooses an installed local Ollama model after confirming the proposed
 analysis. The compact evidence set contains up to 10 non-generated Value Stream names, up to 15 directly composed
 Value Stream stage names (maximum three per stream), and up to 10 Course of Action, Resource, Goal, Outcome, or Driver
-names. Up to 20 existing Capability names are included only to help avoid duplicates. These labels are truncated to
-60 characters. The request also includes non-empty text from native `canvas-model` and `archimate-diagram-model`
+names. Up to 20 existing Capability names are included only to help avoid duplicates; the actual duplicate check
+searches all non-generated model Capabilities. These labels are truncated to 60 characters. The request also includes
+non-empty text from native `canvas-model` and `archimate-diagram-model`
 views. A view qualifies when at least six of the nine standard BMC block headings are recognized among its Canvas
 blocks or ArchiMate elements, or its name identifies it as a Business Model Canvas; folder names are not used to
 select it. At most three qualifying
 content-bearing views, 12 items per view, and 24 items total are included; each item's text is truncated to 180
-characters and total BMC text to 2,400 characters. View and item names are truncated to 60 characters and accompany
-each item with its type label. Text comes from Canvas block/sticky labels and `documentation`, ArchiMate element labels and
-`documentation`, and `text` on diagram notes inside qualifying views. It does not infer context that is absent from
-those names, modelled Value Stream stages, or included BMC text.
+characters and total BMC text to 2,400 characters. View and item names are truncated to 60 characters. Each BMC item
+includes its recognized block category when available, alongside its type and view name. Text comes from Canvas
+block/sticky labels and `documentation`, ArchiMate element labels and `documentation`, and `text` on diagram notes
+inside qualifying views. It does not infer context that is absent from those names, modelled Value Stream stages, or
+included BMC text.
 
-All selected model evidence is sent in one Ollama request, rather than one request per batch. The prompt asks for at
-most three enduring organizational abilities (not activities, processes, projects, systems, or teams) and requires
-compact JSON with a source reference and a grounded source/stage name or Canvas-content excerpt. The script validates
-those references, quote/name match, field sizes, and duplicate names before creating candidates. Generation disables
+The method is a strategic shortlist, not a complete capability-model generator. Following Laudicina's
+[BMC-to-capability approach](https://medium.com/@jlaudicina/business-model-to-capability-building-b504c0c89059),
+Key Activities are a primary clue to what the business must do; the other blocks are examined for abilities that
+enable the value proposition, customer relationships, channels, partners, or value creation, delivery, and capture.
+Resources, costs, and revenues are contextual evidence, not capabilities by themselves. A Value Stream stage is
+supporting context, never a Capability merely because it is a stage. The prompt also applies SAP LeanIX's
+"Best practices to define business capability maps" poster principles: define what rather than how, favor durable and
+consistently named abilities, and avoid overlap. It prohibits one-to-one block/stage conversion and unsupported
+hierarchy.
+
+The prompt does not ask for build/buy or strategic-value ratings. Those belong to a separate investment decision:
+Laudicina's [9-Box approach](https://medium.com/analysts-corner/capability-investment-planning-use-a-build-vs-buy-9-box-12971a342f7d)
+uses strategic value and market availability to frame build/buy discussion after capabilities have been identified;
+the discovery model has no grounded market-availability evidence.
+
+All selected model evidence is sent in one Ollama request. The prompt asks for at most three enduring abilities and
+requires source references, an exact source/stage name or BMC-content quotation, evidence-to-ability reasoning, and a
+specific value-exchange link. The script validates the fields, refs, quote, sizes, and duplicate names before creating
+candidates. Quote validation proves provenance, not that the model's reasoning is substantively correct. Exact
+normalized-name collisions are blocked in code; semantic overlaps and synonyms cannot be established reliably from
+names alone and require architect review. Proposals remain provisional. Generation disables
 model thinking, uses temperature 0, caps output at 768 tokens, and uses a 4,096-token context window. CPU execution is
 limited to four threads and a 128-token batch to reduce contention and peak memory use on modest systems. The request
 timeout is 15 minutes to accommodate first-time loading and slower 8B inference; periodic progress is logged while it
@@ -528,19 +569,20 @@ runs. These settings are sent for whichever installed model the user selects, in
 were among the AI models I've been using for testing purposes. If the response fails, no proposed Capability elements 
 are created.
 
-Creation writes the definition as Capability documentation and
-stores `CBP.CandidateStatus=AI-PROVISIONAL`, `CBP.AI.Provisional=true`, source type/name/IDs, rationale, evidence,
-discovery key, and Ollama model tag. These are review markers, not model-owned/generated concepts. The Capability Map
-shades provisional candidates green. No hierarchy is inferred.
+Creation writes the definition as Capability documentation and stores `CBP.CandidateStatus=AI-PROVISIONAL`,
+`CBP.AI.Provisional=true`, source type/name/IDs, rationale, value-exchange link, evidence, discovery key, and Ollama
+model tag. These are review markers, not model-owned/generated concepts. The Capability Map shades provisional
+candidates green. No hierarchy is inferred.
 
 ### 8.2 Human checkpoint and assessment boundary
 
-Review the candidates' names, definition, rationale, cited model-element IDs, and evidence before running the
-continuation. Edit or remove them from the model/map as appropriate. All maturity ratings, strategic impact,
+Review the candidates' names, definition, rationale, value-exchange link, cited model-element IDs, and evidence before
+running the continuation. Check for overlap with the shared capability model, and edit or remove candidates as
+appropriate. All maturity ratings, strategic impact,
 weights, targets, actions, projects, and priorities are human-entered; the continuation does not invoke Ollama.
 To record an accepted candidate as reviewed and remove its green map highlight, set
-`CBP.CandidateStatus=HUMAN-REVIEWED` and `CBP.AI.Provisional=false`; its source IDs, evidence, and rationale remain
-available as provenance.
+`CBP.CandidateStatus=HUMAN-REVIEWED` and `CBP.AI.Provisional=false`; its source IDs, evidence, rationale, and
+value-exchange link remain available as provenance.
 If an assessment property has a matching `CBP.AI.Rationale.<PropertyKey>` marker, the continuation pauses before
 using that value. Review or replace the value, remove the marker property, save, and rerun.
 When the user adds a Capability to the map after Move 1, the continuation assigns its input code and required blank
