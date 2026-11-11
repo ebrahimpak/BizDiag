@@ -109,6 +109,8 @@
             "\nSource: " + root.cbpRunState.property(capability, "CBP.Candidate.SourceType") +
             " - " + root.cbpRunState.property(capability, "CBP.Candidate.SourceName") +
             "\nAI rationale: " + root.cbpRunState.property(capability, "CBP.Candidate.Rationale") +
+            "\nValue-exchange link: " +
+            root.cbpRunState.property(capability, "CBP.Candidate.ValueExchangeLink") +
             "\nEvidence: " + root.cbpRunState.property(capability, "CBP.Candidate.Evidence");
     }
 
@@ -505,6 +507,8 @@
                 " - " + root.cbpRunState.property(capability, "CBP.Candidate.SourceName");
             const candidateDetails = candidateStatus
                 ? "\n\nAI rationale: " + root.cbpRunState.property(capability, "CBP.Candidate.Rationale") +
+                    "\nValue-exchange link: " +
+                    root.cbpRunState.property(capability, "CBP.Candidate.ValueExchangeLink") +
                     "\nEvidence: " + root.cbpRunState.property(capability, "CBP.Candidate.Evidence") +
                     "\nSource element IDs: " +
                     root.cbpRunState.property(capability, "CBP.Candidate.SourceElementIDs")

@@ -139,7 +139,9 @@ console.show();
                 : "No non-empty text was found in identified Business Model Canvas views, so no BMC content will be sent. ";
             const useAi = window.confirm(
                 "Send the bounded strategic model labels, directly composed Value Stream stage names, and existing " +
-                "Capability names to local Ollama for provisional Capability suggestions?\n\n" + bmcDisclosure +
+                "Capability names to local Ollama for a short, provisional shortlist of capabilities tied to " +
+                "business-model value exchange (not a complete Capability Map or an investment/build-vs-buy decision)?\n\n" +
+                bmcDisclosure +
                 "A view qualifies when its name identifies a Business Model Canvas or at least six standard BMC block " +
                 "headings are recognized; folder names are ignored. Included content is limited to Canvas block/sticky labels and text, BMC model-element " +
                 "labels/documentation, and notes inside qualifying views."
