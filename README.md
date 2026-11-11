@@ -2,7 +2,7 @@
 
 <h1>BizDiag</h1>
 
-<h2>Research-Driven Enterprise Architecture Intelligence and Business Diagnostics</h2>
+<h2>Research-Driven Enterprise Architecture Intelligence for Business Diagnostics</h2>
 
 </div>
 <br/>
