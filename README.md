@@ -2,7 +2,7 @@
 
 <h1>BizDiag</h1>
 
-<h2>Research-Driven Enterprise Architecture Intelligence and Diagnostics</h2>
+<h2>Research-Driven Enterprise Architecture Intelligence and Business Diagnostics</h2>
 
 </div>
 <br/>
@@ -11,13 +11,13 @@
 </p>
 
 BizDiag™ is an open-source software suite that transforms ArchiMate® models into structured, analyzable data to support 
-Enterprise Architecture (EA) intelligence, Business–IT alignment analysis, and Business Model Canvas (BMC) synthesis and 
-visualization. BizDiag™ is composed of modules that perform Enterprise Architecture automation, architecture 
-intelligence, Business–IT alignment analysis, business model analysis, EA client/server application architecture 
-blueprints, and digital strategy support.
-BizDiag™ is the open-source core of the open-core "BizDiag Industry Intelligence™". “BizDiag Industry 
-Intelligence™” is an umbrella product with high-end EA applications for specific industries, e.g., “BizDiag Tourism 
-Intelligence™”, “BizDiag Manufacturing Intelligence™”, and “BizDiag Banking Intelligence™”.
+Enterprise Architecture (EA) intelligence, Business–IT alignment analysis, Business Model Canvas (BMC) synthesis, 
+Intelligent EA Architecture Blueprint, Capability-Based Planning, and AI-assisted architecture documentation. BizDiag™ 
+is composed of modules that perform Enterprise Architecture automation, architecture intelligence, Business–IT alignment
+analysis, business model analysis, EA client/server application architecture blueprints, and digital strategy support.
+BizDiag™ is the open-source core of the open-core "BizDiag Industry Intelligence™". “BizDiag Industry Intelligence™” is 
+an umbrella product with high-end EA applications for specific industries, e.g., “BizDiag Tourism Intelligence™”, 
+“BizDiag Manufacturing Intelligence™”, and “BizDiag Banking Intelligence™”.
 
 BizDiag™ extracts data from EA models, and transforms ArchiMate® models into structured, analyzable data that can be 
 queried, transformed, enriched with AI, and used to support architecture analysis and strategic decision-making.
