@@ -1579,3 +1579,9 @@ BizDiag does not replace professional Enterprise Architecture judgment or organi
 - R. Karami, “Capability-based Planning in 7 moves!” LinkedIn, Dec. 21, 2022. [Online]. Available: https://www.linkedin.com/pulse/capability-based-planning-7-moves-reza-karami/.
 
 - The Open Group, "Capability-Based Planning Supporting Project/Portfolio and Digital Capabilities Mapping Using the TOGAF® and ArchiMate® Standards," 16 July 2019. [Online]. Available: https://publications.opengroup.org/g193.
+
+- J. Laudicina, "Business Model to Capability Building," Medium, 3 April 2023. [Online]. Available: https://medium.com/@jlaudicina/business-model-to-capability-building-b504c0c89059.
+
+- SAP LeanIX, "Best Practices to Define Business Capability Maps," SAP LeanIX, n.d. [Online]. Available: https://www.leanix.net/en/download/best-practices-to-define-business-capability-maps.
+
+- J. Laudicina, "Capability Investment Planning: Use a Build vs. Buy 9-Box," Analyst's Corner, Medium, 31 January 2023. [Online]. Available: https://medium.com/analysts-corner/capability-investment-planning-use-a-build-vs-buy-9-box-12971a342f7d.
