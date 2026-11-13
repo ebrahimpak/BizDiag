@@ -1604,7 +1604,7 @@ BizDiag does not replace professional Enterprise Architecture judgment or organi
 
 **Author:** Ebrahim Pak, BA, MA, MSc
 
-**Academic Qualification:** MSc in Information Technology Management – Digital Business
+**Related Academic Qualification:** MSc in Information Technology Management – Digital Business
 
 **Professional Positions:** Chief Executive Officer (CEO) | Chief Information Officer (CIO)
 
