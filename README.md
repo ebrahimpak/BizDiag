@@ -410,7 +410,7 @@ directory management. The following are the jArchi scripts and JavaScript files 
       <td>Simple HTTP client wrapper for querying Ollama (used by Application_View_to_UML.ajs only; independent of AI_REST_JSON.js)</td>
     </tr>
     <tr>
-      <td><code>Capability_<br>Based_<br>Planning/<br>lib/<br>CBP_<br>Capability_<br>Discovery.js</code></td>
+      <td><code>CBP_<br>Capability_<br>Discovery.js</code></td>
       <td>Builds a bounded strategic-label and Business Model Canvas context, validates grounded Ollama proposals, and creates traceable provisional Capability elements.</td>
     </tr>
     <tr>
@@ -418,7 +418,7 @@ directory management. The following are the jArchi scripts and JavaScript files 
       <td>Renders the CBP roadmap, dimension-increment, and required-action tables from assessment results and accepted Goals/actions.</td>
     </tr>
     <tr>
-      <td><code>lib/<br>CBP_<br>Strategic_<br>Importance_<br>Maturity_<br>Diagrams.js</code></td>
+      <td><code>CBP_<br>Strategic_<br>Importance_<br>Maturity_<br>Diagrams.js</code></td>
       <td>Renders the strategic-importance, maturity, and increment-roadmap diagrams from CBP assessment results.</td>
     </tr>
     <tr>
