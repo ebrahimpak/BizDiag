@@ -1600,13 +1600,12 @@ BizDiag does not replace professional Enterprise Architecture judgment or organi
 
 ---
 
-## Author and Affiliation
+## Author
 
 **Author:** Ebrahim Pak  
 
-**Affiliation:** Digital Magic Software Co. Ltd.,
+**Academic Degree:** MSc in Information Technology Management - Digital Business
 
-**Website:** [Digital Magic Software](http://digitalmagic.ir/)
 
 ---
 
