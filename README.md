@@ -365,10 +365,10 @@ AI-assisted capabilities can be used to support tasks such as:
 The architecture workflow supports offline AI models. BizDiag_Local_AI uses Java NIO.2 for robust filesystem and
 directory management. The following are the jArchi scripts and JavaScript files of this application:
 
-<table>
+<table width="100%">
   <colgroup>
-    <col width="30%">
-    <col width="70%">
+    <col width="28%">
+    <col width="72%">
   </colgroup>
   <thead>
     <tr>
@@ -378,75 +378,75 @@ directory management. The following are the jArchi scripts and JavaScript files 
   </thead>
   <tbody>
     <tr>
-      <td><code>BizDiag_Local_AI/DocMaker/AI_Element_DocMaker_EN.ajs</code></td>
+      <td><code>AI_<br>Element_<br>DocMaker_<br>EN.ajs</code></td>
       <td>Generates AI analysis for the selected element in Archi, in English</td>
     </tr>
     <tr>
-      <td><code>BizDiag_Local_AI/DocMaker/AI_Element_DocMaker_FA.ajs</code></td>
+      <td><code>AI_<br>Element_<br>DocMaker_<br>FA.ajs</code></td>
       <td>Generates AI analysis for the selected element in Archi, in Persian</td>
     </tr>
     <tr>
-      <td><code>BizDiag_Local_AI/DocMaker/AI_View_DocMaker_EN.ajs</code></td>
+      <td><code>AI_<br>View_<br>DocMaker_<br>EN.ajs</code></td>
       <td>Generates AI analysis for the selected view in Archi, in English</td>
     </tr>
     <tr>
-      <td><code>BizDiag_Local_AI/DocMaker/AI_View_DocMaker_FA.ajs</code></td>
+      <td><code><AI_<br>View_<br>DocMaker_<br>FA.ajs</code></td>
       <td>Generates AI analysis for the selected view in Archi, in Persian</td>
     </tr>
     <tr>
-      <td><code>BizDiag_Local_AI/DocMaker/AI_REST_JSON.js</code></td>
+      <td><code>AI_<br>REST_<br>JSON.js</code></td>
       <td>Provides REST API communication with Ollama, handles JSON serialization/deserialization, manages element context tracking, and persists AI-generated documentation to files (used by DocMaker)</td>
     </tr>
     <tr>
-      <td><code>BizDiag_Local_AI/DocMaker/Mark_it_Down.ajs</code></td>
+      <td><code>Mark_<br>it_<br>Down.ajs</code></td>
       <td>Provides Markdown export functionality for selected Archi views and elements</td>
     </tr>
     <tr>
-      <td><code>BizDiag_Local_AI/DocMaker/Ollama_Olalla.ajs</code></td>
+      <td><code>Ollama_<br>Olalla.ajs</code></td>
       <td>Provides integration with the locally installed Ollama AI runtime</td>
     </tr>
     <tr>
-      <td><code>BizDiag_Local_AI/UML/sendToAI.js</code></td>
+      <td><code>send<br>To<br>AI.js</code></td>
       <td>Simple HTTP client wrapper for querying Ollama (used by Application_View_to_UML.ajs only; independent of AI_REST_JSON.js)</td>
     </tr>
     <tr>
-      <td><code>BizDiag_Local_AI/Capability_Based_Planning/lib/CBP_Capability_Discovery.js</code></td>
+      <td><code>Capability_<br>Based_<br>Planning/<br>lib/<br>CBP_<br>Capability_<br>Discovery.js</code></td>
       <td>Builds a bounded strategic-label and Business Model Canvas context, validates grounded Ollama proposals, and creates traceable provisional Capability elements.</td>
     </tr>
     <tr>
-      <td><code>BizDiag_Local_AI/Capability_Based_Planning/lib/CBP_Improvement_Tables.js</code></td>
+      <td><code>CBP_<br>Improvement_<br>Tables.js</code></td>
       <td>Renders the CBP roadmap, dimension-increment, and required-action tables from assessment results and accepted Goals/actions.</td>
     </tr>
     <tr>
-      <td><code>BizDiag_Local_AI/Capability_Based_Planning/lib/CBP_Strategic_Importance_Maturity_Diagrams.js</code></td>
+      <td><code>lib/<br>CBP_<br>Strategic_<br>Importance_<br>Maturity_<br>Diagrams.js</code></td>
       <td>Renders the strategic-importance, maturity, and increment-roadmap diagrams from CBP assessment results.</td>
     </tr>
     <tr>
-      <td><code>BizDiag_Local_AI/Capability_Based_Planning/lib/CBP_Assessment_Engine.js</code></td>
+      <td><code>CBP_<br>Assessment_<br>Engine.js</code></td>
       <td>Calculates CBP maturity, strategic importance, landscape classifications, target Goals, and actions for Moves 2–7.</td>
     </tr>
     <tr>
-      <td><code>BizDiag_Local_AI/Capability_Based_Planning/lib/CBP_Model_Inputs.js</code></td>
+      <td><code>CBP_<br>Model_<br>Inputs.js</code></td>
       <td>Validates model properties and calculates maturity and strategic-importance assessment inputs.</td>
     </tr>
     <tr>
-      <td><code>BizDiag_Local_AI/Capability_Based_Planning/lib/CBP_Run_State.js</code></td>
+      <td><code>CBP_<br>Run_<br>State.js</code></td>
       <td>Provides CBP model queries, allowed element scope, and persisted workflow run state.</td>
     </tr>
     <tr>
-      <td><code>BizDiag_Local_AI/Capability_Based_Planning/lib/CBP_View_Generator.js</code></td>
+      <td><code>CBP_<br>View_<br>Generator.js</code></td>
       <td>Generates the Capability map, input worklists, and analytical CBP views.</td>
     </tr>
     <tr>
-      <td><code>BizDiag_Local_AI/Capability_Based_Planning/lib/CBP_Ollama_Worker.js</code></td>
+      <td><code>CBP_<br>Ollama_<br>Worker.js</code></td>
       <td>Discovers installed local Ollama models and transports asynchronous generation requests with timeout and error handling.</td>
     </tr>
     <tr>
-      <td><code>BizDiag_Local_AI/Capability_Based_Planning/CBP_Move_1_Setup.ajs</code></td>
+      <td><code>CBP_<br>Move_<br>1_<br>Setup.ajs</code></td>
       <td>Creates the Capability map and input worklists; optionally discovers provisional Capabilities from bounded strategic labels and Canvas content.</td>
     </tr>
     <tr>
-      <td><code>BizDiag_Local_AI/Capability_Based_Planning/CBP_Continue_Moves_2_to_7.ajs</code></td>
+      <td><code>CBP_<br>Continue_<br>Moves_<br>2_<br>to_<br>7.ajs</code></td>
       <td>Validates user-entered inputs, calculates Moves 2–7, and generates the analytical CBP views.</td>
     </tr>
   </tbody>
