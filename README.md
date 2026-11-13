@@ -1604,7 +1604,7 @@ BizDiag does not replace professional Enterprise Architecture judgment or organi
 
 **Author:** Ebrahim Pak  
 
-**Academic Degree:** MSc in Information Technology Management - Digital Business
+**Academic Degree:** MSc. in Information Technology Management , Digital Business
 
 
 ---
