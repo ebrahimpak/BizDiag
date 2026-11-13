@@ -86,7 +86,7 @@ as structured data for analysis, automation, decision support, and strategy.
 - [Project](#project)
 - [Related Documentation](#related-documentation)
 - [Disclaimer](#disclaimer)
-- [Author and Affiliation](#author-and-affiliation)
+- [Author](#author)
 - [References](#references)
 
 ---
@@ -1602,10 +1602,15 @@ BizDiag does not replace professional Enterprise Architecture judgment or organi
 
 ## Author
 
-**Author:** Ebrahim Pak  
+**Author:** Ebrahim Pak, BA, MA, MSc
 
-**Academic Degree:** MSc in Information Technology Management - Digital Business
+**Academic Qualification:** MSc in Information Technology Management – Digital Business
 
+**Professional Positions:** Chief Executive Officer (CEO) | Chief Information Officer (CIO)
+
+**Professional Interests:** Enterprise Architecture Intelligence; Digital Strategy; Network Programming & Distributed Computing; Artificial Intelligence; Industrial Marketing; Digital Transformation
+
+**Project:** Creator and Solo Developer of BizDiag — Research-Driven Enterprise Architecture Intelligence for Business Diagnostics Software Suite
 
 ---
 
