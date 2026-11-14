@@ -754,3 +754,33 @@ mapping is:
 
 This mapping is an implementation interpretation, not a claim that the publications specify the exact property schema,
 mathematical normalization, ArchiMate relationship types, or generated-view design used by BizDiag.
+
+## 13. References
+
+[1] A. Aldea, I. E. Maria, M. Lankhorst, D. Quartel, and B. Wimsatt,
+    “Capability-Based Planning: The Link between Strategy and Enterprise
+    Architecture,” Nov. 2016. [Online]. Available:
+    https://publications.opengroup.org/d183.
+
+[2] R. Karami, “Capability-Based Planning in 7 Moves!” LinkedIn, Dec. 21,
+    2022. [Online]. Available:
+    https://www.linkedin.com/pulse/capability-based-planning-7-moves-reza-karami/.
+
+[3] The Open Group, “Capability-Based Planning Supporting Project/Portfolio
+    and Digital Capabilities Mapping Using the TOGAF® and ArchiMate®
+    Standards,” Jul. 16, 2019. [Online]. Available:
+    https://publications.opengroup.org/g193.
+
+[4] J. Laudicina, “Business Model to Capability Building,” Medium, Apr. 3,
+    2023. [Online]. Available:
+    https://medium.com/@jlaudicina/business-model-to-capability-building-b504c0c89059.
+
+[5] J. Laudicina, “Capability Investment Planning: Use a Build vs. Buy
+    9-Box,” Analyst’s Corner, Medium, Jan. 31, 2023. [Online]. Available:
+    https://medium.com/analysts-corner/capability-investment-planning-use-a-build-vs-buy-9-box-12971a342f7d.
+
+## Author and Copyright
+
+**Author:** Ebrahim Pak
+
+**Copyright:** © 2026 Ebrahim Pak.

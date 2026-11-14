@@ -527,58 +527,81 @@ model, or that every model element is expected to satisfy every rule.
 
 ## References
 
-1. Henderson, J. C., and Venkatraman, N. “Strategic Alignment: Leveraging
-   Information Technology for Transforming Organizations.” *IBM Systems
-   Journal*, 32(1), 4–16, 1993.
-2. Őri, D. “An Artifact-Based Framework for Business-IT Misalignment Symptom
-   Detection.” In *Perspectives in Business Informatics Research (PoEM
-   2016)*, Lecture Notes in Business Information Processing, vol. 267,
-   148–163. Springer, 2016. https://doi.org/10.1007/978-3-319-48393-1_11.
-3. Noran, O. “A Decision Support Framework for Collaborative Networks.”
-   *International Journal of Production Research*, 47(17), 4813–4832, 2009.
-4. Carvalho, G., and Sousa, P. “Business and Information Systems
-   MisAlignment Model (BISMAM): An Holistic Model Leveraged on Misalignment
-   and Medical Sciences Approaches.” In *Proceedings of the Third
-   International Workshop on Business/IT Alignment and Interoperability
-   (BUSITAL’08)*, CEUR Workshop Proceedings, vol. 336, 104–119, 2008.
-5. Pereira, C. M., and Sousa, P. “Enterprise Architecture: Business and IT
-   Alignment.” In *Proceedings of the 2005 ACM Symposium on Applied
-   Computing*, 1344–1345, 2005.
-6. Sousa, P., Pereira, C. M., and Marques, J. A. “Enterprise Architecture
-   Alignment Heuristics.” *Microsoft Architects Journal*, 4, 34–39, 2005.
-7. The Open Group. *The Open Group Architecture Framework (TOGAF)*. The
-   foundational paper uses TOGAF as the basis for its Table 3 artifact
-   catalogue.
-8. Buckl, S., Matthes, F., and Schweda, C. M. “Classifying Enterprise
-   Architecture Analysis Approaches.” In *Proceedings of the International
-   Workshop on Enterprise Interoperability*, 2009.
-9. Niemann, K. D. *From Enterprise Architecture to IT Governance*. Springer,
-   2006.
-10. Wagter, R., Proper, H. A., and Witte, D. “A Practice-Based Framework for
-    Enterprise Coherence.” In *PRET 2013*, Lecture Notes in Business
-    Information Processing, vol. 151, 77–95. Springer, 2012.
-11. Szabó, Z., and Őri, D. “How Enterprise Architecture Management Can
-    Support Strategic IS Planning.” In *Information Strategy Challenges in
-    the Digital Era*, 11th International Conference on Software, Knowledge,
-    Information Management and Applications (SKIMA), 2017.
-12. Őri, D. “Misalignment Symptom Detection with XML-Based Enterprise
-    Architecture Model Analysis.” *Novel Directions Talk*, pp. 153–157.
-    Bibliographic venue and year are not identified in the supplied paper
-    copy.
-13. Luftman, J. “Assessing Business-IT Alignment Maturity.” *Communications
-    of the Association for Information Systems*, 4, Article 14, 2000.
-    https://doi.org/10.17705/1CAIS.00414.
-14. Kitsios, F., Kyriakopoulou, G., and Kamariotou, M. “Exploring Business
-    Strategy Modelling with ArchiMate: A Case Study Approach.” *Information*,
-    13(1), Article 31, 2022.
-    https://doi.org/10.3390/info13010031.
-15. André, P., Benjilany, A., Bruneliere, H., and Tamzalit, D. “Assessing
-    Operational Business-IT Alignment for Architecture Improvement.” In
-    *Advances in Information Systems Development: Exploring New Horizons and
-    Opportunities*, Lecture Notes in Information Systems and Organisation,
-    vol. 77, pp. 231–253. Springer, 2025.
-    https://doi.org/10.1007/978-3-031-87880-0_12.
-16. Choudhry, A. A. *Testing Enterprise Application Architecture Patterns*.
-    M.Sc. dissertation, University of Liverpool, 2006.
-17. Hevner, A. R., March, S. T., Park, J., and Ram, S. “Design Science in
-    Information Systems Research.” *MIS Quarterly*, 28(1), 75–105, 2004.
+[1] J. C. Henderson and N. Venkatraman, “Strategic Alignment: Leveraging
+    Information Technology for Transforming Organizations,” *IBM Systems
+    Journal*, vol. 32, no. 1, pp. 4–16, 1993.
+
+[2] D. Őri, “An Artifact-Based Framework for Business-IT Misalignment Symptom
+    Detection,” in *Perspectives in Business Informatics Research (PoEM
+    2016)*, Lecture Notes in Business Information Processing, vol. 267,
+    pp. 148–163. Springer, 2016, doi: 10.1007/978-3-319-48393-1_11.
+
+[3] O. Noran, “A Decision Support Framework for Collaborative Networks,”
+    *International Journal of Production Research*, vol. 47, no. 17,
+    pp. 4813–4832, 2009.
+
+[4] G. Carvalho and P. Sousa, “Business and Information Systems MisAlignment
+    Model (BISMAM): An Holistic Model Leveraged on Misalignment and Medical
+    Sciences Approaches,” in *Proc. 3rd Int. Workshop on Business/IT Alignment
+    and Interoperability (BUSITAL ’08)*, CEUR Workshop Proceedings, vol. 336,
+    pp. 104–119, 2008.
+
+[5] C. M. Pereira and P. Sousa, “Enterprise Architecture: Business and IT
+    Alignment,” in *Proc. 2005 ACM Symp. Applied Computing*, pp. 1344–1345,
+    2005.
+
+[6] P. Sousa, C. M. Pereira, and J. A. Marques, “Enterprise Architecture
+    Alignment Heuristics,” *Microsoft Architects Journal*, vol. 4,
+    pp. 34–39, 2005.
+
+[7] The Open Group, *The Open Group Architecture Framework (TOGAF)*. The
+    foundational paper uses TOGAF as the basis for its Table 3 artifact
+    catalogue.
+
+[8] S. Buckl, F. Matthes, and C. M. Schweda, “Classifying Enterprise
+    Architecture Analysis Approaches,” in *Proc. Int. Workshop on Enterprise
+    Interoperability*, 2009.
+
+[9] K. D. Niemann, *From Enterprise Architecture to IT Governance*. Springer,
+    2006.
+
+[10] R. Wagter, H. A. Proper, and D. Witte, “A Practice-Based Framework for
+     Enterprise Coherence,” in *PRET 2013*, Lecture Notes in Business
+     Information Processing, vol. 151, pp. 77–95. Springer, 2012.
+
+[11] Z. Szabó and D. Őri, “How Enterprise Architecture Management Can Support
+     Strategic IS Planning,” in *Information Strategy Challenges in the
+     Digital Era*, 11th Int. Conf. Software, Knowledge, Information
+     Management and Applications (SKIMA), 2017.
+
+[12] D. Őri, “Misalignment Symptom Detection with XML-Based Enterprise
+     Architecture Model Analysis,” *Novel Directions Talk*, pp. 153–157.
+     The bibliographic venue and year are not identified in the supplied
+     paper copy.
+
+[13] J. Luftman, “Assessing Business-IT Alignment Maturity,” *Communications
+     of the Association for Information Systems*, vol. 4, Art. no. 14, 2000,
+     doi: 10.17705/1CAIS.00414.
+
+[14] F. Kitsios, G. Kyriakopoulou, and M. Kamariotou, “Exploring Business
+     Strategy Modelling with ArchiMate: A Case Study Approach,” *Information*,
+     vol. 13, no. 1, Art. no. 31, 2022, doi: 10.3390/info13010031.
+
+[15] P. André, A. Benjilany, H. Bruneliere, and D. Tamzalit, “Assessing
+     Operational Business-IT Alignment for Architecture Improvement,” in
+     *Advances in Information Systems Development: Exploring New Horizons and
+     Opportunities*, Lecture Notes in Information Systems and Organisation,
+     vol. 77, pp. 231–253. Springer, 2025, doi: 10.1007/978-3-031-87880-0_12.
+
+[16] A. A. Choudhry, *Testing Enterprise Application Architecture Patterns*,
+     M.Sc. dissertation, University of Liverpool, 2006.
+
+[17] A. R. Hevner, S. T. March, J. Park, and S. Ram, “Design Science in
+     Information Systems Research,” *MIS Quarterly*, vol. 28, no. 1,
+     pp. 75–105, 2004.
+
+## Author and Copyright
+
+**Author:** Ebrahim Pak
+
+**Copyright:** © 2026 Ebrahim Pak.

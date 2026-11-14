@@ -1616,48 +1616,137 @@ BizDiag does not replace professional Enterprise Architecture judgment or organi
 
 ## References
 
-- The Open Group, ArchiMate® 3.2 Specification, Berkshire: The Open group, 2022, p. 183.
+[1] J. C. Henderson and N. Venkatraman, “Strategic Alignment: Leveraging
+    Information Technology for Transforming Organizations,” *IBM Systems
+    Journal*, vol. 32, no. 1, pp. 4–16, 1993.
 
-- J. C. Henderson and H. Venkatraman, "Strategic Alignment: Leveraging Information Technology for Transforming Organizations," IBM Systems Journal, vol. 38, no. 2.3, pp. 472 - 484, 31 December 1999.
+[2] D. Őri, “An Artifact-Based Framework for Business-IT Misalignment Symptom
+    Detection,” in *Perspectives in Business Informatics Research (PoEM
+    2016)*, Lecture Notes in Business Information Processing, vol. 267,
+    pp. 148–163. Springer, 2016, doi: 10.1007/978-3-319-48393-1_11.
 
-- P. Andre, A. Benjilany, H. Bruneliere and D. Tamzalit, "Assessing Operational Business-IT Alignment for Architecture Improvement," Advances in Information Systems Development: Exploring New Horizons and Opportunities, vol. Cham: Springer Nature Switzerland, pp. 231-253, 2025.
+[3] O. Noran, “A Decision Support Framework for Collaborative Networks,”
+    *International Journal of Production Research*, vol. 47, no. 17,
+    pp. 4813–4832, 2009.
 
-- A. Osterwalder, Y. Pigneur, G. Bernarda and A. Smith, Value proposition design: How to create products and services customers want, John Wiley & Sons, 2015.
+[4] G. Carvalho and P. Sousa, “Business and Information Systems MisAlignment
+    Model (BISMAM): An Holistic Model Leveraged on Misalignment and Medical
+    Sciences Approaches,” in *Proc. 3rd Int. Workshop on Business/IT Alignment
+    and Interoperability (BUSITAL ’08)*, CEUR Workshop Proceedings, vol. 336,
+    pp. 104–119, 2008.
 
-- Z. Szabó and D. Őri, "Information Strategy Challenges in the Digital Era, How Enterprise Architecture Management Can Support Strategic IS Planning," in 11th International Conference on Software, Knowledge, Information Management and Applications (SKIMA), 2017.
+[5] C. M. Pereira and P. Sousa, “Enterprise Architecture: Business and IT
+    Alignment,” in *Proc. 2005 ACM Symp. Applied Computing*, pp. 1344–1345,
+    2005.
 
-- D. Őri, "An Artifact-Based Framework for Business-IT Misalignment Symptom Detection," in IFIP International Federation for Information Processing, 2016.
+[6] P. Sousa, C. M. Pereira, and J. A. Marques, “Enterprise Architecture
+    Alignment Heuristics,” *Microsoft Architects Journal*, vol. 4,
+    pp. 34–39, 2005.
 
-- J. C. Henderson and N. Venkatraman, "Strategic Alignment: Leveraging Information Technology," IBM System Journal, vol. 32, no. 1, pp. 4-16, 1993.
+[7] The Open Group, *The Open Group Architecture Framework (TOGAF)*. The
+    foundational paper uses TOGAF as the basis for its Table 3 artifact
+    catalogue.
 
-- E. Walters, "Modeling the Business Model Canvas with the ArchiMate Specification, Using the ArchiMate 3.1 Specification to model the building blocks of the Business Model Canvas," The Open Group, February 2020. [Online]. Available: https://publications.opengroup.org/w195.
+[8] S. Buckl, F. Matthes, and C. M. Schweda, “Classifying Enterprise
+    Architecture Analysis Approaches,” in *Proc. Int. Workshop on Enterprise
+    Interoperability*, 2009.
 
-- T. O. Group, Director, The Advantages of Combining the ArchiMate®, UML®, and BPMN™ Modeling Standards. [Film]. Modeliosoft, 2016.
+[9] K. D. Niemann, *From Enterprise Architecture to IT Governance*. Springer,
+    2006.
 
-- C. Armstrong, J. D. Baker, I. Band, S. Courtney, H. Jonkers, V. Muchandi and M. Owen, "How to Use the ArchiMate® Language with UML®," September 2013. [Online]. Available: https://publications.opengroup.org/w134.
+[10] R. Wagter, H. A. Proper, and D. Witte, “A Practice-Based Framework for
+     Enterprise Coherence,” in *PRET 2013*, Lecture Notes in Business
+     Information Processing, vol. 151, pp. 77–95. Springer, 2012.
 
-- P. Kruchten, "Architectural Blueprints—The “4+1” View Model of Software Architecture," IEEE Software, vol. 12, no. 6, pp. 42-50, November 1995.
+[11] Z. Szabó and D. Őri, “How Enterprise Architecture Management Can Support
+     Strategic IS Planning,” in *Information Strategy Challenges in the
+     Digital Era*, 11th Int. Conf. Software, Knowledge, Information
+     Management and Applications (SKIMA), 2017.
 
-- A. S. Bueno, M. Eisele and N. Vinto, Applied AI for Enterprise Java Development, Leveraging Generative AI, LLMs, and Machine Learning in the Java Enterprise, S. Calin, M. Potter and G. Hyman, Eds., Santa Rosa, California: O’Reilly Media, Inc.,, 2026.
+[12] D. Őri, “Misalignment Symptom Detection with XML-Based Enterprise
+     Architecture Model Analysis,” *Novel Directions Talk*, pp. 153–157.
+     The bibliographic venue and year are not identified in the supplied
+     paper copy.
 
-- A. R. Hevner, S. T. March, J. Park and S. Ram, "Design Science in Information Systems Research," MIS Quarterly, vol. 28, no. 1, pp. 75-106, 2004.
+[13] J. Luftman, “Assessing Business-IT Alignment Maturity,” *Communications
+     of the Association for Information Systems*, vol. 4, Art. no. 14, 2000,
+     doi: 10.17705/1CAIS.00414.
 
-- J. Recker, Scientific Research in Information Systems: A Beginner's Guide, Cham: Springer Nature Switzerland, 2021.
+[14] F. Kitsios, G. Kyriakopoulou, and M. Kamariotou, “Exploring Business
+     Strategy Modelling with ArchiMate: A Case Study Approach,” *Information*,
+     vol. 13, no. 1, Art. no. 31, 2022, doi: 10.3390/info13010031.
 
-- Modeliosoft, "[Modelio 3.6] Getting Started with ArchiMate," Modeliosoft, [Online]. Available: https://www.youtube.com/watch?v=Ka16dax5Qa4.
+[15] P. André, A. Benjilany, H. Bruneliere, and D. Tamzalit, “Assessing
+     Operational Business-IT Alignment for Architecture Improvement,” in
+     *Advances in Information Systems Development: Exploring New Horizons and
+     Opportunities*, Lecture Notes in Information Systems and Organisation,
+     vol. 77, pp. 231–253. Springer, 2025, doi: 10.1007/978-3-031-87880-0_12.
 
-- P. Beauvoir and . J.-B. Sarrodie, "Archi, ArchiMate Modeling," Archi, 2026. [Online]. Available: https://www.archimatetool.com/faq/.
+[16] A. A. Choudhry, *Testing Enterprise Application Architecture Patterns*,
+     M.Sc. dissertation, University of Liverpool, 2006.
 
-- J. Luftman, "Assessing Business-IT Alignment Maturity," Communications of the Association for Information Systems, vol. 4, no. 14, December 2000.
+[17] A. R. Hevner, S. T. March, J. Park, and S. Ram, “Design Science in
+     Information Systems Research,” *MIS Quarterly*, vol. 28, no. 1,
+     pp. 75–105, 2004.
 
-- A. Aldea, I.E. Maria, M. Lankhorst, D. Quartel and B. Wimsatt, "Capability-Based Planning, The Link between Strategy and Enterprise Architecture," November 2016. [Online]. Available: https://publications.opengroup.org/d183.
+[18] The Open Group, *ArchiMate® 3.2 Specification*, Berkshire, U.K., 2022,
+     p. 183.
 
-- R. Karami, “Capability-based Planning in 7 moves!” LinkedIn, Dec. 21, 2022. [Online]. Available: https://www.linkedin.com/pulse/capability-based-planning-7-moves-reza-karami/.
+[19] A. Osterwalder, Y. Pigneur, G. Bernarda, and A. Smith, *Value Proposition
+     Design: How to Create Products and Services Customers Want*. Hoboken,
+     NJ, USA: Wiley, 2015.
 
-- The Open Group, "Capability-Based Planning Supporting Project/Portfolio and Digital Capabilities Mapping Using the TOGAF® and ArchiMate® Standards," 16 July 2019. [Online]. Available: https://publications.opengroup.org/g193.
+[20] E. Walters, “Modeling the Business Model Canvas with the ArchiMate
+     Specification: Using the ArchiMate 3.1 Specification to Model the
+     Building Blocks of the Business Model Canvas,” The Open Group, Feb. 2020.
+     [Online]. Available: https://publications.opengroup.org/w195.
 
-- J. Laudicina, "Business Model to Capability Building," Medium, 3 April 2023. [Online]. Available: https://medium.com/@jlaudicina/business-model-to-capability-building-b504c0c89059.
+[21] The Open Group, “The Advantages of Combining the ArchiMate®, UML®, and
+     BPMN™ Modeling Standards,” video, Modeliosoft, 2016.
 
-- SAP LeanIX, "Best Practices to Define Business Capability Maps," SAP LeanIX, n.d. [Online]. Available: https://www.leanix.net/en/download/best-practices-to-define-business-capability-maps.
+[22] C. Armstrong, J. D. Baker, I. Band, S. Courtney, H. Jonkers, V. Muchandi,
+     and M. Owen, “How to Use the ArchiMate® Language with UML®,” Sep. 2013.
+     [Online]. Available: https://publications.opengroup.org/w134.
 
-- J. Laudicina, "Capability Investment Planning: Use a Build vs. Buy 9-Box," Analyst's Corner, Medium, 31 January 2023. [Online]. Available: https://medium.com/analysts-corner/capability-investment-planning-use-a-build-vs-buy-9-box-12971a342f7d.
+[23] P. Kruchten, “Architectural Blueprints—The ‘4+1’ View Model of Software
+     Architecture,” *IEEE Software*, vol. 12, no. 6, pp. 42–50, Nov. 1995.
+
+[24] A. S. Bueno, M. Eisele, and N. Vinto, *Applied AI for Enterprise Java
+     Development: Leveraging Generative AI, LLMs, and Machine Learning in the
+     Java Enterprise*, S. Calin, M. Potter, and G. Hyman, Eds. Santa Rosa, CA,
+     USA: O’Reilly Media, 2026.
+
+[25] J. Recker, *Scientific Research in Information Systems: A Beginner’s
+     Guide*. Cham, Switzerland: Springer Nature Switzerland, 2021.
+
+[26] Modeliosoft, “[Modelio 3.6] Getting Started with ArchiMate,” video.
+     [Online]. Available: https://www.youtube.com/watch?v=Ka16dax5Qa4.
+
+[27] P. Beauvoir and J.-B. Sarrodie, “Archi, ArchiMate Modeling,” Archi.
+     [Online]. Available: https://www.archimatetool.com/faq/.
+
+[28] A. Aldea, I. E. Maria, M. Lankhorst, D. Quartel, and B. Wimsatt,
+     “Capability-Based Planning: The Link between Strategy and Enterprise
+     Architecture,” Nov. 2016. [Online]. Available:
+     https://publications.opengroup.org/d183.
+
+[29] R. Karami, “Capability-Based Planning in 7 Moves!” LinkedIn, Dec. 21,
+     2022. [Online]. Available:
+     https://www.linkedin.com/pulse/capability-based-planning-7-moves-reza-karami/.
+
+[30] The Open Group, “Capability-Based Planning Supporting Project/Portfolio
+     and Digital Capabilities Mapping Using the TOGAF® and ArchiMate®
+     Standards,” Jul. 16, 2019. [Online]. Available:
+     https://publications.opengroup.org/g193.
+
+[31] J. Laudicina, “Business Model to Capability Building,” Medium, Apr. 3,
+     2023. [Online]. Available:
+     https://medium.com/@jlaudicina/business-model-to-capability-building-b504c0c89059.
+
+[32] SAP LeanIX, “Best Practices to Define Business Capability Maps,” n.d.
+     [Online]. Available:
+     https://www.leanix.net/en/download/best-practices-to-define-business-capability-maps.
+
+[33] J. Laudicina, “Capability Investment Planning: Use a Build vs. Buy
+     9-Box,” Analyst’s Corner, Medium, Jan. 31, 2023. [Online]. Available:
+     https://medium.com/analysts-corner/capability-investment-planning-use-a-build-vs-buy-9-box-12971a342f7d.
