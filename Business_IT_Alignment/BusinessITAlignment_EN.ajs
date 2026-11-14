@@ -14,7 +14,10 @@
  * Author: Ebrahim Pak
  *
  * --------------------------------------------------------------------------------------------------------------------
- * Research-Driven Business–IT Alignment Assessment for jArchi: English Version
+ * @file BusinessITAlignment_EN.ajs
+ * @version 2.0
+ *
+ *  Research-Driven Business–IT Alignment Assessment for jArchi: English Version
  * Based on EA-based Misalignment Symptom Detection methodology
  *
  * Key Features:
@@ -38,6 +41,29 @@
 
 console.clear();
 console.show();
+
+// File APIs support report export; SWT APIs support the findings interface.
+const FileWriter = Java.type("java.io.FileWriter");
+const File = Java.type("java.io.File");
+const FileOutputStream = Java.type("java.io.FileOutputStream");
+const OutputStreamWriter = Java.type("java.io.OutputStreamWriter");
+const BufferedWriter = Java.type("java.io.BufferedWriter");
+const StandardCharsets = Java.type("java.nio.charset.StandardCharsets");
+
+const SWTShell = Java.type("org.eclipse.swt.widgets.Shell");
+const SWTDisplay = Java.type("org.eclipse.swt.widgets.Display");
+const SWTComposite = Java.type("org.eclipse.swt.widgets.Composite");
+const SWTTable = Java.type("org.eclipse.swt.widgets.Table");
+const SWTTableItem = Java.type("org.eclipse.swt.widgets.TableItem");
+const SWTTableColumn = Java.type("org.eclipse.swt.widgets.TableColumn");
+const SWTLabel = Java.type("org.eclipse.swt.widgets.Label");
+const SWTGridLayout = Java.type("org.eclipse.swt.layout.GridLayout");
+const SWTGridData = Java.type("org.eclipse.swt.layout.GridData");
+const SWTColor = Java.type("org.eclipse.swt.graphics.Color");
+const SWTFont = Java.type("org.eclipse.swt.graphics.Font");
+const SWTImage = Java.type("org.eclipse.swt.graphics.Image");
+const SWTImageData = Java.type("org.eclipse.swt.graphics.ImageData");
+const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
 
 (function () {
   // ===== CONFIG =====
@@ -346,6 +372,7 @@ console.show();
       aspect: "Application",
       severity: "HIGH",
       desc: "Business-critical app missing hosting technology",
+      frameworkNote: "Implicit framework mapping IF.03: critical applications are covered here; other application components are checked under ABF.I.01.",
       analyzable: true,
     },
 
@@ -570,6 +597,7 @@ console.show();
       aspect: "Strategy",
       severity: "MEDIUM",
       desc: "Strategic goal missing associated driver/motivation",
+      frameworkNote: "Implicit framework mapping IF.01 (P.01/P.03; C.01/C.03; AF.01/AF.06; A.01/A.03): this checks the goal-to-driver side of traceability; STR.65 checks the driver-to-strategy side.",
       analyzable: true,
     },
 
@@ -591,6 +619,7 @@ console.show();
       aspect: "Strategy",
       severity: "MEDIUM",
       desc: "External factor/driver not addressed by any strategy",
+      frameworkNote: "Implicit framework mapping IF.01 (P.01/P.03; C.01/C.03; AF.01/AF.06; A.01/A.03): this checks the driver-to-strategy side of traceability; STR.62 checks the goal-to-driver side.",
       analyzable: true,
     },
 
@@ -612,6 +641,7 @@ console.show();
       aspect: "Semantic",
       severity: "CRITICAL",
       desc: "Business Service not realized by Application Service",
+      frameworkNote: "Implicit framework mapping IF.02 (P.01/C.02; AF.15/AF.16/AF.20; A.01/A.03): this checks missing application-service realization of a business service; OB.68 checks process/function coverage.",
       analyzable: true,
     },
 
@@ -633,6 +663,7 @@ console.show();
       aspect: "Business",
       severity: "CRITICAL",
       desc: "Business Function has no corresponding Application implementation (coverage gap)",
+      frameworkNote: "Implicit framework mapping IF.02 (P.01/C.02; AF.15/AF.16/AF.20; A.01/A.03): this checks missing process/function-to-application coverage; SEM.01 checks business-service realization.",
       analyzable: true,
     },
 
@@ -711,31 +742,242 @@ console.show();
       severity: "HIGH",
       desc: "Business Function has multiple conflicting Application implementations (duplicate implementations)",
       analyzable: true,
-    }
+    },
+
+// ABF.S.xx entries preserve the foundational paper's original symptom codes
+// in sourceCode while avoiding collisions with this script's existing S.xx codes.
+"ABF.S.01": {
+      aspect: "Strategy",
+      severity: "HIGH",
+      desc: "Undefined organizational mission, strategy and goals",
+      sourceCode: "S.01",
+      artifacts: ["AF.01", "AF.06"],
+      analyses: ["A.01", "A.03"],
+      perspectives: ["P.01"],
+      analyzable: true,
+    },
+"ABF.S.02": {
+      aspect: "Business",
+      severity: "HIGH",
+      desc: "Undefined business process goals, business process owners",
+      sourceCode: "S.02",
+      implicitArtifacts: ["AF.01", "AF.06", "AF.11"],
+      implicitAnalyses: ["A.01", "A.03"],
+      analyzable: true,
+    },
+"ABF.S.03": {
+      aspect: "CrossLayer",
+      severity: "HIGH",
+      desc: "Lack of relation between process goals and organizational goals",
+      sourceCode: "S.03",
+      artifacts: ["AF.06", "AF.15"],
+      analyses: ["A.01"],
+      perspectives: ["P.01", "P.03"],
+      analyzable: true,
+    },
+"ABF.S.04": {
+      aspect: "Business",
+      severity: "MEDIUM",
+      desc: "Undefined business roles or responsibilities",
+      sourceCode: "S.04",
+      implicitArtifacts: ["AF.02", "AF.05", "AF.10"],
+      implicitAnalyses: ["A.03"],
+      analyzable: true,
+    },
+"ABF.S.05": {
+      aspect: "Business",
+      severity: "MEDIUM",
+      desc: "Undefined or multiple organizational hierarchies or reporting lines",
+      sourceCode: "S.05",
+      artifacts: ["AF.02", "AF.08", "AF.09", "AF.10"],
+      perspectives: ["P.03"],
+      analyzable: true,
+    },
+"ABF.S.06": {
+      aspect: "CrossLayer",
+      severity: "HIGH",
+      desc: "Application functionality does not support at least one business process task",
+      sourceCode: "S.06",
+      artifacts: ["AF.08", "AF.16"],
+      analyses: ["A.01"],
+      perspectives: ["P.01"],
+      analyzable: true,
+    },
+"ABF.S.07": {
+      aspect: "CrossLayer",
+      severity: "MEDIUM",
+      desc: "A business process task is supported by more than one application",
+      sourceCode: "S.07",
+      artifacts: ["AF.15", "AF.16"],
+      analyses: ["A.03"],
+      perspectives: ["P.01"],
+      analyzable: true,
+    },
+"ABF.S.08": {
+      aspect: "CrossLayer",
+      severity: "CRITICAL",
+      desc: "Critical business process does not depend on scalable and available applications",
+      sourceCode: "S.08",
+      implicitArtifacts: ["AF.04", "AF.20", "AF.23", "AF.24"],
+      implicitAnalyses: ["A.02", "A.07"],
+      analyzable: true,
+    },
+"ABF.S.09": {
+      aspect: "Application",
+      severity: "HIGH",
+      desc: "Inappropriate application functionality",
+      sourceCode: "S.09",
+      artifacts: ["AF.15", "AF.16", "AF.19", "AF.20"],
+      analyses: ["A.01"],
+      perspectives: ["P.01"],
+      analyzable: true,
+    },
+"ABF.S.10": {
+      aspect: "Technology",
+      severity: "HIGH",
+      desc: "Insufficient IT resources",
+      sourceCode: "S.10",
+      artifacts: ["AF.07"],
+      analyses: ["A.05"],
+      perspectives: ["P.02"],
+      analyzable: true,
+    },
+"ABF.S.11": {
+      aspect: "Technology",
+      severity: "MEDIUM",
+      desc: "Lack of IT skills and competencies",
+      sourceCode: "S.11",
+      artifacts: ["AF.02", "AF.03", "AF.10"],
+      analyses: ["A.03"],
+      perspectives: ["P.02", "P.03"],
+      analyzable: true,
+    },
+"ABF.S.12": {
+      aspect: "Business",
+      severity: "MEDIUM",
+      desc: "Lack of skills to develop or innovate certain types of products",
+      sourceCode: "S.12",
+      artifacts: ["AF.03", "AF.07"],
+      analyses: ["A.03"],
+      perspectives: ["P.03"],
+      analyzable: true,
+    },
+"ABF.S.13": {
+      aspect: "Application",
+      severity: "HIGH",
+      desc: "Poor IT planning and portfolio management",
+      sourceCode: "S.13",
+      artifacts: ["AF.07"],
+      analyses: ["A.01", "A.03", "A.06"],
+      perspectives: ["P.02", "P.03"],
+      analyzable: true,
+    },
+"ABF.S.14": {
+      aspect: "Technology",
+      severity: "HIGH",
+      desc: "Under-capacity infrastructure",
+      sourceCode: "S.14",
+      artifacts: ["AF.24"],
+      analyses: ["A.02"],
+      perspectives: ["P.04"],
+      analyzable: true,
+    },
+"ABF.S.15": {
+      aspect: "Technology",
+      severity: "HIGH",
+      desc: "Lack or poor systems performance monitoring",
+      sourceCode: "S.15",
+      artifacts: ["AF.15", "AF.21", "AF.24", "AF.25"],
+      analyses: ["A.03", "A.05", "A.07"],
+      perspectives: ["P.02"],
+      analyzable: true,
+    },
+"ABF.S.16": {
+      aspect: "Technology",
+      severity: "HIGH",
+      desc: "Out-of-date technological infrastructure",
+      sourceCode: "S.16",
+      implicitArtifacts: ["AF.22", "AF.24", "AF.25"],
+      implicitAnalyses: ["A.03", "A.08"],
+      analyzable: true,
+    },
+"ABF.S.17": {
+      aspect: "Technology",
+      severity: "MEDIUM",
+      desc: "Technological heterogeneity",
+      sourceCode: "S.17",
+      artifacts: ["AF.22", "AF.23", "AF.24"],
+      analyses: ["A.08"],
+      perspectives: ["P.04"],
+      analyzable: true,
+    },
+"ABF.S.18": {
+      aspect: "Technology",
+      severity: "HIGH",
+      desc: "Incompatible platforms or technologies",
+      sourceCode: "S.18",
+      implicitArtifacts: ["AF.17", "AF.23", "AF.24"],
+      implicitAnalyses: ["A.04", "A.06", "A.08"],
+      analyzable: true,
+    },
+"ABF.S.19": {
+      aspect: "Technology",
+      severity: "CRITICAL",
+      desc: "Frequent periods while applications are unavailable",
+      sourceCode: "S.19",
+      artifacts: ["AF.18"],
+      analyses: ["A.07"],
+      perspectives: ["P.04"],
+      analyzable: true,
+    },
+"ABF.S.20": {
+      aspect: "Data",
+      severity: "HIGH",
+      desc: "Information consistency or integrity problems",
+      sourceCode: "S.20",
+      artifacts: ["AF.12", "AF.13", "AF.25"],
+      analyses: ["A.07"],
+      perspectives: ["P.04"],
+      analyzable: true,
+    },
+"ABF.S.21": {
+      aspect: "Business",
+      severity: "HIGH",
+      desc: "Undefined business service levels",
+      sourceCode: "S.21",
+      artifacts: ["AF.04"],
+      analyses: ["A.03"],
+      perspectives: ["P.04"],
+      analyzable: true,
+},
+"ABF.I.01": {
+  aspect: "Technology",
+  severity: "HIGH",
+  desc: "Implicit: application component has no modeled link to its deployment technology",
+  frameworkDerivation: "Implicit",
+  frameworkDerivationReference: "Derived implicitly from the framework in \"An Artifact-Based Framework for Business-IT Misalignment Symptom Detection\"; not one of the 21 symptoms explicitly listed in that paper's Table 2 symptom catalogue",
+  frameworkNote: "Implicit framework-derived symptom IF.03. A missing model link is an EA traceability gap, not proof that the application has no runtime host.",
+  frameworkComponents: ["C.04"],
+  artifacts: ["AF.21", "AF.23", "AF.24"],
+  analyses: ["A.01", "A.03", "A.07"],
+  perspectives: ["P.02", "P.04"],
+  analyzable: true,
+},
+"ABF.I.02": {
+  aspect: "Business",
+  severity: "MEDIUM",
+  desc: "Implicit: explicitly declared actor-role assignments are unresolved or not modeled",
+  frameworkDerivation: "Implicit",
+  frameworkDerivationReference: "Derived implicitly from the framework in \"An Artifact-Based Framework for Business-IT Misalignment Symptom Detection\"; not one of the 21 symptoms explicitly listed in that paper's Table 2 symptom catalogue",
+  frameworkNote: "Implicit framework-derived symptom IF.04. Only explicit role/actor declarations that cannot be resolved to a model element or relationship are flagged; an unspecified assignment is not assumed to be missing.",
+  frameworkComponents: ["C.01"],
+  artifacts: ["AF.02", "AF.05", "AF.09", "AF.10"],
+  analyses: ["A.03"],
+  perspectives: ["P.03"],
+  analyzable: true,
+}
 };
 
-  const FileWriter = Java.type("java.io.FileWriter");
-  const File = Java.type("java.io.File");
-  // Common Java I/O streaming helpers used for large outputs
-  const FileOutputStream = Java.type("java.io.FileOutputStream");
-  const OutputStreamWriter = Java.type("java.io.OutputStreamWriter");
-  const BufferedWriter = Java.type("java.io.BufferedWriter");
-  const StandardCharsets = Java.type("java.nio.charset.StandardCharsets");
-  // SWT classes used across the UI, hoisted for readability and reuse
-  const SWTShell = Java.type("org.eclipse.swt.widgets.Shell");
-  const SWTDisplay = Java.type("org.eclipse.swt.widgets.Display");
-  const SWTComposite = Java.type("org.eclipse.swt.widgets.Composite");
-  const SWTTable = Java.type("org.eclipse.swt.widgets.Table");
-  const SWTTableItem = Java.type("org.eclipse.swt.widgets.TableItem");
-  const SWTTableColumn = Java.type("org.eclipse.swt.widgets.TableColumn");
-  const SWTLabel = Java.type("org.eclipse.swt.widgets.Label");
-  const SWTGridLayout = Java.type("org.eclipse.swt.layout.GridLayout");
-  const SWTGridData = Java.type("org.eclipse.swt.layout.GridData");
-  const SWTColor = Java.type("org.eclipse.swt.graphics.Color");
-  const SWTFont = Java.type("org.eclipse.swt.graphics.Font");
-  const SWTImage = Java.type("org.eclipse.swt.graphics.Image");
-  const SWTImageData = Java.type("org.eclipse.swt.graphics.ImageData");
-  const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
   // Use script directory as output location (sibling to script)
   const scriptDir = __DIR__;
   const csvPath = scriptDir + File.separator + "alignment_report.csv";
@@ -778,8 +1020,7 @@ console.show();
 
     let minLevel = SEVERITY[REPORT_MODE.minSeverity].level;
     let symLevel = SEVERITY[symptom.severity].level;
-    const reportable = symLevel >= minLevel;
-    return reportable;
+    return symLevel >= minLevel;
   }
 
   // ===== ArchiMate canonical type groups (Space-separated format from jArchi/Archi)
@@ -1078,6 +1319,9 @@ console.show();
       // If we used the catalogue description but a specific instance provided a
       // custom desc, move that to documentation to preserve instance-specific notes.
       if (symptom && symptom.desc && desc && !documentation) documentation = desc;
+      if (symptom && symptom.frameworkNote) {
+        documentation = (documentation ? documentation + "; " : "") + symptom.frameworkNote;
+      }
       let note =
         "[" +
         severity +
@@ -1191,7 +1435,7 @@ console.show();
    * @returns {boolean} - true if at least one relationship to the target types exists, false otherwise
    *
    * Iterates through all relationships (both source and target directions)
-   * and returns true on first match, making it efficient for existence checks
+   * to determine whether any relationship matches the requested target types.
    */
   function hasRelationToTypes(el, typeArray) {
     let found = false;
@@ -1202,7 +1446,6 @@ console.show();
           let other = r.source === el ? r.target : r.source;
           if (isAnyType(other, typeArray)) {
             found = true;
-            return;
           }
         } catch (e) {}
       });
@@ -1257,18 +1500,8 @@ console.show();
       let pattern = String(typeNamePattern).toLowerCase().replace(/\s+/g, "");
       let actual = String(actualType).toLowerCase().replace(/\s+/g, "");
 
-      // Exact match after normalization
-      if (actual === pattern) return true;
-
-      // Also try direct comparison (in case one uses spaces and other doesn't)
-      if (String(actualType) === String(typeNamePattern)) return true;
-      if (
-        String(actualType).toLowerCase() ===
-        String(typeNamePattern).toLowerCase()
-      )
-        return true;
-
-      return false;
+      // Normalized equality handles both case and whitespace differences.
+      return actual === pattern;
     } catch (e) {
       return false;
     }
@@ -1324,9 +1557,7 @@ console.show();
           // Non-empty string that's not an explicit false/true token: treat as truthy,
           // but prefer explicitness. We'll treat explicit 'false' tokens as false earlier.
           return { found: true, key: key, val: val, truthy: true };
-        } catch (inner) {
-          continue;
-        }
+        } catch (inner) {}
       }
     } catch (e) {}
     return { found: false, key: null, val: null, truthy: false };
@@ -1450,7 +1681,7 @@ console.show();
             typeName
               .toLowerCase()
               .replace(/([A-Z])/g, "-$1")
-              .replace(/^\-/, "")
+              .replace(/^-/, "")
           )
           .each(function (el) {
             // NOTE: jArchi .find(...) accepts names like "business-process" etc.
@@ -1564,7 +1795,7 @@ console.show();
   heading("BUSINESS-IT ALIGNMENT: RUNNING RESEARCH-DRIVEN SCAN");
   info("Model: " + (root.name ? root.name() : "Unnamed model"));
   info(
-    "Methodology: EA-based Misalignment Symptom Detection (79-symptom framework)"
+    "Methodology: 21 foundational paper symptoms plus supplementary checks"
   );
   info("Assessment Focus: Enterprise-level strategic misalignments");
   info("");
@@ -1711,7 +1942,7 @@ console.show();
   //   b) Missing business case validation and value realization tracking
   //   c) Inability to trace goal impact to actual business outcomes
   // This creates a strategy-execution gap where goals exist in isolation.
-  eachOfGroup(["Goal", "ValueStream", "ValueStage"], function (dummy) {
+  eachOfGroup(["Goal", "ValueStream", "ValueStage"], function () {
     // iterate goals and check for value stream linkage
     eachOfGroup(TYPES.GOAL, function (g) {
       if (!hasRelationToTypes(g, ["ValueStream", "ValueStage"]))
@@ -2451,12 +2682,10 @@ console.show();
   //   c) Capacity blindness—infrastructure capacity/performance not planned for criticality
   // This represents critical business continuity and resilience risk.
   eachOfGroup(TYPES.APPLICATION, function (a) {
-    // if app marked critical or business-critical property but no node mapping
-    const critical =
-      a.prop &&
-      (a.prop("critical") ||
-        a.prop("business_criticality") ||
-        a.prop("priority"));
+    const criticality = a.prop &&
+      (a.prop("critical") || a.prop("business_criticality") || a.prop("priority"));
+    const critical = /^(true|yes|high|critical|1)$/i.test(String(criticality || "").trim()) ||
+      /\bmission[- ]critical\b/i.test(String(criticality || ""));
     if (critical && !hasRelationToTypes(a, TYPES.TECHNOLOGY))
       markElement(a, "A.33");
   });
@@ -2882,7 +3111,7 @@ console.show();
   //   b) Investment justification blind spot—IT systems unlinked to explicit value creation
   //   c) Execution blind spot—unclear how value streams actually execute through business/IT systems
   // This reflects governance failure in value stream operationalization and IT value alignment.
-  eachOfGroup(["ValueStream", "ValueStage"], function (dummy) {
+  eachOfGroup(["ValueStream", "ValueStage"], function () {
     // iterate value streams
     try {
       $(model)
@@ -3070,7 +3299,7 @@ console.show();
   // best-effort: look for Contract elements or elements explicitly marked as vendor
   eachOfGroup(
     ["Contract", "Location", "Resource", "BusinessObject"],
-    function (dummy) {
+    function () {
       // iterate contracts, resources and check linkages
       try {
         $(model)
@@ -3636,19 +3865,14 @@ console.show();
   //   b) Portfolio inefficiency—redundant implementations increasing support complexity and cost
   //   c) Standardization failure—organization unable to establish single process implementation
   // This reflects governance failure in process standardization and application consolidation.
-  // Track which business processes have multiple application implementations
-  const procImplementationMap = {};
   eachOfGroup(TYPES.PROCESS, function (proc) {
-    const procKey = safeId(proc);
     let appCount = 0;
-    const apps = [];
     try {
       const rels = proc.rels ? proc.rels() : $(proc).rels();
       rels.each(function (r) {
         const other = r.source === proc ? r.target : r.source;
         if (isAnyType(other, TYPES.APPLICATION)) {
           appCount++;
-          apps.push(other);
         }
       });
     } catch (e) {}
@@ -3928,6 +4152,586 @@ console.show();
     });
   } catch (e) {}
 
+  // Detection rules for the foundational paper's symptom catalogue and
+  // framework mappings. Its tables describe symptoms and model artifacts,
+  // not executable rules; severity is script policy, not specified by the paper.
+  // ABF.S.xx IDs keep the paper's S.xx identifiers distinct from this script's
+  // pre-existing S.xx catalogue. Checks below use explicit model links and
+  // declared properties, so missing model evidence is not treated as proof
+  // that a real-world capability or operational practice is absent.
+  const ABF_TYPES = {
+    PROCESS: ["Business Process", "Business Function", "Business Interaction"],
+    APP: ["Application Component", "Application Service", "Application Interface", "Application Function"],
+    ORG: ["Business Actor", "Business Role"],
+    INFRA: ["Node", "Device", "System Software", "Technology Service", "Infrastructure", "Equipment", "Artifact"],
+    DATA: ["Business Object", "Data Object", "Artifact"],
+    BUSINESS_SERVICE: ["Business Service"],
+  };
+
+  // Shared helpers keep source-catalogue checks consistent about element types,
+  // relationship traversal, declared properties, and finding provenance.
+  function abfElements(types) {
+    return allCollection.items.filter(function (el) {
+      return isAnyType(el, types);
+    });
+  }
+
+  function abfRelated(el, types) {
+    const matches = [];
+    try {
+      (el.rels ? el.rels() : $(el).rels()).each(function (r) {
+        const other = r.source === el ? r.target : r.source;
+        if (other && other !== el && isAnyType(other, types)) matches.push(other);
+      });
+    } catch (e) {}
+    return matches;
+  }
+
+  function abfTaskElements() {
+    return abfElements(ABF_TYPES.PROCESS).filter(function (el) {
+      let hasDecomposedProcess = false;
+      (el.rels ? el.rels() : $(el).rels()).each(function (r) {
+        const relationType = r.type ? String(r.type()) : "";
+        if (
+          r.source === el &&
+          isAnyType(r.target, ABF_TYPES.PROCESS) &&
+          /composition|aggregation/i.test(relationType)
+        ) {
+          hasDecomposedProcess = true;
+        }
+      });
+      return !hasDecomposedProcess;
+    });
+  }
+
+  function abfText(el, properties) {
+    let text = (safeName(el) || "") + " ";
+    try {
+      if (el.getDocumentation) text += el.getDocumentation() || "";
+    } catch (e) {}
+    (properties || []).forEach(function (key) {
+      try {
+        if (el.prop && el.prop(key) !== null && el.prop(key) !== undefined) {
+          text += " " + String(el.prop(key));
+        }
+      } catch (e) {}
+    });
+    return text.toLowerCase();
+  }
+
+  function abfProperty(el, keys) {
+    for (let i = 0; i < keys.length; i++) {
+      try {
+        const value = el.prop && el.prop(keys[i]);
+        if (value !== null && value !== undefined && String(value).trim() !== "") {
+          return String(value).trim();
+        }
+      } catch (e) {}
+    }
+    return "";
+  }
+
+  function abfNumber(el, keys) {
+    const value = abfProperty(el, keys).replace(/,/g, "");
+    if (!value || !/^-?\d+(\.\d+)?$/.test(value)) return null;
+    return Number(value);
+  }
+
+  function abfBadStatus(value) {
+    const status = String(value || "").trim();
+    return /^(false|no|inadequate|insufficient|poor|inappropriate|mismatch(ed)?|incompatible|unsupported|deprecated|obsolete|out[- ]of[- ]date|end[- ]of[- ]life|failed|unavailable|unplanned|unmanaged|inconsistent|degraded)$/i.test(status) ||
+      /\b(not fit|not appropriate|not compatible|not supported|outdated)\b/i.test(status);
+  }
+
+  function abfCritical(el) {
+    const value = abfProperty(el, ["critical", "business_criticality", "priority"]);
+    return /^(true|yes|high|critical|1)$/i.test(value) ||
+      /\b(critical|mission[- ]critical|high[- ]priority)\b/i.test(abfText(el));
+  }
+
+  function abfMark(el, code, evidence) {
+    const symptom = SYMPTOM_CATALOGUE[code];
+    if (!el || !symptom) return;
+    const refs = [];
+    if (symptom.sourceCode) refs.push(ABF_FOUNDATIONAL_PAPER + ", Table 2 symptom catalogue: " + symptom.sourceCode);
+    if (symptom.frameworkDerivation === "Implicit") {
+      refs.push(symptom.frameworkDerivationReference || "Derived implicitly from the framework in \"" + ABF_FOUNDATIONAL_PAPER + "\"; not explicitly listed in its Table 2 symptom catalogue");
+    }
+    if (symptom.frameworkComponents && symptom.frameworkComponents.length) {
+      refs.push(ABF_FOUNDATIONAL_PAPER + ", Table 1 framework components " + symptom.frameworkComponents.map(function (id) {
+        return id + " " + ABF_COMPONENTS[id];
+      }).join(", "));
+    }
+    if (symptom.artifacts && symptom.artifacts.length) {
+      refs.push("artifacts " + symptom.artifacts.map(function (id) {
+        return id + " " + ABF_ARTIFACT_CATALOGUE[id];
+      }).join(", "));
+    }
+    if (symptom.analyses && symptom.analyses.length) {
+      refs.push("EA analyses " + symptom.analyses.map(function (id) {
+        return id + " " + ABF_ANALYSIS_CATALOGUE[id];
+      }).join(", "));
+    }
+    if (symptom.implicitArtifacts && symptom.implicitArtifacts.length) {
+      refs.push("implicit framework artifact mappings " + symptom.implicitArtifacts.map(function (id) {
+        return id + " " + ABF_ARTIFACT_CATALOGUE[id];
+      }).join(", "));
+    }
+    if (symptom.implicitAnalyses && symptom.implicitAnalyses.length) {
+      refs.push("implicit framework EA-analysis mappings " + symptom.implicitAnalyses.map(function (id) {
+        return id + " " + ABF_ANALYSIS_CATALOGUE[id];
+      }).join(", "));
+    }
+    if (symptom.perspectives && symptom.perspectives.length) {
+      refs.push("perspectives " + symptom.perspectives.map(function (id) {
+        return id + " " + ABF_PERSPECTIVES[id];
+      }).join(", "));
+    }
+    const trace = "Foundational source: " + ABF_FOUNDATIONAL_PAPER + "; " + refs.join("; ");
+    markElement(el, code, null, trace + (evidence ? "; evidence: " + evidence : ""));
+  }
+
+  function abfMarkMissingModelConstruct(code, evidence) {
+    const anchors = abfElements(ABF_TYPES.PROCESS.concat(ABF_TYPES.ORG, ["Goal", "Driver", "Capability"]));
+    if (anchors.length) {
+      abfMark(anchors[0], code, "model-level check: " + evidence);
+    } else if (allCollection.items.length) {
+      abfMark(allCollection.items[0], code, "model-level check: " + evidence);
+    }
+  }
+
+  // Table and catalogue identifiers in findings/logs refer to this foundational paper.
+  const ABF_FOUNDATIONAL_PAPER = "An Artifact-Based Framework for Business-IT Misalignment Symptom Detection";
+  // Catalogue IDs and names are from the foundational paper; unlisted mappings
+  // are explicitly marked implicit in symptom metadata and finding details.
+  const ABF_ARTIFACT_CATALOGUE = {
+    "AF.01": "Driver/goal/objective catalogue",
+    "AF.02": "Role catalogue",
+    "AF.03": "Business service/function catalogue",
+    "AF.04": "Contract/measure catalogue",
+    "AF.05": "Actor/role matrix",
+    "AF.06": "Business footprint diagram",
+    "AF.07": "Functional decomposition diagram",
+    "AF.08": "Goal/objective/service diagram",
+    "AF.09": "Business use-case diagram",
+    "AF.10": "Organizational decomposition diagram",
+    "AF.11": "Process flow diagram",
+    "AF.12": "Data entity/data component catalogue",
+    "AF.13": "Data entity/business function matrix",
+    "AF.14": "Data migration diagram",
+    "AF.15": "Application portfolio catalogue",
+    "AF.16": "Application/function matrix",
+    "AF.17": "Application interaction matrix",
+    "AF.18": "Application and user location diagram",
+    "AF.19": "Application use-case diagram",
+    "AF.20": "Process/application realization diagram",
+    "AF.21": "Software distribution diagram",
+    "AF.22": "Technology portfolio catalogue",
+    "AF.23": "Application/technology matrix",
+    "AF.24": "Platform decomposition diagram",
+    "AF.25": "Processing diagram",
+  };
+  const ABF_ANALYSIS_CATALOGUE = {
+    "A.01": "Dependency analysis",
+    "A.02": "Network analysis",
+    "A.03": "Coverage analysis",
+    "A.04": "Interface analysis",
+    "A.05": "Complexity analysis",
+    "A.06": "Enterprise interoperability assessment",
+    "A.07": "Enterprise coherence assessment",
+    "A.08": "Heterogeneity analysis",
+  };
+  const ABF_PERSPECTIVES = {
+    "P.01": "Strategy execution",
+    "P.02": "Technology transformation",
+    "P.03": "Competitive potential",
+    "P.04": "Service level",
+  };
+  const ABF_COMPONENTS = {
+    "C.01": "Business strategy and business structure match",
+    "C.02": "Business structure and IT structure match",
+    "C.03": "Business strategy and IT strategy match",
+    "C.04": "IT strategy and IT structure match",
+  };
+  // These framework-derived concepts reuse existing checks where possible.
+  // IF.03 partitions critical and noncritical applications; IF.04 checks only
+  // role/actor assignments explicitly declared in model properties.
+  const ABF_IMPLICIT_FRAMEWORK_MAPPINGS = {
+    "IF.01": {
+      desc: "Implicit driver/goal traceability gap",
+      codes: ["STR.62", "STR.65"],
+    },
+    "IF.02": {
+      desc: "Implicit business function/service to application realization gap",
+      codes: ["OB.68", "SEM.01"],
+    },
+    "IF.03": {
+      desc: "Implicit application to technology deployment traceability gap",
+      codes: ["A.33", "ABF.I.01"],
+    },
+    "IF.04": {
+      desc: "Implicit actor/role mapping inconsistency",
+      codes: ["ABF.I.02"],
+    },
+  };
+
+  // Each key corresponds to one of the 21 symptoms in Table 2's catalogue in
+  // "An Artifact-Based Framework for Business-IT Misalignment Symptom Detection".
+  // Evidence text identifies what the model must contain or explicitly state.
+  const ABF_CHECKS = {
+    "ABF.S.01": function () {
+      const goals = abfElements(["Goal"]);
+      const missionExists = allCollection.items.some(function (el) {
+        return isAnyType(el, ["Mission"]) || /\bmission\b/.test(abfText(el, ["mission"]));
+      });
+      const strategyExists = allCollection.items.some(function (el) {
+        return isAnyType(el, ["Strategy", "Course of Action"]) ||
+          /\b(strategy|strategic plan|course of action)\b/.test(abfText(el, ["strategy", "strategic_plan"]));
+      });
+      if (!goals.length || !missionExists || !strategyExists) {
+        const evidence = (!goals.length ? "no Goal element is modeled" : "") +
+          (!goals.length && (!missionExists || !strategyExists) ? "; " : "") +
+          (!missionExists ? "no mission element, name, documentation, or mission property is modeled" : "") +
+          (!missionExists && !strategyExists ? "; " : "") +
+          (!strategyExists ? "no strategy/Course of Action element, name, documentation, or strategy property is modeled" : "");
+        if (goals.length) goals.forEach(function (el) { abfMark(el, "ABF.S.01", evidence); });
+        else abfMarkMissingModelConstruct("ABF.S.01", evidence);
+      }
+    },
+    "ABF.S.02": function () {
+      abfElements(ABF_TYPES.PROCESS).forEach(function (el) {
+        const missingGoal = !abfRelated(el, ["Goal"]).length;
+        const missingOwner = !hasAnyProp(el, ["owner", "process_owner", "responsible", "accountable"]) &&
+          !abfRelated(el, ABF_TYPES.ORG).length;
+        if (missingGoal || missingOwner) {
+          abfMark(el, "ABF.S.02", (missingGoal ? "no linked business-process goal" : "") +
+            (missingGoal && missingOwner ? "; " : "") + (missingOwner ? "no declared process owner or assigned business role/actor" : ""));
+        }
+      });
+    },
+    "ABF.S.03": function () {
+      abfElements(ABF_TYPES.PROCESS).forEach(function (el) {
+        if (!abfRelated(el, ["Goal"]).length) abfMark(el, "ABF.S.03", "process has no relationship to an organizational Goal");
+      });
+    },
+    "ABF.S.04": function () {
+      abfElements(ABF_TYPES.PROCESS).forEach(function (el) {
+        if (!abfRelated(el, ["Business Role", "Business Actor"]).length &&
+            !hasAnyProp(el, ["role", "business_role", "responsible", "accountable", "RACI"])) {
+          abfMark(el, "ABF.S.04", "process has no linked business role/actor or role/responsibility property");
+        }
+      });
+    },
+    "ABF.S.05": function () {
+      const orgElements = abfElements(ABF_TYPES.ORG);
+      let hierarchyLinks = 0;
+      orgElements.forEach(function (el) {
+        let parentCount = 0;
+        const hierarchy = abfProperty(el, ["reports_to", "manager", "parent_role", "parent_unit", "organizational_parent"]);
+        const hasMultipleParents = hierarchy && hierarchy.split(/[;,|]/).filter(function (x) { return x.trim(); }).length > 1;
+        (el.rels ? el.rels() : $(el).rels()).each(function (r) {
+          const relationType = r.type ? String(r.type()) : "";
+          if (isAnyType(r.source === el ? r.target : r.source, ABF_TYPES.ORG) && /composition|aggregation/i.test(relationType)) {
+            hierarchyLinks++;
+            if (r.target === el) parentCount++;
+          }
+        });
+        if (hasMultipleParents || parentCount > 1) {
+          abfMark(el, "ABF.S.05", hasMultipleParents ?
+            "declares multiple reporting/hierarchy parents: " + hierarchy :
+            "has " + parentCount + " modeled organizational hierarchy parents");
+        }
+      });
+      // A standalone root can be valid; flag absent hierarchy only when the
+      // model has multiple organizational elements and no hierarchy evidence.
+      if (orgElements.length > 1 && hierarchyLinks === 0 &&
+          !orgElements.some(function (el) {
+            return hasAnyProp(el, ["reports_to", "manager", "parent_role", "parent_unit", "organizational_parent"]);
+          })) {
+        orgElements.forEach(function (el) {
+          abfMark(el, "ABF.S.05", "multiple organizational roles/actors exist but no hierarchy or reporting relationships are modeled");
+        });
+      }
+    },
+    "ABF.S.06": function () {
+      abfTaskElements().forEach(function (el) {
+        if (!abfRelated(el, ABF_TYPES.APP).length) {
+          abfMark(el, "ABF.S.06", "modeled leaf process/task has no linked application supporting it");
+        }
+      });
+    },
+    "ABF.S.07": function () {
+      abfTaskElements().forEach(function (el) {
+        const apps = abfRelated(el, ABF_TYPES.APP);
+        const unique = {};
+        apps.forEach(function (app) { unique[safeId(app) || safeName(app)] = app; });
+        if (Object.keys(unique).length > 1) {
+          abfMark(el, "ABF.S.07", Object.keys(unique).length + " linked applications support the same modeled leaf process/task");
+        }
+      });
+    },
+    "ABF.S.08": function () {
+      abfElements(ABF_TYPES.PROCESS).forEach(function (process) {
+        if (!abfCritical(process)) return;
+        const apps = abfRelated(process, ABF_TYPES.APP);
+        const supported = apps.some(function (app) {
+          const technologies = abfRelated(app, ABF_TYPES.INFRA);
+          const connected = [app].concat(technologies);
+          // A critical process needs modeled evidence for both capacity growth
+          // and availability; one property alone does not establish resilience.
+          const scale = connected.some(function (el) {
+            return hasAnyProp(el, ["scalable", "scalability", "capacity", "capacity_status", "scale_out", "elasticity"]);
+          });
+          const availability = connected.some(function (el) {
+            return hasAnyProp(el, ["availability", "availability_target", "uptime", "high_availability", "redundancy", "failover"]);
+          });
+          return scale && availability;
+        });
+        if (!supported) abfMark(process, "ABF.S.08", apps.length ?
+          "critical process has no linked application/infrastructure with both declared scalability and availability evidence" :
+          "critical process has no linked application");
+      });
+    },
+    "ABF.S.09": function () {
+      abfElements(ABF_TYPES.APP).forEach(function (el) {
+        const status = abfProperty(el, ["functional_fit", "functionality_status", "business_fit", "fit_status", "appropriateness"]);
+        if (abfBadStatus(status)) abfMark(el, "ABF.S.09", "explicit application-function fit status is '" + status + "'");
+      });
+    },
+    "ABF.S.10": function () {
+      abfElements(["Resource", "Equipment", "Material"]).forEach(function (el) {
+        const capacity = abfNumber(el, ["available_capacity", "capacity"]);
+        const required = abfNumber(el, ["required_capacity", "capacity_required", "demand"]);
+        const status = abfProperty(el, ["capacity_status", "resource_adequacy"]);
+        if ((capacity !== null && required !== null && capacity < required) || abfBadStatus(status)) {
+          abfMark(el, "ABF.S.10", capacity !== null && required !== null && capacity < required ?
+            "declared available capacity " + capacity + " is below required capacity " + required :
+            "explicit resource adequacy status is '" + status + "'");
+        }
+      });
+    },
+    "ABF.S.11": function () {
+      abfElements(["Business Role", "Business Actor"]).forEach(function (el) {
+        const text = abfText(el, ["role_type", "domain", "function"]);
+        if (/\b(it|information technology|technology|software|infrastructure|systems)\b/.test(text) &&
+            !hasAnyProp(el, ["skills", "skill", "competencies", "competency", "certifications"])) {
+          abfMark(el, "ABF.S.11", "IT role/resource is identified but has no declared skills or competencies");
+        }
+      });
+    },
+    "ABF.S.12": function () {
+      abfElements(["Product"]).forEach(function (product) {
+        const required = abfProperty(product, ["required_it_skills", "required_skills", "development_skills", "innovation_skills"]);
+        if (!required) return;
+        const skills = {};
+        abfElements(["Business Role", "Business Actor", "Resource"]).forEach(function (el) {
+          const declared = abfProperty(el, ["skills", "skill", "competencies", "competency"]);
+          declared.split(/[;,|]/).forEach(function (skill) {
+            if (skill.trim()) skills[skill.trim().toLowerCase()] = true;
+          });
+        });
+        const missing = required.split(/[;,|]/).map(function (x) { return x.trim().toLowerCase(); }).filter(function (skill) {
+          return skill && !skills[skill];
+        });
+        if (missing.length) abfMark(product, "ABF.S.12", "no modeled role/resource declares required product-development skill(s): " + missing.join(", "));
+      });
+    },
+    "ABF.S.13": function () {
+      abfElements(ABF_TYPES.APP).forEach(function (el) {
+        const status = abfProperty(el, ["portfolio_status", "planning_status", "governance_status"]);
+        if (abfBadStatus(status)) {
+          abfMark(el, "ABF.S.13", "explicit IT planning/portfolio status is '" + status + "'");
+        }
+      });
+    },
+    "ABF.S.14": function () {
+      abfElements(ABF_TYPES.INFRA).forEach(function (el) {
+        const capacity = abfNumber(el, ["available_capacity", "capacity"]);
+        const required = abfNumber(el, ["required_capacity", "capacity_required", "demand"]);
+        const status = abfProperty(el, ["capacity_status", "capacity_health", "utilization_status"]);
+        if ((capacity !== null && required !== null && capacity < required) || abfBadStatus(status)) {
+          abfMark(el, "ABF.S.14", capacity !== null && required !== null && capacity < required ?
+            "declared infrastructure capacity " + capacity + " is below required capacity " + required :
+            "explicit infrastructure capacity status is '" + status + "'");
+        }
+      });
+    },
+    "ABF.S.15": function () {
+      abfElements(["Application Component", "Application Service", "Node", "Device", "System Software", "Technology Service", "Infrastructure", "Equipment"]).forEach(function (el) {
+        const lifecycle = abfProperty(el, ["status", "lifecycle", "operational_status"]);
+        if (/\b(retired|decommissioned|obsolete|deprecated)\b/i.test(lifecycle)) return;
+        const status = abfProperty(el, ["monitoring_status", "performance_monitoring", "monitoring"]);
+        const monitoringLink = abfRelated(el, ["System Software", "Technology Service", "Application Service"]).some(function (other) {
+          return /\b(monitor|observability|performance management)\b/i.test(abfText(other));
+        });
+        // Missing monitoring evidence is a model documentation gap, not proof
+        // that runtime monitoring is absent.
+        if (abfBadStatus(status) || (!status && !monitoringLink)) {
+          abfMark(el, "ABF.S.15", abfBadStatus(status) ?
+            "explicit monitoring status is '" + status + "'" :
+            "no performance-monitoring property or monitoring-service/software relationship is modeled");
+        }
+      });
+    },
+    "ABF.S.16": function () {
+      abfElements(ABF_TYPES.INFRA).forEach(function (el) {
+        const status = abfProperty(el, ["status", "lifecycle", "support_status", "eol"]);
+        if (/\b(deprecated|obsolete|out[- ]of[- ]date|end[- ]of[- ]life|unsupported|retired)\b/i.test(status)) {
+          abfMark(el, "ABF.S.16", "technology lifecycle/support status is '" + status + "'");
+        }
+      });
+    },
+    "ABF.S.17": function () {
+      abfElements(ABF_TYPES.INFRA).forEach(function (el) {
+        const status = abfProperty(el, ["heterogeneity_status", "technology_coherence", "standardization_status"]);
+        const declared = abfProperty(el, ["heterogeneous", "technology_heterogeneity"]);
+        const poorCoherence = /\b(heterogeneous|mixed|nonstandard|fragmented|low coherence|poor coherence)\b/i.test(status);
+        if (/^(true|yes|1|heterogeneous)$/i.test(declared) || poorCoherence) {
+          abfMark(el, "ABF.S.17", "explicit technology heterogeneity/coherence declaration: " + (status || declared));
+        }
+      });
+    },
+    "ABF.S.18": function () {
+      abfElements(ABF_TYPES.INFRA.concat(ABF_TYPES.APP)).forEach(function (el) {
+        const status = abfProperty(el, ["compatibility_status", "platform_compatibility", "interoperability_status"]);
+        const compatible = abfProperty(el, ["compatible", "platform_compatible", "interoperable"]);
+        if (abfBadStatus(status) || /^(false|no|0|incompatible)$/i.test(compatible)) {
+          abfMark(el, "ABF.S.18", "explicit platform/technology compatibility declaration: " + (status || compatible));
+        }
+      });
+    },
+    "ABF.S.19": function () {
+      abfElements(ABF_TYPES.APP).forEach(function (el) {
+        const status = abfProperty(el, ["availability_status", "operational_status"]);
+        // Report only an explicit recurring-outage declaration; the model
+        // cannot establish operational frequency from a generic status.
+        if (/\b(repeated|frequent|recurring)\b.*\b(outages?|downtime|unavailability|unavailable periods?)\b|\b(outages?|downtime|unavailability|unavailable periods?)\b.*\b(repeated|frequent|recurring)\b/i.test(status)) {
+          abfMark(el, "ABF.S.19", "explicit application availability status is '" + status + "'");
+        }
+      });
+    },
+    "ABF.S.20": function () {
+      abfElements(ABF_TYPES.DATA).forEach(function (el) {
+        const status = abfProperty(el, ["consistency_status", "integrity_status", "data_quality_status", "consistency", "integrity"]);
+        const issue = abfProperty(el, ["inconsistent", "integrity_issue", "consistency_issue", "data_quality_issue"]);
+        if (abfBadStatus(status) || /^(true|yes|1)$/i.test(issue)) {
+          abfMark(el, "ABF.S.20", "explicit information consistency/integrity status: " + (status || issue));
+        }
+      });
+    },
+    "ABF.S.21": function () {
+      abfElements(ABF_TYPES.BUSINESS_SERVICE).forEach(function (el) {
+        const hasServiceMeasure = abfRelated(el, ["Contract", "Service Contract", "Requirement", "SLA", "KPI", "Metric"]).some(function (other) {
+          return isAnyType(other, ["Contract", "Service Contract", "SLA", "KPI", "Metric"]) ||
+            /\b(sla|service level|response time|availability target|service measure)\b/i.test(abfText(other));
+        });
+        if (!hasAnyProp(el, ["service_level", "service_level_target", "sla", "response_time", "availability_target"]) &&
+            !hasServiceMeasure) {
+          abfMark(el, "ABF.S.21", "business service has no declared service-level property or linked contract/measure/requirement");
+        }
+      });
+    },
+  };
+  // These are additional symptoms derived from framework relationships, not
+  // separately enumerated symptoms in the foundational paper's catalogue.
+  const ABF_IMPLICIT_CHECKS = {
+    "ABF.I.01": function () {
+      // A.33 handles explicitly critical applications; this check covers the
+      // remaining components without claiming they lack a runtime host.
+      abfElements(["Application Component"]).forEach(function (el) {
+        const criticality = abfProperty(el, ["critical", "business_criticality", "priority"]);
+        const isCritical = /^(true|yes|high|critical|1)$/i.test(criticality) ||
+          /\bmission[- ]critical\b/i.test(criticality);
+        if (!isCritical && !abfRelated(el, ABF_TYPES.INFRA).length) {
+          abfMark(el, "ABF.I.01", "application component has no modeled relationship to a technology/platform element; this indicates missing EA traceability, not verified absence of a runtime host");
+        }
+      });
+    },
+    "ABF.I.02": function () {
+      const actors = abfElements(["Business Actor"]);
+      const roles = abfElements(["Business Role"]);
+      // Do not infer missing assignments: validate only references the model
+      // explicitly declares, against both target elements and relationships.
+      function checkDeclaredMappings(
+        source,
+        keys,
+        targets,
+        targetTypes,
+        unresolvedMessage,
+        unlinkedMessage
+      ) {
+        const declarations = [];
+        keys.forEach(function (key) {
+          const value = abfProperty(source, [key]);
+          if (value) declarations.push(value);
+        });
+        if (!declarations.length) return;
+        const linked = abfRelated(source, targetTypes);
+        const unresolved = [];
+        declarations.join(";").split(/[;,|\n]/).forEach(function (reference) {
+          const token = reference.trim();
+          if (!token) return;
+          const targetMatches = targets.filter(function (candidate) {
+            return (safeName(candidate) || "").trim().toLowerCase() === token.toLowerCase() ||
+              (safeId(candidate) || "").trim().toLowerCase() === token.toLowerCase();
+          });
+          if (!targetMatches.length) {
+            unresolved.push(unresolvedMessage.replace("{ref}", token));
+            return;
+          }
+          const hasLink = targetMatches.some(function (target) {
+            return linked.some(function (candidate) {
+              return candidate === target ||
+                (safeId(candidate) && safeId(candidate) === safeId(target));
+            });
+          });
+          if (!hasLink) unresolved.push(unlinkedMessage.replace("{ref}", token));
+        });
+        if (unresolved.length) {
+          abfMark(source, "ABF.I.02", unresolved.join("; "));
+        }
+      }
+      actors.forEach(function (actor) {
+        checkDeclaredMappings(
+          actor,
+          ["roles", "assigned_roles", "business_roles", "role", "business_role", "assigned_role"],
+          roles,
+          ["Business Role"],
+          "'{ref}' does not identify a modeled role",
+          "role '{ref}' is declared but has no modeled actor-role relationship");
+      });
+      roles.forEach(function (role) {
+        checkDeclaredMappings(
+          role,
+          ["actors", "assigned_actors", "business_actors", "actor", "business_actor", "assigned_actor"],
+          actors,
+          ["Business Actor"],
+          "'{ref}' does not identify a modeled actor",
+          "actor '{ref}' is declared but has no modeled role-actor relationship");
+      });
+    },
+  };
+
+  Object.keys(ABF_IMPLICIT_FRAMEWORK_MAPPINGS).forEach(function (id) {
+    const mapping = ABF_IMPLICIT_FRAMEWORK_MAPPINGS[id];
+    mapping.codes.forEach(function (code) {
+      if (!SYMPTOM_CATALOGUE[code]) {
+        throw new Error("Implicit framework mapping " + id + " references unknown symptom code " + code);
+      }
+    });
+    info("Implicit framework mapping " + id + ": " + mapping.desc + " -> " + mapping.codes.join(", "));
+  });
+
+  Object.keys(ABF_CHECKS).forEach(function (code) {
+    ABF_CHECKS[code]();
+  });
+  info(ABF_FOUNDATIONAL_PAPER + " (Table 2 symptom catalogue) checks run: " + Object.keys(ABF_CHECKS).length);
+  Object.keys(ABF_IMPLICIT_CHECKS).forEach(function (code) {
+    ABF_IMPLICIT_CHECKS[code]();
+  });
+  info("Implicit framework-derived symptom checks: " + Object.keys(ABF_IMPLICIT_CHECKS).length +
+    "; implicit concepts mapped to existing codes: " + Object.keys(ABF_IMPLICIT_FRAMEWORK_MAPPINGS).length);
+
   // ---------------- EXPORT & SUMMARY ----------------
 
   heading("SCAN COMPLETE");
@@ -4108,7 +4912,7 @@ console.show();
       const mainSeverityColorCache = {};
       const mainSeverityTextColorCache = {};
       // Hoisted UI variables for slider and label to keep scoping clean and consistent
-      let sliderComposite, sliderCompositeGD, sliderLayout, slider, sliderGD, filterLabel, footerItemRef;
+      let footerItemRef;
       const sourceFindings = (Array.isArray(findings) && findings.length) ? findings : findingsCache;
       for (let i = 0; i < sourceFindings.length; i++) {
         const f = sourceFindings[i];
@@ -4234,13 +5038,10 @@ console.show();
         );
         summaryTable.setHeaderVisible(true);
         summaryTable.setLinesVisible(true);
-        // Track summary-created colors and fonts for proper disposal when the shell closes
-        const summaryColorObjects = [];
-        const summaryFontObjects = [];
+        // Keep explicit references so every summary-owned SWT resource can be
+        // disposed when the dialog closes.
         const summaryHeaderFg = new SWTColor(25, 25, 112);
         const summaryHeaderBg = new SWTColor(173, 216, 230);
-        summaryColorObjects.push(summaryHeaderFg);
-        summaryColorObjects.push(summaryHeaderBg);
         summaryTable.setHeaderForeground(summaryHeaderFg);
         summaryTable.setHeaderBackground(summaryHeaderBg);
 
@@ -4267,16 +5068,13 @@ console.show();
         });
         
         // Add severity rows - use configured order if available
-        let sevOrder = [];
-        if (REPORT_MODE && Array.isArray(REPORT_MODE.severityOrder)) {
-          sevOrder = REPORT_MODE.severityOrder.filter(function (sk) {
+        const sevOrder = REPORT_MODE && Array.isArray(REPORT_MODE.severityOrder)
+          ? REPORT_MODE.severityOrder.filter(function (sk) {
             return severityCounts.hasOwnProperty(sk) && severityCounts[sk] > 0;
-          });
-        } else {
-          sevOrder = Object.keys(severityCounts).filter(function (sk) {
+          })
+          : Object.keys(severityCounts).filter(function (sk) {
             return severityCounts[sk] > 0;
           });
-        }
 
         // Pre-cache severity colors to avoid creating them repeatedly
         const severityColorCache = {};
@@ -4287,9 +5085,7 @@ console.show();
             const r_val = parseInt(colorHex.substring(1, 3), 16);
             const g_val = parseInt(colorHex.substring(3, 5), 16);
             const b_val = parseInt(colorHex.substring(5, 7), 16);
-            const c = new SWTColor(r_val, g_val, b_val);
-            severityColorCache[sk] = c;
-            summaryColorObjects.push(c);
+            severityColorCache[sk] = new SWTColor(r_val, g_val, b_val);
           }
         }
 
@@ -4343,10 +5139,10 @@ console.show();
           ""
         ]);
         const footerBg = new SWTColor(200, 200, 200);
-        summaryColorObjects.push(footerBg);
         footerItemRef.setBackground(footerBg);
         
         // Apply bold font to footer item columns 0 and 1
+        let summaryFooterFont = null;
         try {
           const currentFont = summaryTable.getFont();
           const boldFont = new SWTFont(
@@ -4357,7 +5153,7 @@ console.show();
           );
           footerItemRef.setFont(0, boldFont);
           footerItemRef.setFont(1, boldFont);
-          summaryFontObjects.push(boldFont);
+          summaryFooterFont = boldFont;
         } catch (e) {
           // Fallback: if bold font creation fails, continue without bold
         }
@@ -4426,16 +5222,13 @@ console.show();
             // Clear existing summary rows
             try { summaryTable.removeAll(); } catch (e) {}
             // Rebuild order and rows
-            let newSevOrder = [];
-            if (REPORT_MODE && Array.isArray(REPORT_MODE.severityOrder)) {
-              newSevOrder = REPORT_MODE.severityOrder.filter(function (sk) {
+            const newSevOrder = REPORT_MODE && Array.isArray(REPORT_MODE.severityOrder)
+              ? REPORT_MODE.severityOrder.filter(function (sk) {
                 return severityCounts.hasOwnProperty(sk) && severityCounts[sk] > 0;
-              });
-            } else {
-              newSevOrder = Object.keys(severityCounts).filter(function (sk) {
+              })
+              : Object.keys(severityCounts).filter(function (sk) {
                 return severityCounts[sk] > 0;
               });
-            }
             const ak = Object.keys(aspectCounts).sort(function (a, b) { return aspectCounts[b] - aspectCounts[a]; });
             const maxR = Math.max(ak.length, newSevOrder.length);
             for (let rr = 0; rr < maxR; rr++) {
@@ -4574,7 +5367,7 @@ console.show();
         sliderGD.widthHint = 260;
         slider.setLayoutData(sliderGD);
 
-        slider.addListener(org.eclipse.swt.SWT.Selection, function (e) {
+        slider.addListener(org.eclipse.swt.SWT.Selection, function () {
           try {
             const pos = slider.getSelection();
             const newMode = sliderPosToMode(pos);
@@ -4663,7 +5456,7 @@ console.show();
       // The shell will remain responsive until manually closed by the user
 
       // Add dispose listener to clean up image and color resources when shell closes
-          shell.addDisposeListener(function (e) {
+          shell.addDisposeListener(function () {
             if (image && !image.isDisposed()) {
               image.dispose();
             }
@@ -4687,14 +5480,11 @@ console.show();
                 }
               } catch (ex) {}
             } catch (ex) {}
-            try {
-              // dispose summary-local color objects (header/footer/severity rows)
-              if (typeof summaryColorObjects !== 'undefined' && summaryColorObjects) {
-                for (let i = 0; i < summaryColorObjects.length; i++) {
-                  try { const co = summaryColorObjects[i]; if (co && !co.isDisposed()) co.dispose(); } catch (inner) {}
-                }
-              }
-            } catch (ex) {}
+            [summaryHeaderFg, summaryHeaderBg, footerBg].forEach(function (color) {
+              try {
+                if (color && !color.isDisposed()) color.dispose();
+              } catch (inner) {}
+            });
             try {
               // dispose the per-summary severity color cache if present
               if (typeof severityColorCache !== 'undefined' && severityColorCache) {
@@ -4704,11 +5494,8 @@ console.show();
               }
             } catch (ex) {}
             try {
-              // dispose any fonts created for the summary
-              if (typeof summaryFontObjects !== 'undefined' && summaryFontObjects) {
-                for (let fi = 0; fi < summaryFontObjects.length; fi++) {
-                  try { const ff = summaryFontObjects[fi]; if (ff && !ff.isDisposed()) ff.dispose(); } catch (inner) {}
-                }
+              if (summaryFooterFont && !summaryFooterFont.isDisposed()) {
+                summaryFooterFont.dispose();
               }
             } catch (ex) {}
             try {
@@ -4878,4 +5665,3 @@ console.log("DEBUG▂▂ calling displayTableDialog()");  // LOW severity sample
   heading("END OF SCRIPT");
   info("Reports saved to: " + csvPath + " and " + xlsPath);
 })();
-
