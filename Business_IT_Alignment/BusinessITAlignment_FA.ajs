@@ -49,6 +49,8 @@ const FileOutputStream = Java.type("java.io.FileOutputStream");
 const OutputStreamWriter = Java.type("java.io.OutputStreamWriter");
 const BufferedWriter = Java.type("java.io.BufferedWriter");
 const StandardCharsets = Java.type("java.nio.charset.StandardCharsets");
+const ZipEntry = Java.type("java.util.zip.ZipEntry");
+const ZipOutputStream = Java.type("java.util.zip.ZipOutputStream");
 
 const SWTShell = Java.type("org.eclipse.swt.widgets.Shell");
 const SWTDisplay = Java.type("org.eclipse.swt.widgets.Display");
@@ -73,7 +75,7 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
   const tagColor = true; // visually color flagged elements
   const colorForIssue = "#FFEEEE";
   const writeCSV = true;
-  const writeXLS = true;
+  const writeXLSX = true;
 
   // SEVERITY FRAMEWORK: Filter to focus on enterprise-level issues
   const SEVERITY = {
@@ -108,7 +110,7 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
       Data: "داده",
       Application: "برنامۀ کاربردی",
       Technology: "فناوری",
-      "Cross-Layer": "میان‌لایه‌ای",
+      CrossLayer: "میان‌لایه‌ای",
       Semantic: "معنایی",
       Operational: "عملیاتی",
       Unclassified: "نامشخص",
@@ -187,28 +189,28 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
     },
 
 "X.61": {
-      aspect: "Cross-Layer",
+      aspect: "CrossLayer",
       severity: "HIGH",
       desc: "الگوی معماری اعلام‌شده بدون پیاده‌سازی یا نگاشت قابل‌مشاهده است",
       analyzable: true,
     },
 
 "X.62": {
-      aspect: "Cross-Layer",
+      aspect: "CrossLayer",
       severity: "HIGH",
       desc: "سرویس مشترک اعلام‌شده اما مصرف‌کنندگان تنها یک برنامه را دارند",
       analyzable: true,
     },
 
 "X.49": {
-      aspect: "Cross-Layer",
+      aspect: "CrossLayer",
       severity: "CRITICAL",
       desc: "ردیابی انتها به انتها شکسته است",
       analyzable: true,
     },
 
 "X.50": {
-      aspect: "Cross-Layer",
+      aspect: "CrossLayer",
       severity: "HIGH",
       desc: "جریان‌های ارزش توسط فرآیندها یا سیستم‌های فناوری اطلاعات پشتیبانی نمی‌شوند",
       analyzable: true,
@@ -475,21 +477,21 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
     },
 
 "P.81": {
-      aspect: "Cross-Layer",
+      aspect: "CrossLayer",
       severity: "HIGH",
       desc: "الگو اعلام‌شده ولی پیکره‌بندی نشده است",
       analyzable: true,
     },
 
 "P.82": {
-      aspect: "Cross-Layer",
+      aspect: "CrossLayer",
       severity: "MEDIUM",
       desc: "گونه‌های مختلف یا واریانت‌های الگو بدون نگاشت مشخص یا ناسازگار هستند",
       analyzable: true,
     },
 
 "P.83": {
-      aspect: "Cross-Layer",
+      aspect: "CrossLayer",
       severity: "MEDIUM",
       desc: "الگو تعریف شده است ولی انواع به‌درستی اعمال نشده است",
       analyzable: true,
@@ -517,70 +519,70 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
     },
 
 "X.51": {
-      aspect: "Cross-Layer",
+      aspect: "CrossLayer",
       severity: "HIGH",
       desc: "الزامات قانونی و نظارتی انطباق سرگردان هستند",
       analyzable: true,
     },
 
 "X.52": {
-      aspect: "Cross-Layer",
+      aspect: "CrossLayer",
       severity: "HIGH",
       desc: "قابلیت کسب‌وکار اهداف را پشتیبانی می‌کند اما توسط فناوری اطلاعات پشتیبانی نشده است",
       analyzable: true,
     },
 
 "X.53": {
-      aspect: "Cross-Layer",
+      aspect: "CrossLayer",
       severity: "MEDIUM",
       desc: "عملیات کسب‌وکار از داده‌ای استفاده می‌کنند که توسط هیچ نرم‌افزاری تأمین نشده است",
       analyzable: true,
     },
 
 "X.54": {
-      aspect: "Cross-Layer",
+      aspect: "CrossLayer",
       severity: "MEDIUM",
       desc: "فعالیت‌های عملیاتی فاقد شاخص‌های کلیدی عملکرد هستند",
       analyzable: true,
     },
 
 "X.55": {
-      aspect: "Cross-Layer",
+      aspect: "CrossLayer",
       severity: "HIGH",
       desc: "سرویس‌ها فاقد توافقنامۀ سطح خدمات یا مالک هستند",
       analyzable: true,
     },
 
 "X.56": {
-      aspect: "Cross-Layer",
+      aspect: "CrossLayer",
       severity: "HIGH",
       desc: "نگاشت تأثیر تغییرات وجود ندارد",
       analyzable: true,
     },
 
 "X.57": {
-      aspect: "Cross-Layer",
+      aspect: "CrossLayer",
       severity: "MEDIUM",
       desc: "مخاطرات شخص ثالث یا تأمین‌کننده به شیوۀ استفاده مرتبط نشده‌اند",
       analyzable: true,
     },
 
 "X.58": {
-      aspect: "Cross-Layer",
+      aspect: "CrossLayer",
       severity: "MEDIUM",
       desc: "وابستگی‌های سرویس مستندسازی نشده‌اند",
       analyzable: true,
     },
 
 "X.59": {
-      aspect: "Cross-Layer",
+      aspect: "CrossLayer",
       severity: "HIGH",
       desc: "نگاشت تداوم کسب‌وکار موجود نیست",
       analyzable: true,
     },
 
 "X.60": {
-      aspect: "Cross-Layer",
+      aspect: "CrossLayer",
       severity: "CRITICAL",
       desc: "قابلیت حیاتی فاقد خروجی یا هدف قابل اندازه‌گیری است",
       analyzable: true,
@@ -703,14 +705,14 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
     },
 
 "OB.74": {
-      aspect: "Cross-Layer",
+      aspect: "CrossLayer",
       severity: "CRITICAL",
       desc: "فرآیند کسب‌وکار فاقد اتصال عملکردی به لایۀ برنامۀ کاربردی است (تخلف از هماهنگی و انسجام میان‌لایه‌ای)",
       analyzable: true,
     },
 
 "OB.75": {
-      aspect: "Cross-Layer",
+      aspect: "CrossLayer",
       severity: "CRITICAL",
       desc: "شیء داده فاقد نگاشت بین لایۀ کسب‌وکار و لایۀ فناوری اطلاعات است",
       analyzable: true,
@@ -738,7 +740,7 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
     },
 
 "OB.79": {
-      aspect: "Cross-Layer",
+      aspect: "CrossLayer",
       severity: "HIGH",
       desc: "تابع کسب‌وکار دارای چندین پیاده‌سازی برنامۀ کاربردی متعارض است (پیاده‌سازی‌های تکراری)",
       analyzable: true,
@@ -766,7 +768,7 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
       analyzable: true,
     },
 "ABF.S.03": {
-      aspect: "Cross-Layer",
+      aspect: "CrossLayer",
       severity: "HIGH",
       desc: "نبود رابطۀ میان اهداف فرایندها و اهداف سازمان",
       sourceCode: "S.03",
@@ -794,7 +796,7 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
       analyzable: true,
     },
 "ABF.S.06": {
-      aspect: "Cross-Layer",
+      aspect: "CrossLayer",
       severity: "HIGH",
       desc: "قابلیت برنامۀ کاربردی از دست‌کم یک وظیفۀ فرایند کسب‌وکار پشتیبانی نمی‌کند",
       sourceCode: "S.06",
@@ -804,7 +806,7 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
       analyzable: true,
     },
 "ABF.S.07": {
-      aspect: "Cross-Layer",
+      aspect: "CrossLayer",
       severity: "MEDIUM",
       desc: "یک وظیفۀ فرایند کسب‌وکار توسط بیش از یک برنامۀ کاربردی پشتیبانی می‌شود",
       sourceCode: "S.07",
@@ -814,7 +816,7 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
       analyzable: true,
     },
 "ABF.S.08": {
-      aspect: "Cross-Layer",
+      aspect: "CrossLayer",
       severity: "CRITICAL",
       desc: "فرایند حیاتی کسب‌وکار به برنامه‌های کاربردی مقیاس‌پذیر و در دسترس وابسته نیست",
       sourceCode: "S.08",
@@ -981,7 +983,7 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
   // Use script directory as output location (sibling to script)
   const scriptDir = __DIR__;
   const csvPath = scriptDir + File.separator + "alignment_report.csv";
-  const xlsPath = scriptDir + File.separator + "alignment_report.xls";
+  const xlsxPath = scriptDir + File.separator + "alignment_report.xlsx";
 
   // jArchi model root (wrap but do NOT shadow global `model` variable)
   const root = $(model);
@@ -1368,7 +1370,7 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
             case "T":
               return "Technology";
             case "X":
-              return "Cross-Layer";
+              return "CrossLayer";
             case "SEM":
               return "Semantic";
             case "OB":
@@ -1540,8 +1542,8 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
   // Parse boolean-like property values safely including localized tokens
   // Returns: { found: Boolean, key: String|null, val: String|null, truthy: Boolean }
   function getPropBooleanValue(el, keys) {
-    const trueTokens = ['true', '1', 'yes', 'y', 'on', 'enabled', 'enable', 'بله', 'بلی', 'فعال', 'فعال‌شده','درست', 'صحیح'];
-    const falseTokens = ['false', '0', 'no', 'n', 'off', 'disabled', 'disable', 'خیر', 'نه', 'غیرفعال', 'فعال‌نشده','نادرست', 'غلط'];
+    const trueTokens = ['true', '1', 'yes', 'y', 'on', 'enabled', 'enable', 'positive', 'active', 'yeap', 'yeah', 'correct', 'right', 'بله', 'بلی', 'فعال', 'فعال‌شده', 'درست', 'صحیح'];
+    const falseTokens = ['false', '0', 'no', 'n', 'off', 'disabled', 'disable', 'negative', 'inactive', 'nope', 'nah', 'wrong', 'incorrect', 'خیر', 'نه', 'غیرفعال', 'فعال‌نشده', 'نادرست', 'غلط'];
     try {
       if (!el || typeof el.prop !== 'function') return { found: false, key: null, val: null, truthy: false };
       for (let i = 0; i < keys.length; i++) {
@@ -1872,55 +1874,23 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
       (g.prop && g.prop("description")) || (g.prop && g.prop("notes")) || ""
     );
     let text = (safeName(g) + " " + desc).toLowerCase();
+    // Keep the same English and Persian text triggers in both language versions.
     let scaleTokens = [
-      "real-time",
-      "24x7",
-      "high volume",
-      "scalab",
-      "low-latency",
-      "throughput",
-      "peak",
-      "massive",
-      "large",
-      "بزرگ‌مقیاس",
-      "مقیاس‌پذیر",
-      "درزمانی",
-      "زمان واقعی",
-      "حجم بالا",
-      "حجم زیاد",
-      "پهنای‌باند",
-      "پهنای باند",
-      "تأخیر کم",
-      "بی‌درنگ",
-      "بی درنگ",
-      "بلادرنگ",
-      "بی‌وقفه",
-      "بی وقفه",
-      "کم تأخیر‌",
-      "توان‌رسانی",
-      "توان رسانی",
-      "پیک",
-      "بزرگ",
-      "درخواست‌های",
-      "درخواست های",
-      "رفت‌وآمد",
-      "رفت و آمد",
-      "عملکرد بالا",
-      "بازده زیاد",
-      "بار زیاد",
-      "بار‌زیاد",
-      "رشد لوگاریتمی",
-      "رشد سریع",
-      "مقیاس‌پذیری",
-      "مقیاس پذیری",
-      "توانش زمانی",
-      "ظرفیت پذیرش",
-      "خروجی",
-      "ظرفیت",
-      "توان عملیاتی",
-      "پیک",
-      "اوج",
-      "شبانه‌روز"
+      "real-time", "24x7", "circadian", "round-the-clock", "high volume", "scalab",
+      "low-latency", "throughput", "peak", "massive", "large", "large scale",
+      "scalable", "realtime", "real time", "large volume", "voluminous", "bandwidth",
+      "band width", "low latency", "prompt", "synchronous", "simultaneous", "immediately",
+      "in no time", "ontime", "punctual", "max", "big", "requests", "request",
+      "efficient", "speedy", "effective", "full load", "heavy load", "logarithmic",
+      "quick growth", "scalability", "logarithmic growth", "temporal throughput",
+      "output", "large-scale operation", "full operation", "apex",
+      "بزرگ‌مقیاس", "مقیاس‌پذیر", "درزمانی", "زمان واقعی", "حجم بالا", "حجم زیاد",
+      "پهنای‌باند", "پهنای باند", "تأخیر کم", "بی‌درنگ", "بی درنگ", "بلادرنگ",
+      "بی‌وقفه", "بی وقفه", "کم تأخیر‌", "توان‌رسانی", "توان رسانی", "پیک",
+      "بزرگ", "درخواست‌های", "درخواست های", "رفت‌وآمد", "رفت و آمد", "عملکرد بالا",
+      "بازده زیاد", "بار زیاد", "بار‌زیاد", "رشد لوگاریتمی", "رشد سریع",
+      "مقیاس‌پذیری", "مقیاس پذیری", "توانش زمانی", "ظرفیت پذیرش", "خروجی", "ظرفیت",
+      "توان عملیاتی", "اوج", "شبانه‌روز"
     ];
     let mentionsScale = scaleTokens.some(function (t) {
       return text.indexOf(t) >= 0;
@@ -2043,6 +2013,11 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
         "due",
         "deadline",
         "target-date",
+        "period",
+        "precedence",
+        "time limit",
+        "fuinishing date",
+        "cut-off point",
         "بازه زمانی",
         "اولویت",
         "مهلت",
@@ -2646,7 +2621,11 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
         TYPES.PROCESS.concat(TYPES.CAPABILITY).concat(TYPES.VALUE)
       )
     )
-      markElement(a, "A.31");
+      markElement(
+        a,
+        "A.31",
+        "برنامۀ کاربردی به هیچ فرآیند، قابلیت یا جریان ارزشی نگاشت نشده است"
+      );
   });
 
   heading(getHeadingString("A.32", "تکرار برنامۀ کاربردی (نوع و نام یکسان)"));
@@ -3482,9 +3461,9 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
       // Robust shared declaration detection:
       // - Look for boolean-like properties (english + localized keys)
       // - Heuristic name-based detection for 'shared' (English & Persian tokens)
-      const sharedKeys = ['shared', 'isShared', 'shared_service', 'sharedService', 'is_shared', 'مشترک', 'اشتراکی', 'مشاع', 'خدمات اشتراکی', 'سرویس اشتراکی'];
+      const sharedKeys = ['shared', 'isShared', 'shared_service', 'sharedService', 'is_shared', 'common', 'joint', 'mutual', 'common service', 'مشترک', 'اشتراکی', 'مشاع', 'خدمات اشتراکی', 'سرویس اشتراکی'];
       const propResult = getPropBooleanValue(s, sharedKeys);
-      const nameTokens = ['shared', 'shared service', 'shared-service', 'shared_service', 'مشترک', 'اشتراکی', 'مشاع', 'خدمات مشترک', 'خدمات اشتراکی', 'سرویس اشتراکی'];
+      const nameTokens = ['shared', 'shared service', 'shared-service', 'shared_service', 'common services', 'common', 'joint', 'common service', 'joint services', 'مشترک', 'اشتراکی', 'مشاع', 'خدمات مشترک', 'خدمات اشتراکی', 'سرویس اشتراکی'];
       const sn = (safeName(s) || '').toLowerCase();
       const nameIndicatesShared = nameTokens.some(function (t) { return t && sn.indexOf(t) >= 0; });
       const declaredShared = propResult.truthy || nameIndicatesShared;
@@ -5517,9 +5496,9 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
     }
   }
 
-  // produce CSV and XLS (HTML)
+  // Produce CSV and a native XLSX workbook.
   /**
-   * Exports findings to CSV and XLS (HTML table) formats.
+   * Exports findings to CSV and native XLSX formats.
    * Creates two sibling files in the script's directory with detailed misalignment reports.
    *
    * CSV format:
@@ -5527,14 +5506,13 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
    * - One finding per row
    * - Suitable for import into Excel, databases, or analysis tools
    *
-   * XLS format:
-   * - HTML table with CSS styling and color-coding by severity
-   * - Professional formatting for business presentation
+   * XLSX format:
+   * - Native Office Open XML workbook with a filterable findings sheet
    * - Severity-based row coloring for quick visual scanning
    *
    * Output files:
    * - csvPath: alignment_report.csv
-   * - xlsPath: alignment_report.xls
+   * - xlsxPath: alignment_report.xlsx
    */
   function writeFiles() {
     try {
@@ -5601,56 +5579,144 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
         info("\nCSV exported: " + csvPath);
       }
 
-      if (writeXLS) {
-        // Stream the HTML output to disk instead of concatenating a large string in memory.
+      if (writeXLSX) {
         try {
-          // Reuse hoisted FileOutputStream, OutputStreamWriter, BufferedWriter, and StandardCharsets
-
-          const fos = new FileOutputStream(xlsPath);
-          const osw = new OutputStreamWriter(fos, StandardCharsets.UTF_8);
-          const bw = new BufferedWriter(osw);
+          // XLSX is an Office Open XML package: a ZIP archive containing related XML parts.
+          const zip = new ZipOutputStream(new FileOutputStream(xlsxPath));
+          const bw = new BufferedWriter(new OutputStreamWriter(zip, StandardCharsets.UTF_8));
           try {
-            // Optional BOM for some Excel versions (keeps UTF-8 safe)
-            try { bw.write('\uFEFF'); } catch (e) {}
-            bw.write("<html dir='rtl' lang='fa'><head><meta charset='utf-8'><style>table{border-collapse:collapse;width:100%}th,td{border:1px solid #ddd;padding:8px;text-align:left}th{background-color:#f2f2f2}tr:nth-child(even){background-color:#f9f9f9}.CRITICAL{background-color:#ffcccc}.HIGH{background-color:#ffe6cc}.MEDIUM{background-color:#ffffe6}.LOW{background-color:#ffffcc}</style></head><body dir='rtl'>");
-            bw.write("<table><thead><tr><th>"); bw.write(FA.COLUMNS.severity);
-            bw.write("</th><th>"); bw.write(FA.COLUMNS.elementId);
-            bw.write("</th><th>"); bw.write(FA.COLUMNS.aspect);
-            bw.write("</th><th>"); bw.write(FA.COLUMNS.code);
-            bw.write("</th><th>"); bw.write(FA.COLUMNS.elementName);
-            bw.write("</th><th>"); bw.write(FA.COLUMNS.elementType);
-            bw.write("</th><th>"); bw.write(FA.COLUMNS.description);
-            bw.write("</th><th>"); bw.write(FA.COLUMNS.documentation);
-            bw.write("</th></tr></thead><tbody>");
-
-            function escHtml(s) {
-              return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            function writeEntry(name, content) {
+              zip.putNextEntry(new ZipEntry(name));
+              bw.write(content);
+              // Flush between ZIP entries so buffered XML stays in its own package part.
+              bw.flush();
+              // Finalize the current zip entry in a stream so I can move on to the next entry or finish the archive.
+                zip.closeEntry();
+            }
+            // Since .xlsx is a ZIP archive containing multiple XML files, I need to escape any special characters in
+            // cell text for XML. E.g., I should convert: A & B <test> to: A &amp; B &lt;test&gt;
+            function xmlEscape(value) {
+              // Escape cell text for XML and discard characters forbidden by the XML specification.
+              return String(value == null ? "" : value)
+                .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&apos;");
             }
 
-              const exportFindings = (Array.isArray(findings) && findings.length) ? findings : findingsCache;
-              for (let k = 0; k < exportFindings.length; k++) {
-                const r2 = exportFindings[k];
-              const rowClass = r2.severity ? " class='" + r2.severity + "'" : "";
-              const sevLabel = FA.SEVERITY_LABELS[r2.severity] || r2.severity || "";
-              const aspLabel = FA.ASPECTS[r2.aspect] || r2.aspect || "";
-              bw.write("<tr" + rowClass + "><td>"); bw.write(escHtml(sevLabel)); bw.write("</td>");
-              bw.write("<td>"); bw.write(escHtml(r2.elementId)); bw.write("</td>");
-              bw.write("<td>"); bw.write(escHtml(aspLabel)); bw.write("</td>");
-              bw.write("<td>"); bw.write(escHtml(r2.code)); bw.write("</td>");
-              bw.write("<td>"); bw.write(escHtml(r2.elementName)); bw.write("</td>");
-              bw.write("<td>"); bw.write(escHtml(r2.elementType)); bw.write("</td>");
-              bw.write("<td>"); bw.write(escHtml(r2.desc)); bw.write("</td>");
-              bw.write("<td>"); bw.write(escHtml(r2.documentation)); bw.write("</td>");
-              bw.write("</tr>");
+            function writeCell(reference, value, styleId) {
+              bw.write("<c r=\"" + reference + "\" s=\"" + styleId + "\" t=\"inlineStr\"><is><t xml:space=\"preserve\">");
+              bw.write(xmlEscape(value));
+              bw.write("</t></is></c>");
             }
 
-            bw.write("</tbody></table></body></html>");
+            const exportFindings = (Array.isArray(findings) && findings.length) ? findings : findingsCache;
+            const headers = [
+              FA.COLUMNS.severity,
+              FA.COLUMNS.elementId,
+              FA.COLUMNS.aspect,
+              FA.COLUMNS.code,
+              FA.COLUMNS.elementName,
+              FA.COLUMNS.elementType,
+              FA.COLUMNS.description,
+              FA.COLUMNS.documentation
+            ];
+            const columnNames = ["A", "B", "C", "D", "E", "F", "G", "H"];
+            // These style indexes map each severity to its corresponding fill in styles.xml.
+            const severityStyles = { CRITICAL: 2, HIGH: 3, MEDIUM: 4, LOW: 5 };
+            const lastRow = exportFindings.length + 1;
+
+            // Register the workbook parts and relationships required by Excel to open the package.
+            writeEntry("[Content_Types].xml",
+              "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
+              "<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\">" +
+              "<Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/>" +
+              "<Default Extension=\"xml\" ContentType=\"application/xml\"/>" +
+              "<Override PartName=\"/xl/workbook.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml\"/>" +
+              "<Override PartName=\"/xl/worksheets/sheet1.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml\"/>" +
+              "<Override PartName=\"/xl/styles.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml\"/>" +
+              "</Types>");
+            writeEntry("_rels/.rels",
+              "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
+              "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">" +
+              "<Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\" Target=\"xl/workbook.xml\"/>" +
+              "</Relationships>");
+            writeEntry("xl/workbook.xml",
+              "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
+              "<workbook xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\">" +
+              "<sheets><sheet name=\"گزارش همراستایی\" sheetId=\"1\" r:id=\"rId1\"/></sheets></workbook>");
+            writeEntry("xl/_rels/workbook.xml.rels",
+              "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
+              "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">" +
+              "<Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet1.xml\"/>" +
+              "<Relationship Id=\"rId2\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles\" Target=\"styles.xml\"/>" +
+              "</Relationships>");
+            writeEntry("xl/styles.xml",
+              "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
+              "<styleSheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">" +
+              "<fonts count=\"2\"><font><sz val=\"11\"/><name val=\"Calibri\"/></font><font><b/><sz val=\"11\"/><name val=\"Calibri\"/></font></fonts>" +
+              "<fills count=\"7\"><fill><patternFill patternType=\"none\"/></fill><fill><patternFill patternType=\"gray125\"/></fill>" +
+              "<fill><patternFill patternType=\"solid\"><fgColor rgb=\"FFF2F2F2\"/><bgColor indexed=\"64\"/></patternFill></fill>" +
+              "<fill><patternFill patternType=\"solid\"><fgColor rgb=\"FFFFCCCC\"/><bgColor indexed=\"64\"/></patternFill></fill>" +
+              "<fill><patternFill patternType=\"solid\"><fgColor rgb=\"FFFFE6CC\"/><bgColor indexed=\"64\"/></patternFill></fill>" +
+              "<fill><patternFill patternType=\"solid\"><fgColor rgb=\"FFFFFFE6\"/><bgColor indexed=\"64\"/></patternFill></fill>" +
+              "<fill><patternFill patternType=\"solid\"><fgColor rgb=\"FFFFFFCC\"/><bgColor indexed=\"64\"/></patternFill></fill></fills>" +
+              "<borders count=\"1\"><border><left/><right/><top/><bottom/><diagonal/></border></borders>" +
+              "<cellStyleXfs count=\"1\"><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\"/></cellStyleXfs>" +
+              "<cellXfs count=\"6\"><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\" xfId=\"0\"/>" +
+              "<xf numFmtId=\"0\" fontId=\"1\" fillId=\"2\" borderId=\"0\" xfId=\"0\" applyFont=\"1\" applyFill=\"1\"/>" +
+              "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"3\" borderId=\"0\" xfId=\"0\" applyFill=\"1\"/>" +
+              "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"4\" borderId=\"0\" xfId=\"0\" applyFill=\"1\"/>" +
+              "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"5\" borderId=\"0\" xfId=\"0\" applyFill=\"1\"/>" +
+              "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"6\" borderId=\"0\" xfId=\"0\" applyFill=\"1\"/></cellXfs>" +
+              "<cellStyles count=\"1\"><cellStyle name=\"Normal\" xfId=\"0\" builtinId=\"0\"/></cellStyles></styleSheet>");
+
+            zip.putNextEntry(new ZipEntry("xl/worksheets/sheet1.xml"));
+            bw.write("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>");
+            bw.write("<worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">");
+            // Keep the worksheet right-to-left for Persian; use inline strings and freeze its header row.
+            bw.write("<dimension ref=\"A1:H" + lastRow + "\"/><sheetViews><sheetView workbookViewId=\"0\" rightToLeft=\"1\"><pane ySplit=\"1\" topLeftCell=\"A2\" activePane=\"bottomLeft\" state=\"frozen\"/></sheetView></sheetViews>");
+            bw.write("<cols><col min=\"1\" max=\"1\" width=\"16\" customWidth=\"1\"/><col min=\"2\" max=\"4\" width=\"20\" customWidth=\"1\"/><col min=\"5\" max=\"5\" width=\"32\" customWidth=\"1\"/><col min=\"6\" max=\"6\" width=\"22\" customWidth=\"1\"/><col min=\"7\" max=\"8\" width=\"60\" customWidth=\"1\"/></cols><sheetData>");
+
+            bw.write("<row r=\"1\">");
+            for (let column = 0; column < headers.length; column++) {
+              writeCell(columnNames[column] + "1", headers[column], 1);
+            }
+            bw.write("</row>");
+
+            for (let index = 0; index < exportFindings.length; index++) {
+              const finding = exportFindings[index];
+              const rowIndex = index + 2;
+              const severity = finding.severity || "";
+              const values = [
+                FA.SEVERITY_LABELS[severity] || severity,
+                finding.elementId,
+                FA.ASPECTS[finding.aspect] || finding.aspect,
+                finding.code,
+                finding.elementName,
+                finding.elementType,
+                finding.desc,
+                finding.documentation
+              ];
+              const styleId = severityStyles[severity] || 0;
+              bw.write("<row r=\"" + rowIndex + "\">");
+              for (let column = 0; column < values.length; column++) {
+                writeCell(columnNames[column] + rowIndex, values[column], styleId);
+              }
+              bw.write("</row>");
+            }
+
+            bw.write("</sheetData><autoFilter ref=\"A1:H" + lastRow + "\"/></worksheet>");
+            bw.flush();
+            zip.closeEntry();
           } finally {
-            try { bw.close(); } catch (e) {}
+            zip.close();
           }
-          info("از گزارشِ سازگار با اِکسل خروجی گرفته شد:  " + xlsPath);
+          info("فایلِ اکسلِ بومی با موفقیت ایجاد شد: " + xlsxPath);
         } catch (ex) {
-          console.log("خطا در نوشتن گزارش اکسل به‌صورت جریانی: " + ex);
+          console.log("خطا در نوشتن گزارش XLSX: " + ex);
         }
       }
     } catch (e) {
@@ -5670,5 +5736,5 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
   displayTableDialog();
 
   heading("پایان اسکریپت");
-  info("گزارش‌ها ذخیره شدند در: " + csvPath + " و " + xlsPath);
+  info("گزارش‌ها ذخیره شدند در: " + csvPath + " و " + xlsxPath);
 })();
