@@ -2,7 +2,7 @@
 
 <h1>BizDiag</h1>
 
-<h2>Research-Driven Enterprise Architecture Intelligence for Business Diagnostics</h2>
+<h2>Research-Driven Enterprise Architecture Intelligence for Digital Strategy & Business Diagnostics</h2>
 
 </div>
 <br/>
@@ -1508,15 +1508,19 @@ repository” functionality may also be used to obtain the repository's citation
 
 ### APA
 
-Pak, E. (2026). BizDiag: Intelligent Enterprise Architecture & Digital Strategy Automation [Computer software]. GitHub.
+Pak, E. (2026). BizDiag: Research-Driven Enterprise Architecture Intelligence for Digital Strategy & Business Diagnostics [Computer software]. GitHub.
 
 ### MLA
 
-Pak, Ebrahim. BizDiag: Intelligent Enterprise Architecture & Digital Strategy Automation. 2026. GitHub.
+Pak, Ebrahim. BizDiag: Research-Driven Enterprise Architecture Intelligence for Digital Strategy & Business Diagnostics. 2026. GitHub.
 
 ### Chicago
 
-Pak, Ebrahim. 2026. “BizDiag: Intelligent Enterprise Architecture & Digital Strategy Automation.” Software. GitHub.
+Pak, Ebrahim. 2026. “BizDiag: Research-Driven Enterprise Architecture Intelligence for Digital Strategy & Business Diagnostics.” Software. GitHub.
+
+### IEEE
+
+[1] E. Pak, “BizDiag: Research-Driven Enterprise Architecture Intelligence for Digital Strategy & Business Diagnostics,” version 1.0.0, software, 2026. [Online]. Available: https://github.com/ebrahimpak/BizDiag.
 
 The `CITATION.cff` file is the authoritative source for the project's citation metadata. If the citation information in 
 this document differs from the current `CITATION.cff`, please use the information provided in `CITATION.cff`.
