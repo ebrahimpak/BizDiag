@@ -1,6 +1,6 @@
 # Business–IT Alignment and Misalignment Detection
 
-## Introduction to Digital Strategy & Alignment
+## 1. Introduction to Digital Strategy & Alignment
 
 Digital strategy is not simply a technology plan. It connects business
 direction with the information systems and technology choices, organizational
@@ -10,7 +10,7 @@ mutual adjustment—not a one-time state to achieve. Peppard and Ward discuss
 this relationship through Henderson and Venkatraman's Strategic Alignment
 Model (SAM) and the evolution toward a broader, adaptive digital capability.
 
-### Henderson and Venkatraman's Strategic Alignment Model
+### 1.1 Henderson and Venkatraman's Strategic Alignment Model
 
 SAM examines the coherence of four domains: **business strategy** and
 **digital/IT strategy** (external choices), and **organizational
@@ -55,7 +55,7 @@ In practice, IT can both support a business strategy and enable new strategic
 options. Alignment, therefore, includes internal fit and the ability to respond
 to external change.
 
-### Luftman's alignment dimensions
+### 1.2 Luftman's Alignment Dimensions
 
 Luftman's alignment components are organized around four domains. The domain
 and component names are as follows:
@@ -101,7 +101,7 @@ senior support, leadership, trust, communication, and understanding of both
 business and technical environments all affect whether alignment can be
 sustained.
 
-### Connection to `BusinessITAlignment_EN.ajs`
+#### 1.2.1 Connection to `BusinessITAlignment_EN.ajs` and `BusinessITAlignment_FA.ajs`
 
 The script turns part of this strategic discussion into a model-based
 diagnostic. It checks modeled strategy, business processes, data, applications,
@@ -111,38 +111,106 @@ goals to outcomes or capabilities, business-process support by applications,
 application and technology relationships, ownership, and governance metadata.
 Findings are attached to model elements and presented in a report; related
 sections below describe the rule families and their research mappings in more
-detail.
+detail. Luftman's 12 components provide the conceptual framework for relating
+the diagnostic's rule families to business–IT alignment. The checks translate
+selected parts of those organizational dimensions into evidence that can be
+examined in an ArchiMate model; the table below explains that translation and
+where a component is not yet operationalized by an automated check.
 
-#### Existing checks related to Luftman's components
+##### 1.2.1.1 How the Checks Operationalize Luftman's Components
 
-Luftman's article, “Assessing Business-IT Alignment Maturity,” presents a
-framework for evaluating alignment maturity. The script does not calculate
-Luftman maturity scores, and the checks listed here were not taken from that
-article. Instead, the table points to existing checks about similar topics and
-explains what evidence those checks can provide from the architecture model.
-This is a guide to relevant script findings—not an assessment of an
-organization's Luftman maturity or proof that it is aligned or misaligned.
+Luftman's “Assessing Business-IT Alignment Maturity” supplies the
+**framework-level design basis** for this crosswalk: its components identify
+the organizational dimensions the diagnostic is intended to examine. The
+executable rules are **model-level operationalizations** of aspects of those
+dimensions. They check declared ArchiMate relationships, properties, and
+metadata that can serve as indicators of alignment-related conditions. They
+do not reproduce Luftman's assessment instrument, interview criteria, or
+maturity scoring, and a model indicator is not a direct measurement of an
+organizational capability. Where another research framework is the documented
+source of a specific symptom family (such as `ABF.S.*`), that rule-level
+source complements the Luftman organizing framework; the two claims are not
+the same.
 
-| Luftman component | Related existing checks | What the model check establishes (and does not establish) |
-|---|---|---|
-| Business Scope | `S.03`, `S.05`, `S.06`, `STR.64` | Tests modeled links among goals, capabilities, value streams, and applications; does not decide whether business scope or market choices are appropriate. |
-| Distinctive Competencies | — | No reliable check determines whether a modeled capability is distinctive or a source of competitive advantage. |
-| Business Governance | `S.10`, `B.11` | Checks for declared strategy-goal and process ownership; does not establish governance effectiveness. |
-| Administrative Structure | `ABF.S.04`, `ABF.S.05` | Checks modeled role/responsibility links and declared organizational hierarchy; does not assess whether the organization design is effective. |
-| Business Processes | `B.11`–`B.20` | Checks modeled process ownership, links, measures, constraints, and specification; these are architecture-documentation checks, not an evaluation of actual process performance. |
-| Business Skills | `ABF.S.12` | Compares explicitly modeled product-development skill requirements with explicitly modeled role/resource skills; does not infer a person's real competence or detect undeclared requirements. |
-| Technology Scope | — | No reliable check determines whether the technologies selected are strategically relevant or appropriate. |
-| Systemic Competences | — | No reliable check measures distinctive IT capability or the organization's ability to use technology strategically. |
-| IT Governance | `A.38`, `A.39`, `T.45` | Checks application ownership and cost/licensing metadata and modeled technology standards/policy links; does not assess decision quality or governance effectiveness. |
-| IT Architecture | `A.33`, `A.36`, `T.48` | Checks selected application-hosting, interface, and infrastructure-service relationships; does not assess the overall quality or strategic fit of the architecture. |
-| IT Processes | — | No dedicated rule assesses IT service-management or IT delivery processes. Business-process checks (`B.11`–`B.20`) are not checks of IT processes. |
-| IT Skills | `ABF.S.11` | Checks whether modeled IT roles/resources declare skills or competencies; a missing declaration is a model-information gap, not evidence that staff lack those skills. |
+<table border="1" cellpadding="4" cellspacing="0" style="border-collapse: collapse;">
+  <thead>
+    <tr>
+      <th style="border: 1px solid;">Luftman component</th>
+      <th style="border: 1px solid;">Checks operationalizing aspects of the component</th>
+      <th style="border: 1px solid;">What the rules examine as model evidence</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="border: 1px solid;">Business Scope</td>
+      <td style="border: 1px solid;"><code>S.03</code>, <code>S.05</code>, <code>S.06</code>, <code>STR.64</code></td>
+      <td style="border: 1px solid;">Connects modeled goals to capabilities and value streams, applications to goals/outcomes/capabilities, and capabilities back to goals/objectives/initiatives. This operationalizes strategic-to-operational traceability; it does not judge market or offering choices.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;">Distinctive Competencies</td>
+      <td style="border: 1px solid;">No direct automated check</td>
+      <td style="border: 1px solid;">The capability links above provide context about strategic capability coverage, but the model does not establish that a capability differentiates the organization or is difficult to imitate.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;">Business Governance</td>
+      <td style="border: 1px solid;"><code>S.10</code>, <code>B.11</code></td>
+      <td style="border: 1px solid;">Checks whether goals and business processes declare accountable owners or related responsibility metadata. This operationalizes the documentation of accountability, not the effectiveness of governance or decision-making.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;">Administrative Structure</td>
+      <td style="border: 1px solid;"><code>ABF.S.04</code>, <code>ABF.S.05</code></td>
+      <td style="border: 1px solid;">Checks process-to-role/actor or responsibility evidence and modeled reporting/hierarchy consistency or presence. These operationalize structural representation in the model; the specific <code>ABF.S.*</code> rules also retain their documented artifact-framework basis.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;">Processes (Organizational Infrastructure and Processes)</td>
+      <td style="border: 1px solid;"><code>B.11</code>–<code>B.19</code>; executable <code>B.20</code></td>
+      <td style="border: 1px solid;">Checks process ownership, data and application support, duplicates, inputs/outputs, outcome or requirement links, deprecated-technology dependencies, controls/constraints, capability links, and cadence metadata. These operationalize process-architecture completeness, not actual process performance. <code>B.20</code> is executable but absent from the 112-entry catalogue; some checks in this family are marked non-analyzable.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;">Skills (Organizational Infrastructure and Processes)</td>
+      <td style="border: 1px solid;"><code>ABF.S.12</code></td>
+      <td style="border: 1px solid;">Compares skills declared as required for product development with skills declared for modeled roles, actors, or resources. This operationalizes skills traceability for that scenario, not workforce competence generally; the rule also has its documented artifact-framework basis.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;">Technology Scope</td>
+      <td style="border: 1px solid;">No direct automated check</td>
+      <td style="border: 1px solid;">The current rules document technology choices, standards, lifecycle, and dependencies, but do not determine whether the technologies or digital opportunities are strategically relevant.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;">Systemic Competences</td>
+      <td style="border: 1px solid;">No direct automated check</td>
+      <td style="border: 1px solid;">The model may contain IT capabilities and systems, but the current rules do not measure the organization's ability to develop or use technology as a distinctive strategic competence.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;">IT Governance</td>
+      <td style="border: 1px solid;"><code>A.38</code>, <code>A.39</code>, <code>T.45</code></td>
+      <td style="border: 1px solid;">Checks application ownership, cost/licensing records, and technology links to standards, policies, constraints, requirements, or guidelines. These operationalize governance-related accountability and documentation, not the quality of investment decisions or governance in practice.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;">Architecture (IT Infrastructure and Processes)</td>
+      <td style="border: 1px solid;"><code>A.33</code>, <code>A.36</code>, <code>T.48</code></td>
+      <td style="border: 1px solid;">Checks hosting links for applications marked critical, interface/flow links for integrated applications, and technology links to applications, services, or processes. These operationalize selected architecture relationships, not overall architectural quality or strategic fit.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;">Processes (IT Infrastructure and Processes)</td>
+      <td style="border: 1px solid;">No dedicated automated check</td>
+      <td style="border: 1px solid;">The current business-process rules (<code>B.11</code>–<code>B.20</code>) do not assess IT service-management, systems development, delivery, or operations processes.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;">Skills (IT Infrastructure and Processes)</td>
+      <td style="border: 1px solid;"><code>ABF.S.11</code></td>
+      <td style="border: 1px solid;">Checks whether modeled IT-related roles/actors declare skills or competencies. This operationalizes IT-skills documentation, not actual staff capability or workforce sufficiency; the rule also has its documented artifact-framework basis.</td>
+    </tr>
+  </tbody>
+</table>
 
-For every check in the table, a finding means that the model meets that
-check's trigger. It may point to missing or conflicting architecture
-information, but it does not by itself establish an organizational alignment
-problem. The `ABF.S.*` checks have a separate, documented research basis
-described in the foundational artifact-based framework section.
+Thus, the 12 components are the **organizing alignment framework**, while the
+table makes explicit which components have implemented model-level
+operationalizations and which remain gaps. A finding means the model meets a
+rule's trigger: it is evidence about the modeled indicator, not by itself a
+Luftman maturity score or proof of organizational misalignment. Missing
+metadata may reflect incomplete architecture documentation rather than an
+operational deficiency.
 
 This is a **screening aid, not a complete alignment-maturity assessment**.
 The model can provide evidence of documented structures and relationships,
@@ -162,7 +230,7 @@ organization's ability to sense opportunities, adapt its strategy, or
 successfully realize benefits. Those questions require business analysis and
 ongoing management beyond static model checks [18, pp. 38–43].
 
-## Purpose and scope
+## 2. Purpose and Scope
 
 `BusinessITAlignment_EN.ajs` and its Persian-language counterpart,
 `BusinessITAlignment_FA.ajs`, are jArchi scripts for examining an ArchiMate
@@ -230,9 +298,9 @@ duplicate catalogue entries; their mappings are explained below. The aspect
 names and descriptions in the inventory tables are the values in the English
 script's catalogue, not a retrospective reclassification.
 
-## Research basis and conceptual derivation
+## 3. Research Basis and Conceptual Derivation
 
-### Strategic Alignment Model (SAM)
+### 3.1 Strategic Alignment Model (SAM)
 
 The foundational paper (An Artifact-Based Framework for Business-IT Misalignment 
 Symptom Detection, by Dóra Őri) structures its analysis around the Strategic 
@@ -337,7 +405,7 @@ These are analytical viewpoints, not four separate model layers. A symptom
 may therefore be relevant to more than one perspective, and an individual
 ArchiMate element is not itself a complete measure of alignment.
 
-### The foundational artifact-based framework
+### 3.2 The Foundational Artifact-Based Framework
 
 Őri's foundational paper, *An Artifact-Based Framework for Business-IT
 Misalignment Symptom Detection* [2], addresses the gap between identifying a
@@ -449,7 +517,7 @@ S.07 in the Strategy Execution perspective, using the application/function
 artifact and dependency analysis. This is a research framework for organizing
 detection, not a complete specification of every model query or property-value test.
 
-### Translating the framework into this script
+### 3.3 Translating the Framework into This Script
 
 **Five Phases**
 
@@ -546,7 +614,7 @@ filled with a guessed paper mapping. The distinction preserves the boundary
 between what the paper explicitly tabulates and how its framework can be
 applied to model checks.
 
-## Foundational symptom catalogue: all 21 symptoms of 'Misalignment symptom catalogue'
+### 3.4 Foundational Symptom Catalogue: All 21 Symptoms of 'Misalignment Symptom Catalogue'
 
 The symptom wording below reproduces the English script's `desc` fields.
 “Paper code” is the original 'Misalignment symptom catalogue' identifier; 
@@ -769,7 +837,7 @@ S.07 adds an article, and S.14 hyphenates “under-capacity.” The original
 'Misalignment symptom catalogue' identifier is retained in the adjacent Paper
 code column.
 
-### What the 'Misalignment symptom catalogue' checks examine
+#### 3.4.1 What the 'Misalignment Symptom Catalogue' Checks Examine
 
 The paper names symptoms at a conceptual level. The following summarizes how
 the current script seeks model evidence for them:
@@ -825,7 +893,7 @@ exist. Likewise, a missing deployment relationship is not proof that an
 application is not hosted, and a model that does not declare a role
 assignment does not establish that no person performs that role.
 
-## Implicit symptoms derived from the foundational framework
+### 3.5 Implicit Symptoms Derived from the Foundational Framework
 
 The foundational paper's artifact and analysis catalogues add detection
 structure beyond 'Misalignment symptom catalogue', but they are not themselves
@@ -898,7 +966,7 @@ of the model evidence. The checks do not claim that the underlying runtime
 deployment or human assignment is absent when only the model relationship is 
 missing.
 
-## Foundational paper's artifact catalogue
+### 3.6 Foundational Paper's Artifact Catalogue
 
 The following are the 25 artifact identifiers and names in the script's
 `ABF_ARTIFACT_CATALOGUE`, corresponding to the 'Artifact catalogue' of the 
@@ -1043,7 +1111,7 @@ they are not additional symptom codes.
   </tbody>
 </table>
 
-## Foundational paper's EA analysis catalogue
+### 3.7 Foundational Paper's EA Analysis Catalogue
 
 The script's `ABF_ANALYSIS_CATALOGUE` preserves the foundational paper's 
 'EA analysis catalogue' eight analysis identifiers. The descriptions below
@@ -1109,7 +1177,7 @@ checks are the specific rules described in this document; the analysis names
 explain the analytical lens associated with a symptom in the paper's
 framework.
 
-## Supplementary symptom catalogue
+### 3.8 Supplementary Symptom Catalogue
 
 The following 89 entries supplement the 21 foundational symptoms of 
 'Misalignment symptom catalogue' and the two standalone implicit entries. 
@@ -1129,7 +1197,7 @@ described by code family and research theme rather than implying that every
 rule is a verbatim symptom from a single publication. The tables below retain
 the exact code and catalogue wording from the English script.
 
-### Strategy (17 supplementary entries)
+#### 3.8.1 Strategy (17 Supplementary Entries)
 
 <table border="1" cellpadding="4" cellspacing="0" style="border-collapse: collapse;">
   <thead>
@@ -1228,7 +1296,7 @@ the exact code and catalogue wording from the English script.
   </tbody>
 </table>
 
-### CrossLayer (20 supplementary entries)
+#### 3.8.2 CrossLayer (20 Supplementary Entries)
 
 <table border="1" cellpadding="4" cellspacing="0" style="border-collapse: collapse;">
   <thead>
@@ -1342,7 +1410,7 @@ the exact code and catalogue wording from the English script.
   </tbody>
 </table>
 
-### Business (12 supplementary entries)
+#### 3.8.3 Business (12 Supplementary Entries)
 
 <table border="1" cellpadding="4" cellspacing="0" style="border-collapse: collapse;">
   <thead>
@@ -1416,7 +1484,7 @@ the exact code and catalogue wording from the English script.
   </tbody>
 </table>
 
-### Operational (1 supplementary entry)
+#### 3.8.4 Operational (1 Supplementary Entry)
 
 <table border="1" cellpadding="4" cellspacing="0" style="border-collapse: collapse;">
   <thead>
@@ -1435,7 +1503,7 @@ the exact code and catalogue wording from the English script.
   </tbody>
 </table>
 
-### Data (13 supplementary entries)
+#### 3.8.5 Data (13 Supplementary Entries)
 
 <table border="1" cellpadding="4" cellspacing="0" style="border-collapse: collapse;">
   <thead>
@@ -1514,7 +1582,7 @@ the exact code and catalogue wording from the English script.
   </tbody>
 </table>
 
-### Application (15 supplementary entries)
+#### 3.8.6 Application (15 Supplementary Entries)
 
 <table border="1" cellpadding="4" cellspacing="0" style="border-collapse: collapse;">
   <thead>
@@ -1603,7 +1671,7 @@ the exact code and catalogue wording from the English script.
   </tbody>
 </table>
 
-### Technology (8 supplementary entries)
+#### 3.8.7 Technology (8 Supplementary Entries)
 
 <table border="1" cellpadding="4" cellspacing="0" style="border-collapse: collapse;">
   <thead>
@@ -1657,7 +1725,7 @@ the exact code and catalogue wording from the English script.
   </tbody>
 </table>
 
-### Semantic (3 supplementary entries)
+#### 3.8.8 Semantic (3 Supplementary Entries)
 
 <table border="1" cellpadding="4" cellspacing="0" style="border-collapse: collapse;">
   <thead>
@@ -1693,11 +1761,15 @@ written: D.29 and D.30 both say “No data classification present,” and X.51
 and X.52 both say “Capability supports goals but not supported by IT.” The
 codes remain distinct catalogue entries.
 
-## Supplementary literature and provenance
+## 4. Supplementary Literature and Provenance
 
-The script distinguishes the foundational framework from additional checks, but
-its code does not support a source-to-rule attribution for every supplementary
-check. The `STR.61`–`STR.67` comments name Zoltán Szabó and Dóra Őri's
+Luftman's 12 components provide the alignment diagnostic's **top-level
+conceptual design framework**; the supplementary rules operationalize
+model-observable aspects of that framework where feasible. This framework-level
+basis is distinct from the **rule-level provenance** of an individual symptom.
+The code does not attribute every supplementary check to a particular
+publication or establish that a rule reproduces an author's instrument. The
+`STR.61`–`STR.67` comments name Zoltán Szabó and Dóra Őri's
 “How Enterprise Architecture Management Can Support Strategic IS Planning.”
 The `OB.68`–`OB.79` comments name Pascal André et al.'s “Assessing Operational
 Business-IT Alignment for Architecture Improvement”; this association reflects
@@ -1734,7 +1806,7 @@ rule-level provenance.
     </tr>
     <tr>
       <td style="border: 1px solid;"><code>S.01</code>–<code>S.10</code>; <code>B.11</code>–<code>B.19</code>; <code>D.21</code>–<code>D.30</code>; <code>A.31</code>–<code>A.40</code>; <code>T.41</code>–<code>T.48</code>; <code>X.49</code>–<code>X.62</code>; <code>OB.80</code>; <code>SEM.01</code>–<code>SEM.03</code>; <code>P.81</code>–<code>P.83</code>; <code>EV.90</code>; <code>SEC.85</code></td>
-      <td style="border: 1px solid;">These remaining supplementary catalogue entries have executable checks, but their code contains no direct attribution to a cited work. “Strategic Alignment: Leveraging Information Technology for Transforming Organizations” (Henderson and Venkatraman), “Assessing Business-IT Alignment Maturity” (Luftman), “Exploring Business Strategy Modelling with ArchiMate: A Case Study Approach” (Kitsios et al.), “Testing Enterprise Application Architecture Patterns” (Choudhry), and <em>The Strategic Management of Information Systems: Building a Digital Strategy</em> (Peppard and Ward) inform the conceptual discussion; they are not established as the origin of these individual rules. Other cited EA and research-method works likewise provide context, not a code-level provenance mapping.</td>
+      <td style="border: 1px solid;">These remaining supplementary catalogue entries have executable checks. Luftman's 12 components provide the diagnostic's top-level alignment framework, and these rules operationalize model-observable aspects of relevant components; the code does not cite Luftman as the verbatim or separately validated source of each individual rule. “Strategic Alignment: Leveraging Information Technology for Transforming Organizations” (Henderson and Venkatraman), “Exploring Business Strategy Modelling with ArchiMate: A Case Study Approach” (Kitsios et al.), “Testing Enterprise Application Architecture Patterns” (Choudhry), and <em>The Strategic Management of Information Systems: Building a Digital Strategy</em> (Peppard and Ward) inform the broader conceptual discussion. Other cited EA and research-method works likewise provide context, not a code-level provenance mapping.</td>
     </tr>
     <tr>
       <td style="border: 1px solid;"><code>B.20</code> (execution/catalogue discrepancy)</td>
@@ -1743,17 +1815,16 @@ rule-level provenance.
   </tbody>
 </table>
 
-The Luftman crosswalk in the Introduction is conceptual: “Assessing Business-IT
-Alignment Maturity” is not the provenance of any detection rule. Its related
-code examples are listed narrowly, rather than assigning broad families such
-as all data, security, business-process, application, or technology checks to
-Luftman. The same
-distinction applies to the other context-only references above. The catalogue
-contains 112 entries (21 foundational symptoms, two implicit framework checks,
-and 89 supplementary entries); the separate executable-but-uncatalogued
-<code>B.20</code> check is the exception noted in the table.
+The Luftman crosswalk in the Introduction describes the **framework-level
+design basis** and the operationalization of its components in model checks.
+It does not claim that every rule is a verbatim Luftman symptom or a validated
+Luftman maturity measure. Rule-level attributions to other research frameworks
+are recorded separately above. The catalogue contains 112 entries (21
+foundational symptoms, two implicit framework checks, and 89 supplementary
+entries); the separate executable-but-uncatalogued <code>B.20</code> check is
+the exception noted in the table.
 
-## Running the script and interpreting results
+## 5. Running the Script and Interpreting Results
 
 Run `BusinessITAlignment_EN.ajs` from Archi with jArchi enabled and the
 intended ArchiMate model open. The script evaluates the model's elements and
@@ -1780,7 +1851,7 @@ change the catalogue or the definition of the checks. The script records and
 highlights findings; it does not repair the model or prescribe an
 organizational remediation.
 
-### Reading a finding responsibly
+### 5.1 Reading a Finding Responsibly
 
 1. Treat the code and catalogue description as the rule's category, then read
    its finding notes for the particular modeled evidence.
@@ -1798,7 +1869,7 @@ contains a corresponding rule definition; it does not mean every rule will produ
 a finding in every model, or that every model element is expected to satisfy every
 rule.
 
-## References
+## 6. References
 
 [1] J. C. Henderson and N. Venkatraman, “Strategic Alignment: Leveraging
     Information Technology for Transforming Organizations,” *IBM Systems
@@ -1875,7 +1946,7 @@ rule.
 [18] J. Peppard and J. Ward, *The Strategic Management of Information Systems:
      Building a Digital Strategy*, 4th ed. Wiley, 2016.
 
-## Author and Copyright
+## 7. Author and Copyright
 
 **Author:** Ebrahim Pak
 
