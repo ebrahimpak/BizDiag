@@ -42,10 +42,24 @@ The generated Capability Map contains existing and, when the user opts in, AI-pr
 The profile/input worklist also displays these Capabilities, but Value Streams, Resources, and Courses of Action are
 not placed in the Capability Map.
 
-| ArchiMate element | Role in the suite |
-|---|---|
-| Capability | The only Capability Map node and assessment subject; receives maturity, target, action, project, and priority properties. |
-| Course of Action | Separate potential-strategy input; only these elements may be marked `CBP.Role=Strategy` and receive Capability-impact properties. Not a Capability Map node. |
+<table border="1" cellpadding="4" cellspacing="0" style="border-collapse: collapse;">
+  <thead>
+    <tr>
+      <th style="border: 1px solid;">ArchiMate element</th>
+      <th style="border: 1px solid;">Role in the suite</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="border: 1px solid;">Capability</td>
+      <td style="border: 1px solid;">The only Capability Map node and assessment subject; receives maturity, target, action, project, and priority properties.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;">Course of Action</td>
+      <td style="border: 1px solid;">Separate potential-strategy input; only these elements may be marked <code>CBP.Role=Strategy</code> and receive Capability-impact properties. Not a Capability Map node.</td>
+    </tr>
+  </tbody>
+</table>
 
 Value Streams, Resources, Business Functions, Business Processes, Business Services, Drivers, Goals, and Requirements
 are evidence sources, not Move 1 Capability Map nodes. Optional Ollama discovery proposes provisional Capabilities
@@ -224,15 +238,52 @@ not zero. Replace `<YYYY>` with an actual year in `CBP.Increments`; replace `<Di
 
 These are stored on each Capability in the Move 1 run scope.
 
-| Property | Required? | Valid value / meaning |
-|---|---:|---|
-| `CBP.InputCode` | Assigned by Move 1 | Stable, unique short code such as `CAP-001`. New impact properties use this code. Existing valid codes are preserved. |
-| `CBP.Maturity.People` | Yes | Integer `0` through `4`. |
-| `CBP.Maturity.Process` | Yes | Integer `0` through `4`. |
-| `CBP.Maturity.Technology` | Yes | Integer `0` through `4`. |
-| `CBP.Weight.People` | No | Optional finite number greater than zero; absent means `1`. Relative multiplier for the People dimension. |
-| `CBP.Weight.Process` | No | Optional finite number greater than zero; absent means `1`. Relative multiplier for the Process dimension. |
-| `CBP.Weight.Technology` | No | Optional finite number greater than zero; absent means `1`. Relative multiplier for the Technology dimension. |
+<table border="1" cellpadding="4" cellspacing="0" style="border-collapse: collapse;">
+  <thead>
+    <tr>
+      <th style="border: 1px solid;">Property</th>
+      <th style="border: 1px solid;">Required?</th>
+      <th style="border: 1px solid;">Valid value / meaning</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.InputCode</code></td>
+      <td style="border: 1px solid;">Assigned by Move 1</td>
+      <td style="border: 1px solid;">Stable, unique short code such as <code>CAP-001</code>. New impact properties use this code. Existing valid codes are preserved.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.Maturity.People</code></td>
+      <td style="border: 1px solid;">Yes</td>
+      <td style="border: 1px solid;">Integer <code>0</code> through <code>4</code>.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.Maturity.Process</code></td>
+      <td style="border: 1px solid;">Yes</td>
+      <td style="border: 1px solid;">Integer <code>0</code> through <code>4</code>.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.Maturity.Technology</code></td>
+      <td style="border: 1px solid;">Yes</td>
+      <td style="border: 1px solid;">Integer <code>0</code> through <code>4</code>.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.Weight.People</code></td>
+      <td style="border: 1px solid;">No</td>
+      <td style="border: 1px solid;">Optional finite number greater than zero; absent means <code>1</code>. Relative multiplier for the People dimension.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.Weight.Process</code></td>
+      <td style="border: 1px solid;">No</td>
+      <td style="border: 1px solid;">Optional finite number greater than zero; absent means <code>1</code>. Relative multiplier for the Process dimension.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.Weight.Technology</code></td>
+      <td style="border: 1px solid;">No</td>
+      <td style="border: 1px solid;">Optional finite number greater than zero; absent means <code>1</code>. Relative multiplier for the Technology dimension.</td>
+    </tr>
+  </tbody>
+</table>
 
 Weights are relative multipliers, not scores. For example, weight `2` gives a component twice the influence of weight
 `1`; `0.5` gives it half the influence. Multiplying all weights within one weighted mean by the same positive factor
@@ -240,14 +291,40 @@ does not change the result. Zero, negative, and non-finite values are invalid.
 
 The current profile worklist also displays these optional descriptive properties if supplied:
 
-| Property | Display label |
-|---|---|
-| `CBP.Profile.Definition` | Definition |
-| `CBP.Profile.Source` | Source |
-| `CBP.Profile.BusinessUnits` | Business units |
-| `CBP.Profile.Processes` | Processes |
-| `CBP.Profile.Applications` | Applications |
-| `CBP.Profile.Measures` | Measures |
+<table border="1" cellpadding="4" cellspacing="0" style="border-collapse: collapse;">
+  <thead>
+    <tr>
+      <th style="border: 1px solid;">Property</th>
+      <th style="border: 1px solid;">Display label</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.Profile.Definition</code></td>
+      <td style="border: 1px solid;">Definition</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.Profile.Source</code></td>
+      <td style="border: 1px solid;">Source</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.Profile.BusinessUnits</code></td>
+      <td style="border: 1px solid;">Business units</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.Profile.Processes</code></td>
+      <td style="border: 1px solid;">Processes</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.Profile.Applications</code></td>
+      <td style="border: 1px solid;">Applications</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.Profile.Measures</code></td>
+      <td style="border: 1px solid;">Measures</td>
+    </tr>
+  </tbody>
+</table>
 
 These descriptive profile properties are not calculated or validated by the assessment engine.
 
@@ -255,12 +332,37 @@ These descriptive profile properties are not calculated or validated by the asse
 
 For each configured planning year, the following properties are stored on each in-scope Capability.
 
-| Property pattern | Example for 2027 | Valid value / meaning |
-|---|---|---|
-| `CBP.TargetML.<YYYY>` | `CBP.TargetML.2027` | Required finite number from `0` through `4`. Must match the weighted mean of the three dimension targets within `0.01`. |
-| `CBP.Target.People.<YYYY>` | `CBP.Target.People.2027` | Required integer from `0` through `4`. |
-| `CBP.Target.Process.<YYYY>` | `CBP.Target.Process.2027` | Required integer from `0` through `4`. |
-| `CBP.Target.Technology.<YYYY>` | `CBP.Target.Technology.2027` | Required integer from `0` through `4`. |
+<table border="1" cellpadding="4" cellspacing="0" style="border-collapse: collapse;">
+  <thead>
+    <tr>
+      <th style="border: 1px solid;">Property pattern</th>
+      <th style="border: 1px solid;">Example for 2027</th>
+      <th style="border: 1px solid;">Valid value / meaning</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.TargetML.&lt;YYYY&gt;</code></td>
+      <td style="border: 1px solid;"><code>CBP.TargetML.2027</code></td>
+      <td style="border: 1px solid;">Required finite number from <code>0</code> through <code>4</code>. Must match the weighted mean of the three dimension targets within <code>0.01</code>.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.Target.People.&lt;YYYY&gt;</code></td>
+      <td style="border: 1px solid;"><code>CBP.Target.People.2027</code></td>
+      <td style="border: 1px solid;">Required integer from <code>0</code> through <code>4</code>.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.Target.Process.&lt;YYYY&gt;</code></td>
+      <td style="border: 1px solid;"><code>CBP.Target.Process.2027</code></td>
+      <td style="border: 1px solid;">Required integer from <code>0</code> through <code>4</code>.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.Target.Technology.&lt;YYYY&gt;</code></td>
+      <td style="border: 1px solid;"><code>CBP.Target.Technology.2027</code></td>
+      <td style="border: 1px solid;">Required integer from <code>0</code> through <code>4</code>.</td>
+    </tr>
+  </tbody>
+</table>
 
 Target dimensions may not fall below the corresponding starting maturity or the preceding accepted target. The current
 implementation initializes each dimension's starting value from the calculated maturity dimensions. After an
@@ -271,11 +373,32 @@ not inferred from maturity, strategic importance, dates, or model structure.
 
 For a Capability and increment where a target dimension is greater than its starting dimension, enter:
 
-| Property pattern | Example | Value |
-|---|---|---|
-| `CBP.Action.<Dimension>.<YYYY>` | `CBP.Action.People.2027` | Non-empty description of the improvement action. |
-| `CBP.Project.<Dimension>.<YYYY>` | `CBP.Project.People.2027` | Non-empty project/package name. |
-| `CBP.ProjectPriority.<Dimension>.<YYYY>` | `CBP.ProjectPriority.People.2027` | Positive integer; smaller numbers rank first. There is no upper bound in the current validation. |
+<table border="1" cellpadding="4" cellspacing="0" style="border-collapse: collapse;">
+  <thead>
+    <tr>
+      <th style="border: 1px solid;">Property pattern</th>
+      <th style="border: 1px solid;">Example</th>
+      <th style="border: 1px solid;">Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.Action.&lt;Dimension&gt;.&lt;YYYY&gt;</code></td>
+      <td style="border: 1px solid;"><code>CBP.Action.People.2027</code></td>
+      <td style="border: 1px solid;">Non-empty description of the improvement action.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.Project.&lt;Dimension&gt;.&lt;YYYY&gt;</code></td>
+      <td style="border: 1px solid;"><code>CBP.Project.People.2027</code></td>
+      <td style="border: 1px solid;">Non-empty project/package name.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.ProjectPriority.&lt;Dimension&gt;.&lt;YYYY&gt;</code></td>
+      <td style="border: 1px solid;"><code>CBP.ProjectPriority.People.2027</code></td>
+      <td style="border: 1px solid;">Positive integer; smaller numbers rank first. There is no upper bound in the current validation.</td>
+    </tr>
+  </tbody>
+</table>
 
 The action, project, and priority are read as required for an increase. The implementation reports missing values as
 errors and does not create an action record unless all three are present and valid. A target can still be a valid
@@ -286,11 +409,32 @@ Goal when action inputs are incomplete; those action details are reported as unr
 These properties belong on potential Course of Action elements. A Course of Action is only counted as a strategy when
 its role property is exactly the case-sensitive text `Strategy`.
 
-| Property | Required? | Valid value / meaning |
-|---|---:|---|
-| `CBP.Role` | For inclusion | Exact text `Strategy` to include as a strategy; otherwise leave unset or use another value. Move 1 does not assign it. |
-| `CBP.StrategyWeight` | No | Optional finite number greater than zero; absent means `1`. Relative influence in the strategic-importance weighted mean. |
-| `CBP.Impact.<CapabilityCode>` | Yes for every selected strategy/Capability pair | Integer `0`, `1`, or `2`: `0` no contribution, `1` some contribution, `2` strong contribution. Example: `CBP.Impact.CAP-001`. |
+<table border="1" cellpadding="4" cellspacing="0" style="border-collapse: collapse;">
+  <thead>
+    <tr>
+      <th style="border: 1px solid;">Property</th>
+      <th style="border: 1px solid;">Required?</th>
+      <th style="border: 1px solid;">Valid value / meaning</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.Role</code></td>
+      <td style="border: 1px solid;">For inclusion</td>
+      <td style="border: 1px solid;">Exact text <code>Strategy</code> to include as a strategy; otherwise leave unset or use another value. Move 1 does not assign it.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.StrategyWeight</code></td>
+      <td style="border: 1px solid;">No</td>
+      <td style="border: 1px solid;">Optional finite number greater than zero; absent means <code>1</code>. Relative influence in the strategic-importance weighted mean.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.Impact.&lt;CapabilityCode&gt;</code></td>
+      <td style="border: 1px solid;">Yes for every selected strategy/Capability pair</td>
+      <td style="border: 1px solid;">Integer <code>0</code>, <code>1</code>, or <code>2</code>: <code>0</code> no contribution, <code>1</code> some contribution, <code>2</code> strong contribution. Example: <code>CBP.Impact.CAP-001</code>.</td>
+    </tr>
+  </tbody>
+</table>
 
 The impact property's short code identifies the Capability being rated. Its value describes that Capability's
 contribution to the Course of Action. The property is entered on the Course of Action, not on the Capability. If the
@@ -299,37 +443,143 @@ displays the short-code-to-Capability-name mapping.
 
 ### 4.5 Model-level properties
 
-| Property | Required? | Valid value / meaning |
-|---|---:|---|
-| `CBP.Increments` | Yes | Comma-separated unique consecutive four-digit years, e.g. `2027,2028`. Move 1 prompts if absent. |
-| `CBP.AcceptanceTolerance` | No | Finite number from `0` through `4`; absent means `0`. Used in Move 4 classification and final-target-vs-importance validation. |
+<table border="1" cellpadding="4" cellspacing="0" style="border-collapse: collapse;">
+  <thead>
+    <tr>
+      <th style="border: 1px solid;">Property</th>
+      <th style="border: 1px solid;">Required?</th>
+      <th style="border: 1px solid;">Valid value / meaning</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.Increments</code></td>
+      <td style="border: 1px solid;">Yes</td>
+      <td style="border: 1px solid;">Comma-separated unique consecutive four-digit years, e.g. <code>2027,2028</code>. Move 1 prompts if absent.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.AcceptanceTolerance</code></td>
+      <td style="border: 1px solid;">No</td>
+      <td style="border: 1px solid;">Finite number from <code>0</code> through <code>4</code>; absent means <code>0</code>. Used in Move 4 classification and final-target-vs-importance validation.</td>
+    </tr>
+  </tbody>
+</table>
 
 ### 4.6 Derived, internal, and AI properties
 
 The scripts write additional properties; users normally do not edit these:
 
-| Property | Stored on | Purpose |
-|---|---|---|
-| `CBP.Result.Maturity` | Capability | Current weighted maturity, written to two decimal places when calculable. |
-| `CBP.Result.StrategicImportance` | Capability | Current normalized weighted importance, written to two decimal places when calculable. |
-| `CBP.Result.Zone` | Capability | `Gap`, `Comfort`, or `Acceptance` when both assessments are calculable. |
-| `CBP.Result.Gap` | Capability | Strategic importance minus maturity, written to two decimal places. |
-| `CBP.Internal.ModelID` | Model | Stable CBP identity used to compare stage/model identity. |
-| `CBP.Internal.RunRecord` | Model | JSON checkpoint containing scope IDs, increments, run status, and managed view IDs. |
-| `CBP.GeneratedBy` | Generated model concept | Identifies concepts generated by the CBP subsystem. |
-| `CBP.GeneratedKey` | Generated model concept | Stable idempotency key for generated concepts. |
-| `CBP.ManagedBy` | Managed view | View ownership marker. |
-| `CBP.ViewKey` | Managed view | Stable internal identity of a managed view. |
-| `CBP.CandidateStatus` | Provisional Capability | `AI-PROVISIONAL` until an architect reviews the candidate. |
-| `CBP.Candidate.SourceType` | Provisional Capability | Identifies local Ollama capability discovery as the source. |
-| `CBP.Candidate.SourceName` | Provisional Capability | Names of the cited source model elements. |
-| `CBP.Candidate.Rationale` | Provisional Capability | Discovery model's rationale, retained for review. |
-| `CBP.Candidate.ValueExchangeLink` | Provisional Capability | Proposed link between the ability and value creation, delivery, or capture; review with the source evidence. |
-| `CBP.Candidate.Evidence` | Provisional Capability | Verbatim quotation grounded in the cited model context. |
-| `CBP.Candidate.SourceElementIDs` | Provisional Capability | Comma-separated source element IDs used to trace the proposal. |
-| `CBP.AI.Provisional` | Provisional Capability | Set to `true` for discovery-generated Capability candidates. |
-| `CBP.AI.DiscoveryKey` | Provisional Capability | Stable name-based key that prevents repeat discovery from duplicating the candidate. |
-| `CBP.AI.DiscoveryModel` | Provisional Capability | Selected Ollama model tag recorded for provenance. |
+<table border="1" cellpadding="4" cellspacing="0" style="border-collapse: collapse;">
+  <thead>
+    <tr>
+      <th style="border: 1px solid;">Property</th>
+      <th style="border: 1px solid;">Stored on</th>
+      <th style="border: 1px solid;">Purpose</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.Result.Maturity</code></td>
+      <td style="border: 1px solid;">Capability</td>
+      <td style="border: 1px solid;">Current weighted maturity, written to two decimal places when calculable.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.Result.StrategicImportance</code></td>
+      <td style="border: 1px solid;">Capability</td>
+      <td style="border: 1px solid;">Current normalized weighted importance, written to two decimal places when calculable.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.Result.Zone</code></td>
+      <td style="border: 1px solid;">Capability</td>
+      <td style="border: 1px solid;"><code>Gap</code>, <code>Comfort</code>, or <code>Acceptance</code> when both assessments are calculable.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.Result.Gap</code></td>
+      <td style="border: 1px solid;">Capability</td>
+      <td style="border: 1px solid;">Strategic importance minus maturity, written to two decimal places.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.Internal.ModelID</code></td>
+      <td style="border: 1px solid;">Model</td>
+      <td style="border: 1px solid;">Stable CBP identity used to compare stage/model identity.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.Internal.RunRecord</code></td>
+      <td style="border: 1px solid;">Model</td>
+      <td style="border: 1px solid;">JSON checkpoint containing scope IDs, increments, run status, and managed view IDs.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.GeneratedBy</code></td>
+      <td style="border: 1px solid;">Generated model concept</td>
+      <td style="border: 1px solid;">Identifies concepts generated by the CBP subsystem.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.GeneratedKey</code></td>
+      <td style="border: 1px solid;">Generated model concept</td>
+      <td style="border: 1px solid;">Stable idempotency key for generated concepts.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.ManagedBy</code></td>
+      <td style="border: 1px solid;">Managed view</td>
+      <td style="border: 1px solid;">View ownership marker.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.ViewKey</code></td>
+      <td style="border: 1px solid;">Managed view</td>
+      <td style="border: 1px solid;">Stable internal identity of a managed view.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.CandidateStatus</code></td>
+      <td style="border: 1px solid;">Provisional Capability</td>
+      <td style="border: 1px solid;"><code>AI-PROVISIONAL</code> until an architect reviews the candidate.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.Candidate.SourceType</code></td>
+      <td style="border: 1px solid;">Provisional Capability</td>
+      <td style="border: 1px solid;">Identifies local Ollama capability discovery as the source.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.Candidate.SourceName</code></td>
+      <td style="border: 1px solid;">Provisional Capability</td>
+      <td style="border: 1px solid;">Names of the cited source model elements.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.Candidate.Rationale</code></td>
+      <td style="border: 1px solid;">Provisional Capability</td>
+      <td style="border: 1px solid;">Discovery model's rationale, retained for review.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.Candidate.ValueExchangeLink</code></td>
+      <td style="border: 1px solid;">Provisional Capability</td>
+      <td style="border: 1px solid;">Proposed link between the ability and value creation, delivery, or capture; review with the source evidence.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.Candidate.Evidence</code></td>
+      <td style="border: 1px solid;">Provisional Capability</td>
+      <td style="border: 1px solid;">Verbatim quotation grounded in the cited model context.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.Candidate.SourceElementIDs</code></td>
+      <td style="border: 1px solid;">Provisional Capability</td>
+      <td style="border: 1px solid;">Comma-separated source element IDs used to trace the proposal.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.AI.Provisional</code></td>
+      <td style="border: 1px solid;">Provisional Capability</td>
+      <td style="border: 1px solid;">Set to <code>true</code> for discovery-generated Capability candidates.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.AI.DiscoveryKey</code></td>
+      <td style="border: 1px solid;">Provisional Capability</td>
+      <td style="border: 1px solid;">Stable name-based key that prevents repeat discovery from duplicating the candidate.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP.AI.DiscoveryModel</code></td>
+      <td style="border: 1px solid;">Provisional Capability</td>
+      <td style="border: 1px solid;">Selected Ollama model tag recorded for provenance.</td>
+    </tr>
+  </tbody>
+</table>
 
 Generated Goals also carry `CBP.SourceCapabilityID` and `CBP.Increment`. Generated project/action Work Packages carry
 increment, dimension, start and target levels, project name, priority, and source Capability ID as applicable.
@@ -397,11 +647,28 @@ Gap = StrategicImportance - Maturity
 
 Classification uses the model's acceptance tolerance `t`:
 
-| Condition | Zone |
-|---|---|
-| `Gap > t` | `Gap` |
-| `Gap < -t` | `Comfort` |
-| Otherwise | `Acceptance` |
+<table border="1" cellpadding="4" cellspacing="0" style="border-collapse: collapse;">
+  <thead>
+    <tr>
+      <th style="border: 1px solid;">Condition</th>
+      <th style="border: 1px solid;">Zone</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="border: 1px solid;"><code>Gap &gt; t</code></td>
+      <td style="border: 1px solid;"><code>Gap</code></td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>Gap &lt; -t</code></td>
+      <td style="border: 1px solid;"><code>Comfort</code></td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;">Otherwise</td>
+      <td style="border: 1px solid;"><code>Acceptance</code></td>
+    </tr>
+  </tbody>
+</table>
 
 The exact result is written to `CBP.Result.Gap` and `CBP.Result.Zone`. The matrix rounds maturity and importance to
 integer coordinates for display only; classification uses the unrounded difference. Multiple Capabilities in one cell
@@ -442,18 +709,67 @@ Generated project Work Packages contain generated action Work Packages; action p
 
 Names are exact and are used for ownership checks.
 
-| Move(s) | View name | Contents and purpose                                                                                                                              |
-|---|---|---------------------------------------------------------------------------------------------------------------------------------------------------|
-| 1 | `CBP - Capability Map` | Only in-scope Capability elements and their existing direct Composition/Aggregation relationships to other in-scope Capabilities.                 |
-| 1 | `CBP - Capability Profiles and Inputs` | Capability profile-property display, input checklist, and exact maturity and per-increment property names.                                        |
-| 1 | `CBP - Strategy Inputs` | Potential Course of Action concepts, current role, adjacent modeled context, and one impact-key mapping per in-scope Capability.                  |
-| 2 | `CBP - Maturity and Strategic Importance - Maturity Heatmap` | Five maturity bands, Capability cards with exact score, and unresolved maturity/weight messages.                                                  |
-| 3 | `CBP - Maturity and Strategic Importance - Strategic Importance Heatmap` | Five importance bands, Capability cards with exact score, and unresolved strategy/impact messages.                                                |
-| 4–5 | `CBP - ML-SI Matrix and Improvement Goals` | Readable 0–4 maturity and strategic-importance axis labels, integer-coordinate matrix, zone colors, unresolved-input cards, and validated Goals.  |
-| 4–7 | `CBP - Strategic Importance and Maturity Diagrams` | Three chart forms inspired by the 7-Moves article figures: score landscape, three-zone matrix, and validated increment paths.                     |
-| 6–7 | `CBP - Actions and Change Portfolio` | Validated dimension-level Work Packages grouped into projects, project priority, conflict warnings, and unresolved planning input messages.       |
-| 5–7 | `CBP - Improvement Roadmap Tables` | Tables for every in-scope Capability's roadmap, validated dimension increments, and validated actions with project priority and portfolio status. |
-| Overview | `Capability-based Planning View` | Navigational summary of the work/analysis views plus run and unresolved-input counts.                                                             |
+<table border="1" cellpadding="4" cellspacing="0" style="border-collapse: collapse;">
+  <thead>
+    <tr>
+      <th style="border: 1px solid;">Move(s)</th>
+      <th style="border: 1px solid;">View name</th>
+      <th style="border: 1px solid;">Contents and purpose</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="border: 1px solid;">1</td>
+      <td style="border: 1px solid;"><code>CBP - Capability Map</code></td>
+      <td style="border: 1px solid;">Only in-scope Capability elements and their existing direct Composition/Aggregation relationships to other in-scope Capabilities.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;">1</td>
+      <td style="border: 1px solid;"><code>CBP - Capability Profiles and Inputs</code></td>
+      <td style="border: 1px solid;">Capability profile-property display, input checklist, and exact maturity and per-increment property names.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;">1</td>
+      <td style="border: 1px solid;"><code>CBP - Strategy Inputs</code></td>
+      <td style="border: 1px solid;">Potential Course of Action concepts, current role, adjacent modeled context, and one impact-key mapping per in-scope Capability.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;">2</td>
+      <td style="border: 1px solid;"><code>CBP - Maturity and Strategic Importance - Maturity Heatmap</code></td>
+      <td style="border: 1px solid;">Five maturity bands, Capability cards with exact score, and unresolved maturity/weight messages.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;">3</td>
+      <td style="border: 1px solid;"><code>CBP - Maturity and Strategic Importance - Strategic Importance Heatmap</code></td>
+      <td style="border: 1px solid;">Five importance bands, Capability cards with exact score, and unresolved strategy/impact messages.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;">4–5</td>
+      <td style="border: 1px solid;"><code>CBP - ML-SI Matrix and Improvement Goals</code></td>
+      <td style="border: 1px solid;">Readable 0–4 maturity and strategic-importance axis labels, integer-coordinate matrix, zone colors, unresolved-input cards, and validated Goals.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;">4–7</td>
+      <td style="border: 1px solid;"><code>CBP - Strategic Importance and Maturity Diagrams</code></td>
+      <td style="border: 1px solid;">Three chart forms inspired by the 7-Moves article figures: score landscape, three-zone matrix, and validated increment paths.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;">6–7</td>
+      <td style="border: 1px solid;"><code>CBP - Actions and Change Portfolio</code></td>
+      <td style="border: 1px solid;">Validated dimension-level Work Packages grouped into projects, project priority, conflict warnings, and unresolved planning input messages.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;">5–7</td>
+      <td style="border: 1px solid;"><code>CBP - Improvement Roadmap Tables</code></td>
+      <td style="border: 1px solid;">Tables for every in-scope Capability's roadmap, validated dimension increments, and validated actions with project priority and portfolio status.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;">Overview</td>
+      <td style="border: 1px solid;"><code>Capability-based Planning View</code></td>
+      <td style="border: 1px solid;">Navigational summary of the work/analysis views plus run and unresolved-input counts.</td>
+    </tr>
+  </tbody>
+</table>
 
 Heatmap colors are generated from low to high maturity (red through green) and low to high strategic importance
 (green through red). In the ML-SI matrix, `Gap` is red, `Comfort` green, and `Acceptance` yellow.
@@ -494,18 +810,56 @@ The suite's ArchiMate planning module is under `BizDiag_Local_AI/Capability_Base
 continuation script loads it after the managed-view helpers and supplies the same processed results. Its optional
 Ollama transport worker is in the module's `lib/` directory.
 
-| File | Responsibility                                                                                                                                                                                                                             |
-|---|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `CBP_Move_1_Setup.ajs` | First-stage entry point; preflight, year validation, scope preparation, property creation, Move 1 views, and pending run checkpoint.                                                                                                       |
-| `CBP_Continue_Moves_2_to_7.ajs` | Second-stage entry point; checkpoint verification, edited-map scope, calculations, output-view generation, completion record, and UI summary.                                                                                              |
-| `lib/CBP_Model_Inputs.js` | Property access, numeric/range parsing, increment parsing, weighted mean, maturity calculation, importance calculation, and impact-key generation. This helper is independent of Archi queries except for the model object's property API. |
-| `lib/CBP_Run_State.js` | Archi/jArchi adapters, supported element types, selected-scope discovery, managed-map scope, stable Capability input codes, model identity, and model-local run-record persistence.                                                        |
-| `lib/CBP_Capability_Discovery.js` | Bounded strategic-label and identified BMC content extraction, grounded Ollama proposal validation, deduplication, and creation of traceable provisional Capability elements.                                                              |
-| `lib/CBP_Assessment_Engine.js` | Pure assessment orchestration across Moves 2–7: result records, gap/zone, target consistency/progression, Goals, and validated action records.                                                                                             |
-| `lib/CBP_View_Generator.js` | View enumeration/preflight, ownership markers, idempotent concepts and relationships, Move 1 worklists, heatmaps, matrix, portfolio, and overview.                                                                                         |
-| `lib/CBP_Strategic_Importance_Maturity_Diagrams.js` | Separate managed-view renderer for the article-inspired score, zone, and increment-roadmap panels; consumes assessment results without recalculation.                                                                                      |
-| `lib/CBP_Improvement_Tables.js` | Separate managed-view renderer for the roadmap, dimension-increment, and required-action tables; consumes assessment results, validated Goals/actions, and shared project-grouping helpers.                                                |
-| `lib/CBP_Ollama_Worker.js` | Optional local Ollama HTTP transport, model discovery, asynchronous request wait with SWT event dispatch, timeout/error handling, and response transport validation.                                                                       |
+<table border="1" cellpadding="4" cellspacing="0" style="border-collapse: collapse;">
+  <thead>
+    <tr>
+      <th style="border: 1px solid;">File</th>
+      <th style="border: 1px solid;">Responsibility</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP_Move_1_Setup.ajs</code></td>
+      <td style="border: 1px solid;">First-stage entry point; preflight, year validation, scope preparation, property creation, Move 1 views, and pending run checkpoint.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>CBP_Continue_Moves_2_to_7.ajs</code></td>
+      <td style="border: 1px solid;">Second-stage entry point; checkpoint verification, edited-map scope, calculations, output-view generation, completion record, and UI summary.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>lib/CBP_Model_Inputs.js</code></td>
+      <td style="border: 1px solid;">Property access, numeric/range parsing, increment parsing, weighted mean, maturity calculation, importance calculation, and impact-key generation. This helper is independent of Archi queries except for the model object's property API.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>lib/CBP_Run_State.js</code></td>
+      <td style="border: 1px solid;">Archi/jArchi adapters, supported element types, selected-scope discovery, managed-map scope, stable Capability input codes, model identity, and model-local run-record persistence.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>lib/CBP_Capability_Discovery.js</code></td>
+      <td style="border: 1px solid;">Bounded strategic-label and identified BMC content extraction, grounded Ollama proposal validation, deduplication, and creation of traceable provisional Capability elements.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>lib/CBP_Assessment_Engine.js</code></td>
+      <td style="border: 1px solid;">Pure assessment orchestration across Moves 2–7: result records, gap/zone, target consistency/progression, Goals, and validated action records.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>lib/CBP_View_Generator.js</code></td>
+      <td style="border: 1px solid;">View enumeration/preflight, ownership markers, idempotent concepts and relationships, Move 1 worklists, heatmaps, matrix, portfolio, and overview.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>lib/CBP_Strategic_Importance_Maturity_Diagrams.js</code></td>
+      <td style="border: 1px solid;">Separate managed-view renderer for the article-inspired score, zone, and increment-roadmap panels; consumes assessment results without recalculation.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>lib/CBP_Improvement_Tables.js</code></td>
+      <td style="border: 1px solid;">Separate managed-view renderer for the roadmap, dimension-increment, and required-action tables; consumes assessment results, validated Goals/actions, and shared project-grouping helpers.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>lib/CBP_Ollama_Worker.js</code></td>
+      <td style="border: 1px solid;">Optional local Ollama HTTP transport, model discovery, asynchronous request wait with SWT event dispatch, timeout/error handling, and response transport validation.</td>
+    </tr>
+  </tbody>
+</table>
 
 The helper modules expose APIs on `globalThis`:
 
@@ -610,20 +964,64 @@ Ollama/model configuration.
 The model stores internal properties `CBP.Internal.ModelID` and `CBP.Internal.RunRecord`. The JSON record currently
 uses schema version `1` and includes:
 
-| Field | Meaning |
-|---|---|
-| `schema` | Run-record schema version (`1`). |
-| `runId` | Unique run label generated for the setup. |
-| `model` | Stable model ID and readable name. |
-| `capabilityIds` | Current Capability IDs on the managed Capability Map; updated to match the effective scope. |
-| `capabilityCodes` | Capability ID/code pairs preserved for the current scope. |
-| `potentialStrategyIds` | Model-wide Course of Action IDs shown in Strategy Inputs. |
-| `strategyIds` | Potential strategies currently marked `CBP.Role=Strategy` at setup; the continuation refreshes this list when it completes. |
-| `increments` | Validated ordered year strings. |
-| `status` | Lifecycle state, normally `INPUTS_PENDING`, then `COMPLETED`; explicit replacement can set `ABORTED`. |
-| `createdAt`, `completedAt`, `abortedAt` | ISO timestamp fields when applicable. |
-| `aiDiscovery` | Optional Move 1 model tag, source count, proposal/rejection counts, and created candidate IDs. |
-| `views` | Managed view IDs recorded for reuse and identity checks. |
+<table border="1" cellpadding="4" cellspacing="0" style="border-collapse: collapse;">
+  <thead>
+    <tr>
+      <th style="border: 1px solid;">Field</th>
+      <th style="border: 1px solid;">Meaning</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="border: 1px solid;"><code>schema</code></td>
+      <td style="border: 1px solid;">Run-record schema version (<code>1</code>).</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>runId</code></td>
+      <td style="border: 1px solid;">Unique run label generated for the setup.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>model</code></td>
+      <td style="border: 1px solid;">Stable model ID and readable name.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>capabilityIds</code></td>
+      <td style="border: 1px solid;">Current Capability IDs on the managed Capability Map; updated to match the effective scope.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>capabilityCodes</code></td>
+      <td style="border: 1px solid;">Capability ID/code pairs preserved for the current scope.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>potentialStrategyIds</code></td>
+      <td style="border: 1px solid;">Model-wide Course of Action IDs shown in Strategy Inputs.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>strategyIds</code></td>
+      <td style="border: 1px solid;">Potential strategies currently marked <code>CBP.Role=Strategy</code> at setup; the continuation refreshes this list when it completes.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>increments</code></td>
+      <td style="border: 1px solid;">Validated ordered year strings.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>status</code></td>
+      <td style="border: 1px solid;">Lifecycle state, normally <code>INPUTS_PENDING</code>, then <code>COMPLETED</code>; explicit replacement can set <code>ABORTED</code>.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>createdAt</code>, <code>completedAt</code>, <code>abortedAt</code></td>
+      <td style="border: 1px solid;">ISO timestamp fields when applicable.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>aiDiscovery</code></td>
+      <td style="border: 1px solid;">Optional Move 1 model tag, source count, proposal/rejection counts, and created candidate IDs.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;"><code>views</code></td>
+      <td style="border: 1px solid;">Managed view IDs recorded for reuse and identity checks.</td>
+    </tr>
+  </tbody>
+</table>
 
 Move 1 refuses unsupported existing status values. A pending run requires explicit user abort before a new setup.
 Continuation refuses absent, corrupt, unsupported, completed, aborted, or model/year-mismatched run state.
@@ -742,15 +1140,44 @@ This section describes how to recreate the suite from first principles without r
 The workflow's seven-move structure is inspired by the cited capability-based planning publications. The software
 mapping is:
 
-| Planning concern | Implemented subsystem behavior |
-|---|---|
-| Identify/model capabilities | Capability-only map from existing Capability elements and modeled hierarchy, with optional Ollama candidate proposals for architect review. |
-| Assess maturity | Weighted People/Process/Technology score. |
-| Assess strategic importance | Explicit Course of Action role and Capability-impact ratings, strategy-weighted and normalized. |
-| Analyze the landscape | Strategic-importance-minus-maturity gap, tolerance-based zone, ML-SI matrix. |
-| Set goals | Explicit per-year overall and dimension targets, consistency and progression checks. |
-| Define actions | Explicit improvement descriptions, project names, and priorities as traceable Work Packages. |
-| Design portfolio | Increment/project grouping and priority ordering with conflict reporting. |
+<table border="1" cellpadding="4" cellspacing="0" style="border-collapse: collapse;">
+  <thead>
+    <tr>
+      <th style="border: 1px solid;">Planning concern</th>
+      <th style="border: 1px solid;">Implemented subsystem behavior</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="border: 1px solid;">Identify/model capabilities</td>
+      <td style="border: 1px solid;">Capability-only map from existing Capability elements and modeled hierarchy, with optional Ollama candidate proposals for architect review.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;">Assess maturity</td>
+      <td style="border: 1px solid;">Weighted People/Process/Technology score.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;">Assess strategic importance</td>
+      <td style="border: 1px solid;">Explicit Course of Action role and Capability-impact ratings, strategy-weighted and normalized.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;">Analyze the landscape</td>
+      <td style="border: 1px solid;">Strategic-importance-minus-maturity gap, tolerance-based zone, ML-SI matrix.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;">Set goals</td>
+      <td style="border: 1px solid;">Explicit per-year overall and dimension targets, consistency and progression checks.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;">Define actions</td>
+      <td style="border: 1px solid;">Explicit improvement descriptions, project names, and priorities as traceable Work Packages.</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid;">Design portfolio</td>
+      <td style="border: 1px solid;">Increment/project grouping and priority ordering with conflict reporting.</td>
+    </tr>
+  </tbody>
+</table>
 
 This mapping is an implementation interpretation, not a claim that the publications specify the exact property schema,
 mathematical normalization, ArchiMate relationship types, or generated-view design used by BizDiag.
