@@ -32,66 +32,69 @@ as structured data for analysis, automation, decision support, and strategy.
 
 ## Table of Contents
 
-- [Overview](#overview)
-- [Research Foundation](#research-foundation)
-- [Key Capabilities](#key-capabilities)
-    - [1. Business_IT_Alignment](#business-it-alignment)
-        - [1.1) A Business–IT Alignment/Misalignment Analysis](#business-it-alignment-analysis)
-    - [2. ClientServer_DB: Client/Server and Data Integration Modules](#clientserver-db)
-        - [2.1) DB_Log](#clientserver-db-log)
-        - [2.2) GraalJS_ClientServer_Template](#clientserver-db-graaljs-clientserver-template)
-        - [2.3) GraalJS_Element_RESTLogger](#clientserver-db-graaljs-element-restlogger)
-        - [2.4) GraalJS_NIOLoggerServer](#clientserver-db-graaljs-niologgerserver)
-        - [2.5) Java_DBLoggerServer](#clientserver-db-java-dbloggerserver)
-    - [3. BizDiag Local AI: Leveraging AI REST API for Smart Enterprise Architecture Operations](#bizdiag-local-ai)
-        - [3.1) UML Subsystem](#uml-subsystem)
-        - [3.2) DocMaker Subsystem](#docmaker-subsystem)
-        - [3.3) Capability-Based Planning](#capability-based-planning)
-    - [4. BizModelCanvas](#bizmodelcanvas)
-        - [4.1) A Business Model Canvas Generation & Analysis](#business-model-canvas-generation--analysis)
-- [Why ArchiMate & jArchi?](#why-archimate--jarchi)
-- [Technology Stack](#technology-stack)
-- [Data Flow](#data-flow)
-- [Modular Architecture](#modular-architecture)
-- [Extensibility](#extensibility)
-- [Client / Server Capabilities](#client--server-capabilities)
-- [Intended Users](#intended-users)
-- [Example Use Cases](#example-use-cases)
-    - [Enterprise Architecture Assessment](#enterprise-architecture-assessment)
-    - [Business–IT Alignment](#businessit-alignment)
-    - [Architecture Data Analysis](#architecture-data-analysis)
-    - [AI-Assisted Documentation](#ai-assisted-documentation)
-    - [Business Model to Architecture](#business-model-to-architecture)
-    - [Architecture Reporting](#architecture-reporting)
-    - [Custom Architecture Automation](#custom-architecture-automation)
-- [Installation](#installation)
-- [Model Input](#model-input)
-- [Repository Structure](#repository-structure)
-- [Open Source & Commercial Services](#open-source--commercial-services)
-- [Design Principles](#design-principles)
-    - [Model as Data](#model-as-data)
-    - [Automation First](#automation-first)
-    - [Open Architecture](#open-architecture)
-    - [Practical Intelligence](#practical-intelligence)
-    - [Human-in-the-Loop](#human-in-the-loop)
-    - [Modular Design](#modular-design)
-    - [Technology Independence](#technology-independence)
-- [Current Scope](#current-scope)
-- [Roadmap](#roadmap)
-- [Contributing](#contributing)
-    - [APA](#apa)
-    - [MLA](#mla)
-    - [Chicago](#chicago)
-- [License](#license)
-- [Project](#project)
-- [Related Documentation](#related-documentation)
-- [Disclaimer](#disclaimer)
-- [Author](#author)
-- [References](#references)
+- [1. Overview](#1-overview)
+- [2. Research Foundation](#2-research-foundation)
+- [3. Key Capabilities](#3-key-capabilities)
+    - [3.1 Business_IT_Alignment](#business-it-alignment)
+        - [3.1.1 A Business–IT Alignment/Misalignment Analysis](#business-it-alignment-analysis)
+        - [3.1.2 Business-IT Alignment Research Methodology](#business-it-alignment-research-methodology)
+    - [3.2 ClientServer_DB: Client/Server and Data Integration Modules](#clientserver-db)
+        - [3.2.1 DB_Log](#clientserver-db-log)
+        - [3.2.2 GraalJS_ClientServer_Template](#clientserver-db-graaljs-clientserver-template)
+        - [3.2.3 GraalJS_Element_RESTLogger](#clientserver-db-graaljs-element-restlogger)
+        - [3.2.4 GraalJS_NIOLoggerServer](#clientserver-db-graaljs-niologgerserver)
+        - [3.2.5 Java_DBLoggerServer](#clientserver-db-java-dbloggerserver)
+    - [3.3 BizDiag Local AI: Leveraging AI REST API for Smart Enterprise Architecture Operations](#bizdiag-local-ai)
+        - [3.3.1 UML Subsystem](#uml-subsystem)
+        - [3.3.2 DocMaker Subsystem](#docmaker-subsystem)
+        - [3.3.3 Capability-Based Planning](#capability-based-planning)
+            - [3.3.3.1 CBP Data-Entry Properties and Values](#cbp-data-entry-properties-and-values)
+    - [3.4 BizModelCanvas](#bizmodelcanvas)
+        - [3.4.1 A Business Model Canvas Generation & Analysis](#business-model-canvas-generation--analysis)
+- [4. Why ArchiMate & jArchi?](#4-why-archimate--jarchi)
+- [5. Technology Stack](#5-technology-stack)
+- [6. Data Flow](#6-data-flow)
+- [7. Modular Architecture](#7-modular-architecture)
+- [8. Extensibility](#8-extensibility)
+- [9. Client / Server Capabilities](#9-client--server-capabilities)
+- [10. Intended Users](#10-intended-users)
+- [11. Example Use Cases](#11-example-use-cases)
+    - [11.1 Enterprise Architecture Assessment](#111-enterprise-architecture-assessment)
+    - [11.2 Business–IT Alignment](#112-businessit-alignment)
+    - [11.3 Architecture Data Analysis](#113-architecture-data-analysis)
+    - [11.4 AI-Assisted Documentation](#114-ai-assisted-documentation)
+    - [11.5 Business Model to Architecture](#115-business-model-to-architecture)
+    - [11.6 Architecture Reporting](#116-architecture-reporting)
+    - [11.7 Custom Architecture Automation](#117-custom-architecture-automation)
+- [12. Installation](#12-installation)
+- [13. Model Input](#13-model-input)
+- [14. Repository Structure](#14-repository-structure)
+- [15. Open Source & Commercial Services](#15-open-source--commercial-services)
+- [16. Design Principles](#16-design-principles)
+    - [16.1 Model as Data](#161-model-as-data)
+    - [16.2 Automation First](#162-automation-first)
+    - [16.3 Open Architecture](#163-open-architecture)
+    - [16.4 Practical Intelligence](#164-practical-intelligence)
+    - [16.5 Human-in-the-Loop](#165-human-in-the-loop)
+    - [16.6 Modular Design](#166-modular-design)
+    - [16.7 Technology Independence](#167-technology-independence)
+- [17. Current Scope](#17-current-scope)
+- [18. Roadmap](#18-roadmap)
+- [19. Contributing](#19-contributing)
+    - [19.1 APA](#191-apa)
+    - [19.2 MLA](#192-mla)
+    - [19.3 Chicago](#193-chicago)
+    - [19.4 IEEE](#194-ieee)
+- [20. License](#20-license)
+- [21. Project](#21-project)
+- [22. Related Documentation](#22-related-documentation)
+- [23. Disclaimer](#23-disclaimer)
+- [24. Author](#24-author)
+- [25. References](#25-references)
 
 ---
 
-## **Overview**
+## 1. **Overview**
 
 Enterprise Architecture models often contain a significant amount of valuable organizational knowledge, but that 
 information can remain difficult to analyze systematically.
@@ -143,7 +146,7 @@ knowledge and the practical challenges faced by enterprise architects.
 
 ---
 
-## Research Foundation 
+## 2. Research Foundation
 
 BizDiag builds on established academic research in Enterprise Architecture, software architecture, and Design 
 Science Research. Its Business–IT Alignment module, UML module, and BizModelCanvas operationalize these 
@@ -152,14 +155,14 @@ white paper will elaborate on the methodology and its research contributions.
 
 ---
 
-## Key Capabilities
+## 3. Key Capabilities
 
 
 <a id="business-it-alignment"></a>
-### 1. **Business_IT_Alignment**
+### 3.1 **Business_IT_Alignment**
 
 <a id="business-it-alignment-analysis"></a>
-#### 1.1) A Business–IT Alignment/Misalignment Analysis
+#### 3.1.1 A Business–IT Alignment/Misalignment Analysis
 
 BizDiag's Business_IT_Alignment subsystem includes analysis capabilities intended to help architects investigate
 relationships between business and IT architecture. This module has leveraged the previously-conducted studies on
@@ -195,7 +198,8 @@ architecture teams systematically examine areas such as:
 - Potentially unsupported business structures
 
 
-#### Business-IT Alignment Research Methodology
+<a id="business-it-alignment-research-methodology"></a>
+#### 3.1.2 Business-IT Alignment Research Methodology
 
 The Business-IT Alignment module implements a five-phase Enterprise Architecture (EA) assessment process, conceptually based on extensive conducted research. This module is grounded in original research conducted by the Ebrahim Pak (2026).The five main phases are as follows:
 
@@ -246,7 +250,7 @@ Therefore, each finding captures a misalignment JSON object as follows:
 ```
 
 
-### 2. **ClientServer_DB**: Client/Server and Data Integration Modules
+### 3.2 **ClientServer_DB**: Client/Server and Data Integration Modules
 
 <a id="clientserver-db"></a>
 
@@ -254,7 +258,7 @@ Therefore, each finding captures a misalignment JSON object as follows:
 through client/server workflows, REST or TCP communication, JSON/JSONL exports, and H2 databases.
 
 <a id="clientserver-db-log"></a>
-#### 2.1) DB_Log
+#### 3.2.1 DB_Log
 
 DB_Log can transform architecture information into structured data suitable for programmatic analysis. Architecture 
 data can be loaded into an in-memory database, like the utilized H2 database, or any other relational database systems, 
@@ -298,7 +302,7 @@ Potential applications include:
 - Organization-specific analytical models
 
 <a id="clientserver-db-graaljs-clientserver-template"></a>
-#### 2.2) GraalJS_ClientServer_Template
+#### 3.2.2 GraalJS_ClientServer_Template
 
 This is a client/server template for Archi. The client is a jArchi script, while the server is a GraalJS application
 with JavaScript outer structure and Java inner structure. The example is a time-server/time-client application that
@@ -312,13 +316,13 @@ and prints the UTF-8 text when a client closes its connection. This event-driven
 client and provides a basis for connection-management and lightweight TCP integration examples.
 
 <a id="clientserver-db-graaljs-element-restlogger"></a>
-#### 2.3) GraalJS_Element_RESTLogger
+#### 3.2.3 GraalJS_Element_RESTLogger
 
 This module pairs `GraalJSRESTClient.ajs` with `GraalJSRESTServer.js`. The jArchi client sends extracted model-element
 data to the GraalJS REST server, which records the received data in H2 for later analysis.
 
 <a id="clientserver-db-graaljs-niologgerserver"></a>
-#### 2.4) GraalJS_NIOLoggerServer
+#### 3.2.4 GraalJS_NIOLoggerServer
 
 This module exports element information for further analysis and integration. Its click-dumper client,
 `nio_interop_client.js`, receives element click events in Archi and writes them to both an H2 database and a JSONL file.
@@ -331,7 +335,7 @@ architecture reviews, reporting, data inspection, stakeholder analysis, and furt
 tools.
 
 <a id="clientserver-db-java-dbloggerserver"></a>
-#### 2.5) Java_DBLoggerServer
+#### 3.2.5 Java_DBLoggerServer
 
 This module connects a jArchi client to a standalone Java server for database-backed logging. The client sends selected
 element metadata as Base64 through `log_click.ajs`; the `nio_interop_client.js` transport adapter decodes the payload
@@ -340,7 +344,7 @@ providing a deployment option for environments that require a pure-Java server r
 
 
 <a id="bizdiag-local-ai"></a>
-### 3. **BizDiag Local AI**: Leveraging AI REST API for Smart Enterprise Architecture Operations
+### 3.3 **BizDiag Local AI**: Leveraging AI REST API for Smart Enterprise Architecture Operations
 
 The BizDiag Local AI subsystem follows a layered, microservice-inspired architecture that separates Enterprise
 Architecture model interaction from AI inference. It is organized around three capabilities:
@@ -481,7 +485,7 @@ directory management. The following are the jArchi scripts and JavaScript files 
 
 
 <a id="uml-subsystem"></a>
-#### 3.1) UML Subsystem
+#### 3.3.1 UML Subsystem
 The first BizDiag Local AI capability is `Application_View_to_UML.ajs`, a jArchi script that transformed the selected 
 application-layer views into new views using UML-like notation instead of ArchiMate notation. It is an AI-enhanced 
 UML-like view  generation script designed for architectural transformation and semantic enrichment. The script does not 
@@ -504,7 +508,7 @@ UML/ArchiMate integration.
 
 
 <a id="docmaker-subsystem"></a>
-#### 3.2) DocMaker Subsystem
+#### 3.3.2 DocMaker Subsystem
 This application consists of `AI_View_DocMaker_EN.ajs`, `AI_Element_DocMaker_FA.ajs`, `AI_Element_DocMaker_EN.ajs`,
 `AI_Element_DocMaker_FA.ajs`, `AI_REST_JSON.js`, `Ollama_Olalla.ajs`, and `Mark_it_Down.ajs`.
 The DocMaker subsystem within BizDiag Local AI is organized into three principal layers. First, the jArchi layer 
@@ -844,7 +848,7 @@ requirements.
 
 
 <a id="capability-based-planning"></a>
-#### 3.3) Capability-Based Planning
+#### 3.3.3 Capability-Based Planning
 
 The Capability-Based Planning (CBP) module implements the seven moves described in "Capability-Based Planning, The Link
 between Strategy and Enterprise Architecture" and "Capability-based Planning in 7 moves!" through
@@ -854,7 +858,8 @@ Move 1 creates the Capability Map, input worklists, and durable model-local run 
 architect enters and validates evidence-based values in model Properties, saves, and runs the continuation. The planning
 scripts do not infer maturity ratings, strategic impact, targets, actions, or priorities from element names or counts.
 
-#### CBP data-entry properties and values
+<a id="cbp-data-entry-properties-and-values"></a>
+##### 3.3.3.1 CBP Data-Entry Properties and Values
 
 Enter these properties on the **underlying model elements' Properties tabs**, not on the generated view cards. Move 1
 lists the inputs in its worklists. Replace `<YYYY>` with a year configured in the model's `CBP.Increments` property;
@@ -998,10 +1003,10 @@ require architect review.
 
 
 <a id="bizmodelcanvas"></a>
-### 4. **BizModelCanvas**
+### 3.4 **BizModelCanvas**
 
 <a id="business-model-canvas-generation--analysis"></a>
-#### 4.1) A Business Model Canvas Generation & Analysis
+#### 3.4.1 A Business Model Canvas Generation & Analysis
 
 As a module of BizDiag software package, BizModelCanvas collection is a toolkit for analyzing value propositions, 
 producing enhanced views, and converting Business Model Canvas layouts into ArchiMate views. It is built to run inside 
@@ -1101,7 +1106,7 @@ changes lead to a different BMC. After all, if you take care of your business mo
 of you!
 ---
 
-## Why ArchiMate & jArchi?
+## 4. Why ArchiMate & jArchi?
 
 BizDiag is built around the ArchiMate modeling language and the Archi modeling tool, with jArchi providing scripting 
 capabilities. This combination provides a practical foundation for architecture automation:
@@ -1117,7 +1122,7 @@ The result is an architecture environment where models can become more than stat
 
 ---
 
-## Technology Stack
+## 5. Technology Stack
 
 | Technology   | Role                                                                                                                       |
 |--------------|----------------------------------------------------------------------------------------------------------------------------|
@@ -1138,7 +1143,7 @@ The result is an architecture environment where models can become more than stat
 
 ---
 
-## Data Flow
+## 6. Data Flow
 
 A typical BizDiag workflow can be represented as:
 
@@ -1182,7 +1187,7 @@ A typical BizDiag workflow can be represented as:
 
 ---
 
-## Modular Architecture
+## 7. Modular Architecture
 
 BizDiag is not intended to be a single monolithic application.
 
@@ -1200,7 +1205,7 @@ Organizations can also combine or extend components to create architecture workf
 
 ---
 
-## Extensibility
+## 8. Extensibility
 
 BizDiag is designed to be extended.
 
@@ -1223,7 +1228,7 @@ extend the implementation according to the terms of the license.
 
 ---
 
-## Client / Server Capabilities
+## 9. Client / Server Capabilities
 
 BizDiag components can be used in different deployment scenarios, including:
 
@@ -1238,7 +1243,7 @@ Deployment architecture depends on the specific BizDiag component and its intend
 
 ---
 
-## Intended Users
+## 10. Intended Users
 
 BizDiag is intended for people and organizations working with Enterprise Architecture and related disciplines, including:
 
@@ -1257,7 +1262,7 @@ BizDiag is intended for people and organizations working with Enterprise Archite
 
 ---
 
-## Example Use Cases
+## 11. Example Use Cases
 
 BizDiag can support use cases such as:
 
@@ -1271,42 +1276,42 @@ BizDiag can support use cases such as:
 
 ---
 
-### Enterprise Architecture Assessment
+### 11.1 Enterprise Architecture Assessment
 Analyze an existing ArchiMate model and identify structural conditions that warrant further architectural investigation.
 
 ---
 
-### Business–IT Alignment
+### 11.2 Business–IT Alignment
 Examine relationships between business and IT architecture and identify potentially unsupported or weakly connected areas.
 
 ---
 
-### Architecture Data Analysis
+### 11.3 Architecture Data Analysis
 Extract architecture information and perform custom SQL-based analysis.
 
 ---
 
-### AI-Assisted Documentation
+### 11.4 AI-Assisted Documentation
 Use AI models to assist with architecture descriptions and documentation.
 
 ---
 
-### Business Model to Architecture
+### 11.5 Business Model to Architecture
 Analyze a Business Model Canvas and transform relevant business information into an ArchiMate-oriented representation.
 
 ---
 
-### Architecture Reporting
+### 11.6 Architecture Reporting
 Export architecture information into JSONL, CSV, Excel, or other formats for reporting and downstream processing.
 
 ---
 
-### Custom Architecture Automation
+### 11.7 Custom Architecture Automation
 Build organization-specific scripts and applications around an existing ArchiMate repository.
 
 ---
 
-## Installation
+## 12. Installation
 
 BizDiag consists of multiple components, and installation depends on the specific component being used.
 
@@ -1324,13 +1329,13 @@ command-line tools, a running.txt file is included in the repository to provide 
 
 ---
 
-## Model Input
+## 13. Model Input
 
 BizDiag architecture-analysis workflows operate on ArchiMate models created or maintained in Archi.
 
 ---
 
-## Repository Structure
+## 14. Repository Structure
 
 The repository is organized by its four primary modules. Build outputs and IDE metadata are omitted from this overview.
 
@@ -1380,7 +1385,7 @@ Each module folder contains its own scripts, resources, or server-side source fi
 
 ---
 
-## Open Source & Commercial Services
+## 15. Open Source & Commercial Services
 
 BizDiag is released as open-source software under the CeCILL-B Free Software License, a French-law software license 
 developed by CEA, CNRS, and Inria.
@@ -1429,34 +1434,86 @@ maintenance, customization, implementation services, or other professional servi
 
 ---
 
-## Design Principles
+## 16. Design Principles
 
-BizDiag is guided by several principles.
+BizDiag's design principles describe how the suite turns architecture models
+into useful analysis while keeping the model, tools, and human decisions
+connected. They are reflected across its jArchi diagnostics, pragmatic approach
+towards the digital strategy concepts, structured-data and database integrations, 
+Business Model Canvas tools, local-AI workflows, AI incorporation into EA applications, 
+and capability-based planning. The principles guide implementation; they do
+not imply that every module has identical features or deployment requirements.
 
-### Model as Data
-Enterprise Architecture models should be usable as structured information, not only as visual diagrams.
+### 16.1 Model as Data
 
-### Automation First
-Repetitive architecture activities should be candidates for automation.
+BizDiag treats an ArchiMate model as structured information that can be queried
+and transformed, not only as a visual diagram. Its tools inspect model elements,
+properties, and relationships; other modules extract that information to
+formats such as JSON/JSONL, CSV, or database records for SQL analysis and
+reporting. Generated findings and planning outputs can also be connected back
+to the model concepts they describe.
 
-### Open Architecture
-Architecture tooling should support interoperability, extensibility, and integration.
+### 16.2 Automation First
 
-### Practical Intelligence
-Analysis should provide useful information that architects and decision-makers can investigate and apply.
+Repeatable tasks—such as checking model relationships and metadata, validating
+planning inputs, calculating weighted assessments, generating views, and
+exporting architecture data—are candidates for automation. Automating these
+steps makes the process more consistent and easier to repeat, while leaving
+interpretation, input quality, and remediation to the people responsible for
+the architecture.
 
-### Human-in-the-Loop
-Automated analysis and AI assistance should support architects rather than replace architectural judgment.
+### 16.3 Open Architecture
 
-### Modular Design
-Individual capabilities should be reusable independently and composable into larger workflows.
+The suite builds on ArchiMate and Archi, with jArchi, Java, GraalJS, and 
+JavaScript supporting model automation and integration. Its components use
+established formats and interfaces—including JSON/JSONL, CSV, SQL databases,
+REST, and TCP—where appropriate, so architecture information can participate 
+in different analysis and reporting workflows. The source is available for
+inspection and adaptation under the repository's license.
 
-### Technology Independence
-Organizations should be able to inspect and adapt the software rather than depend entirely on a closed implementation.
+### 16.4 Practical Intelligence
+
+Analysis is intended to produce actionable evidence, not an opaque declaration
+that an architecture is “good” or “bad.” For example, Business–IT Alignment
+reports identify model conditions for review, while Capability-Based Planning
+calculates results from explicit ratings, impacts, targets, and actions and
+shows them in generated views. Findings and calculated outputs remain bounded
+by their model evidence and input quality.
+
+### 16.5 Human-in-the-Loop
+
+Architects and stakeholders remain responsible for evaluating evidence,
+choosing strategy and ratings, validating goals and actions, and deciding what
+to change. Automated checks expose conditions in the model for investigation;
+they do not establish that the same conditions exist in organizational
+practice. Optional local Ollama discovery can propose provisional Capability
+candidates with source evidence, but those candidates require architect
+review and do not supply maturity or strategic-impact assessments.
+
+### 16.6 Modular Design
+
+BizDiag is organized as distinct tools rather than one mandatory,
+all-or-nothing workflow. Business–IT Alignment, ClientServer_DB,
+BizModelCanvas, and BizDiag Local AI capabilities can serve different needs;
+inside Capability-Based Planning, setup and assessment continuation are
+separate stages supported by focused helper modules. This separation lets
+teams use relevant capabilities independently and combine them where a broader
+workflow is useful.
+
+### 16.7 Technology Independence
+
+Technology independence means that the implementation is inspectable and
+adaptable, and that architecture data can be exchanged with familiar tools and
+formats instead of being trapped in a closed service. The suite uses local
+execution options—including optional local Ollama for selected workflows—and
+multiple integration approaches, but it still depends on technologies such as
+Archi and jArchi for its model-based scripts. The principle is therefore
+practical flexibility and reduced lock-in, not a claim that BizDiag is
+platform-independent.
 
 ---
 
-## Current Scope
+## 17. Current Scope
 
 BizDiag currently focuses on:
 
@@ -1476,7 +1533,7 @@ The project is actively evolving, and capabilities may change as additional tool
 
 ---
 
-## Roadmap
+## 18. Roadmap
 
 Potential future development areas include:
 
@@ -1499,7 +1556,7 @@ The roadmap is subject to change based on technical development and practical re
 
 ---
 
-## Contributing
+## 19. Contributing
 
 Contributions, suggestions, issue reports, and technical discussions are welcome.
 
@@ -1532,19 +1589,19 @@ attribution.
 The repository includes a `CITATION.cff` file containing the preferred citation metadata. GitHub's “Cite this 
 repository” functionality may also be used to obtain the repository's citation information.
 
-### APA
+### 19.1 APA
 
 Pak, E. (2026). BizDiag: Research-Driven Enterprise Architecture Intelligence for Digital Strategy & Business Diagnostics [Computer software]. GitHub.
 
-### MLA
+### 19.2 MLA
 
 Pak, Ebrahim. BizDiag: Research-Driven Enterprise Architecture Intelligence for Digital Strategy & Business Diagnostics. 2026. GitHub.
 
-### Chicago
+### 19.3 Chicago
 
 Pak, Ebrahim. 2026. “BizDiag: Research-Driven Enterprise Architecture Intelligence for Digital Strategy & Business Diagnostics.” Software. GitHub.
 
-### IEEE
+### 19.4 IEEE
 
 [1] E. Pak, “BizDiag: Research-Driven Enterprise Architecture Intelligence for Digital Strategy & Business Diagnostics,” version 1.0.0, software, 2026. [Online]. Available: https://github.com/ebrahimpak/BizDiag.
 
@@ -1553,7 +1610,7 @@ this document differs from the current `CITATION.cff`, please use the informatio
 
 ---
 
-## License
+## 20. License
 
 Copyright © 2026 Ebrahim Pak
 
@@ -1591,7 +1648,7 @@ determining its suitability for their particular technical, operational, securit
 
 ---
 
-## Project
+## 21. Project
 
 BizDiag  
 Intelligent Enterprise Architecture & Digital Strategy Automation
@@ -1603,7 +1660,7 @@ and related professional services.
 
 ---
 
-## Related Documentation
+## 22. Related Documentation
 
 Additional documentation will be added as the project develops.
 
@@ -1619,7 +1676,7 @@ Additional documentation will be added as the project develops.
 
 ---
 
-## Disclaimer
+## 23. Disclaimer
 
 BizDiag provides analytical, automation, and decision-support capabilities.
 
@@ -1630,7 +1687,7 @@ BizDiag does not replace professional Enterprise Architecture judgment or organi
 
 ---
 
-## Author
+## 24. Author
 
 **Author:** Ebrahim Pak, BA, MA, MSc
 
@@ -1644,7 +1701,7 @@ BizDiag does not replace professional Enterprise Architecture judgment or organi
 
 ---
 
-## References
+## 25. References
 
 [1] The Open Group, *ArchiMate® 3.2 Specification*, Berkshire, U.K., 2022,
      p. 183.
