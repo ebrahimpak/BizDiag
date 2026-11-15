@@ -1653,9 +1653,11 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
   // Convert array to collection-like object with .each() and .size()
   const allCollection = {
     items: all,
+    // Returns the number of collected elements.
     size: function () {
       return this.items.length;
     },
+    // Calls the callback once for each collected element.
     each: function (fn) {
       for (let i = 0; i < this.items.length; i++) {
         fn(this.items[i]);
@@ -4156,6 +4158,7 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
     });
   }
 
+  // Returns related elements that match any requested type.
   function abfRelated(el, types) {
     const matches = [];
     try {
@@ -4167,6 +4170,7 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
     return matches;
   }
 
+  // Returns leaf process elements for task-level checks.
   function abfTaskElements() {
     return abfElements(ABF_TYPES.PROCESS).filter(function (el) {
       let hasDecomposedProcess = false;
@@ -4184,6 +4188,7 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
     });
   }
 
+  // Combines an element's name, documentation, and selected properties.
   function abfText(el, properties) {
     let text = (safeName(el) || "") + " ";
     try {
@@ -4199,6 +4204,7 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
     return text.toLowerCase();
   }
 
+  // Returns the first non-empty value among the requested properties.
   function abfProperty(el, keys) {
     for (let i = 0; i < keys.length; i++) {
       try {
@@ -4211,24 +4217,28 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
     return "";
   }
 
+  // Parses a numeric property value, returning null when it is invalid.
   function abfNumber(el, keys) {
     const value = abfProperty(el, keys).replace(/,/g, "");
     if (!value || !/^-?\d+(\.\d+)?$/.test(value)) return null;
     return Number(value);
   }
 
+  // Identifies status values that indicate a negative or unsupported state.
   function abfBadStatus(value) {
     const status = String(value || "").trim();
     return /^(false|no|inadequate|insufficient|poor|inappropriate|mismatch(ed)?|incompatible|unsupported|deprecated|obsolete|out[- ]of[- ]date|end[- ]of[- ]life|failed|unavailable|unplanned|unmanaged|inconsistent|degraded)$/i.test(status) ||
       /\b(not fit|not appropriate|not compatible|not supported|outdated)\b/i.test(status);
   }
 
+  // Determines whether an element is marked or described as critical.
   function abfCritical(el) {
     const value = abfProperty(el, ["critical", "business_criticality", "priority"]);
     return /^(true|yes|high|critical|1)$/i.test(value) ||
       /\b(critical|mission[- ]critical|high[- ]priority)\b/i.test(abfText(el));
   }
 
+  // Records a finding with its framework references and observed evidence.
   function abfMark(el, code, evidence) {
     const symptom = SYMPTOM_CATALOGUE[code];
     if (!el || !symptom) return;
@@ -4271,6 +4281,7 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
     markElement(el, code, null, trace + (evidence ? "; evidence: " + evidence : ""));
   }
 
+  // Attaches a missing-construct finding to a suitable model element.
   function abfMarkMissingModelConstruct(code, evidence) {
     const anchors = abfElements(ABF_TYPES.PROCESS.concat(ABF_TYPES.ORG, ["Goal", "Driver", "Capability"]));
     if (anchors.length) {
@@ -5256,6 +5267,7 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
           }
         }
 
+        // Rebuilds the findings table using the active report filters.
         function refreshMainTable() {
           try {
             try { table.removeAll(); } catch (e) {}
@@ -5585,6 +5597,7 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
           const zip = new ZipOutputStream(new FileOutputStream(xlsxPath));
           const bw = new BufferedWriter(new OutputStreamWriter(zip, StandardCharsets.UTF_8));
           try {
+            // Adds one named XML part to the XLSX archive.
             function writeEntry(name, content) {
               zip.putNextEntry(new ZipEntry(name));
               bw.write(content);
@@ -5606,6 +5619,7 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
                 .replace(/'/g, "&apos;");
             }
 
+            // Writes one inline-string cell to the current worksheet XML.
             function writeCell(reference, value, styleId) {
               bw.write("<c r=\"" + reference + "\" s=\"" + styleId + "\" t=\"inlineStr\"><is><t xml:space=\"preserve\">");
               bw.write(xmlEscape(value));
