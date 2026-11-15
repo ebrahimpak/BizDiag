@@ -198,24 +198,49 @@ architecture teams systematically examine areas such as:
 #### Business-IT Alignment Research Methodology
 
 The Business-IT Alignment module implements a five-phase Enterprise Architecture (EA) assessment process, conceptually based on extensive conducted research. This module is grounded in original research conducted by the Ebrahim Pak (2026).The five main phases are as follows:
-1.	Preliminary Review: Examines six EA aspects, Strategy (S.01-S.10, STR.61-STR.67); Business Process (B.11-B.20); Data Governance (D.21-D.30); Application Portfolio (A.31-A.40); Technology Infrastructure (T.41-T.48); and Cross-Layer Alignment (X.49-X.60), to identify potential misalignments.
-2.	Malfunctioning Area Analysis: Detects and codes misalignments using aspect-based identifiers. During this phase, each detected misalignment is coded in a bipartite system: [ASPECT].[NUMBER], e.g., S.01 Strategy: Goal without Outcome/KPI.
-3.	Symptom Categorization: Classifies findings by EA aspect; severity (CRITICAL, HIGH, MEDIUM, LOW); description; and analyzability.
-4.	Non-Analyzable Filtering: Separates structurally detectable misalignments from metadata-completeness issues that require contextual judgment.
-5.	Severity-Based Assessment & Reporting: Prioritizes findings by severity and EA aspect, using color-coded reports and element properties to support decision-making.
-      Each finding is represented as a structured JSON object containing the affected element’s identity and type, symptom code, severity, EA aspect, description, contextual details, and analyzability status. A sample of such a JSON object would be similar to the following example:
 
-```javascript
+- **Phase 1**: Preliminary Review — The assessment is organized around six core EA domains:
+  Strategy (core-based on paper 1: S.01–S.10, supplementary-based on paper 2: STR.61–STR.67),
+  Business Process (B.11–B.20), Data Governance (D.21–D.30), Application Portfolio (A.31–A.40),
+  Technology Infrastructure (T.41–T.48), and Cross-Layer Alignment (X.49–X.60). The script
+  inspects modeled elements and relationships in these domains. Additional Operational and
+  Semantic checks and artifact-framework checks extend the core code families.
+
+
+- **Phase 2**: Malfunctioning-Area Analysis — The script applies rules to the model’s elements,
+  relationships, and—where needed—declared properties to identify potential alignment gaps.
+  Findings use several code patterns, including S.01, STR.61, SEM.03, and ABF.S.12; the prefix
+  identifies a rule family, and the number identifies the check.
+
+
+- **Phase 3**: Symptom Categorization — Each finding is associated with catalogue metadata: its EA
+  aspect, severity (CRITICAL, HIGH, MEDIUM, or LOW), description, and analyzability classification.
+  Some framework-related catalogue entries also include research mappings.
+
+
+- **Phase 4**: Analyzability and Severity Filtering — The catalogue distinguishes checks marked
+  analyzable from those marked non-analyzable, such as checks that may depend on metadata or
+  modeling context. This flag is a classification, not a guarantee that every analyzable check
+  is determined by relationships alone. In the English script, non-analyzable findings are
+  included by default, and the minimum severity is LOW; the report controls allow filtering.
+
+
+- **Phase 5**: Assessment and Reporting — Findings are summarized by severity and aspect, shown in
+  the interactive report, and exported to CSV and Excel. The script also records finding codes
+  and notes on affected model elements and applies severity-based visual colors.
+
+
+```json
 {
-elementId: "arch-123",   //Unique identifier
-elementName: "Order Processing",   //Display name
-elementType: "BusinessProcess",   //ArchiMate type
-code: "B.13",   //Symptom code
-severity: "HIGH",   //Severity level
-desc: "Process without application support",   //Symptom description
-documentation: "No Application Service linked",   //Context
-analyzable: true,   //Structurally detectable
-aspect: "derivedAspect", //EA Layer
+"elementId": "arch-123",   
+"elementName": "Order Processing",   
+"elementType": "BusinessProcess",   
+"code": "B.13",   
+"severity": "HIGH",   
+"desc": "Process without application support",   
+"documentation": "No Application Service linked",
+"analyzable": true,   
+"aspect": "derivedAspect"
 }
 ```
 
