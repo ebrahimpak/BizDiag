@@ -2041,7 +2041,7 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
   });
 
   // ============= NEW STRATEGIC PLANNING ALIGNMENT CHECKS (STR.61-STR.67) =============
-  // From Research Paper 2: Zoltán Szabó and Dóra Őri’s “How Enterprise Architecture Management Can Support Strategic IS Planning” (2017)
+  // Research reference: Zoltán Szabó and Dóra Őri, “How Enterprise Architecture Management Can Support Strategic IS Planning” (2017).
   // These checks validate strategic planning process completeness and driver-response alignment
 
   heading(getHeadingString("STR.61", "Vision exists but lacks supporting mission mapping"));
@@ -3485,7 +3485,7 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
   });
 
   // ============= OPERATIONAL BUSINESS-IT ALIGNMENT CHECKS (OB.68-OB.79) =============
-  // From Research Paper 4
+  // Project research reference: Pascal André et al., “Assessing Operational Business-IT Alignment for Architecture Improvement” (2025).
   // These checks validate operational alignment between business processes and application implementations
 
   heading(getHeadingString("OB.68", "Application Function Unused by Business (Orphaned IT Functionality)"));

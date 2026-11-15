@@ -113,6 +113,37 @@ Findings are attached to model elements and presented in a report; related
 sections below describe the rule families and their research mappings in more
 detail.
 
+#### Existing checks related to Luftman's components
+
+Luftman's article, “Assessing Business-IT Alignment Maturity,” presents a
+framework for evaluating alignment maturity. The script does not calculate
+Luftman maturity scores, and the checks listed here were not taken from that
+article. Instead, the table points to existing checks about similar topics and
+explains what evidence those checks can provide from the architecture model.
+This is a guide to relevant script findings—not an assessment of an
+organization's Luftman maturity or proof that it is aligned or misaligned.
+
+| Luftman component | Related existing checks | What the model check establishes (and does not establish) |
+|---|---|---|
+| Business Scope | `S.03`, `S.05`, `S.06`, `STR.64` | Tests modeled links among goals, capabilities, value streams, and applications; does not decide whether business scope or market choices are appropriate. |
+| Distinctive Competencies | — | No reliable check determines whether a modeled capability is distinctive or a source of competitive advantage. |
+| Business Governance | `S.10`, `B.11` | Checks for declared strategy-goal and process ownership; does not establish governance effectiveness. |
+| Administrative Structure | `ABF.S.04`, `ABF.S.05` | Checks modeled role/responsibility links and declared organizational hierarchy; does not assess whether the organization design is effective. |
+| Business Processes | `B.11`–`B.20` | Checks modeled process ownership, links, measures, constraints, and specification; these are architecture-documentation checks, not an evaluation of actual process performance. |
+| Business Skills | `ABF.S.12` | Compares explicitly modeled product-development skill requirements with explicitly modeled role/resource skills; does not infer a person's real competence or detect undeclared requirements. |
+| Technology Scope | — | No reliable check determines whether the technologies selected are strategically relevant or appropriate. |
+| Systemic Competences | — | No reliable check measures distinctive IT capability or the organization's ability to use technology strategically. |
+| IT Governance | `A.38`, `A.39`, `T.45` | Checks application ownership and cost/licensing metadata and modeled technology standards/policy links; does not assess decision quality or governance effectiveness. |
+| IT Architecture | `A.33`, `A.36`, `T.48` | Checks selected application-hosting, interface, and infrastructure-service relationships; does not assess the overall quality or strategic fit of the architecture. |
+| IT Processes | — | No dedicated rule assesses IT service-management or IT delivery processes. Business-process checks (`B.11`–`B.20`) are not checks of IT processes. |
+| IT Skills | `ABF.S.11` | Checks whether modeled IT roles/resources declare skills or competencies; a missing declaration is a model-information gap, not evidence that staff lack those skills. |
+
+For every check in the table, a finding means that the model meets that
+check's trigger. It may point to missing or conflicting architecture
+information, but it does not by itself establish an organizational alignment
+problem. The `ABF.S.*` checks have a separate, documented research basis
+described in the foundational artifact-based framework section.
+
 This is a **screening aid, not a complete alignment-maturity assessment**.
 The model can provide evidence of documented structures and relationships,
 but cannot by itself establish the quality of strategy, the reality of
@@ -423,13 +454,15 @@ detection, not a complete specification of every model query or property-value t
 **Five Phases**
 
 
-“Business–IT Alignment” Research Methodology The Business–IT Alignment module applies
-a five-phase Enterprise Architecture (EA) assessment methodology informed by Őri’s 
-research [8], [9]. It adapts the research framework to BizDiag’s own rules and jArchi 
-implementation; it does not reproduce the papers’ Schematron/XPath implementation.
+**“Business–IT Alignment” research methodology** — The following five phases
+describe how this module organizes its Enterprise Architecture (EA) assessment.
+They are a project-level summary, not a phase structure attributed to a
+particular paper. The script uses BizDiag's own rules and jArchi implementation.
 
 - **Phase 1**: Preliminary Review — The assessment is organized around six core EA domains: 
-Strategy (core-based on paper 1: S.01–S.10, supplementary-based on paper 2: STR.61–STR.67), 
+Strategy (existing checks: S.01–S.10; strategic-planning checks associated with
+“How Enterprise Architecture Management Can Support Strategic IS Planning”:
+STR.61–STR.67),
 Business Process (B.11–B.20), Data Governance (D.21–D.30), Application Portfolio (A.31–A.40), 
 Technology Infrastructure (T.41–T.48), and Cross-Layer Alignment (X.49–X.60). The script 
 inspects modeled elements and relationships in these domains. Additional Operational and 
@@ -1662,55 +1695,63 @@ codes remain distinct catalogue entries.
 
 ## Supplementary literature and provenance
 
-The foundational paper itself positions Őri's 'Misalignment symptom catalogue'
-as a compilation of symptoms from prior research, and its artifact and analysis
-catalogues also draw on related EA sources. The additional symptoms in this script
-extend that basis using the supplementary publications in the companion `papers` 
-directory. The relationship is summarized below by code family. “Derived from” here
-means that the source's concepts and assessment approach inform the rule family; it 
-does not mean that each script description is a quotation from that source.
+The script distinguishes the foundational framework from additional checks, but
+its code does not support a source-to-rule attribution for every supplementary
+check. The `STR.61`–`STR.67` comments name Zoltán Szabó and Dóra Őri's
+“How Enterprise Architecture Management Can Support Strategic IS Planning.”
+The `OB.68`–`OB.79` comments name Pascal André et al.'s “Assessing Operational
+Business-IT Alignment for Architecture Improvement”; this association reflects
+the project's existing bibliography and topic, but cannot be independently
+verified against a source copy because no companion `papers` directory or paper
+PDFs are present in this checkout. These comments identify the research
+references, not proof that every rule is a verbatim or validated reproduction.
+Other literature associations below are conceptual context, not verified
+rule-level provenance.
 
 <table border="1" cellpadding="4" cellspacing="0" style="border-collapse: collapse;">
   <thead>
     <tr>
-      <th style="border: 1px solid;">Supplementary code families</th>
-      <th style="border: 1px solid;">Research basis and relevance</th>
+      <th style="border: 1px solid;">Exact code identifiers checked in the English script</th>
+      <th style="border: 1px solid;">Evidence and appropriate provenance claim</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td style="border: 1px solid;">Strategy, goal/driver traceability, capability and value-stream checks (<code>S.*</code>, <code>STR.*</code>, <code>X.49</code>–<code>X.60</code>)</td>
-      <td style="border: 1px solid;">Szabó and Őri [11] provide the strategic information-systems planning and EAM context; Kitsios et al. [14] examine business-strategy representation with ArchiMate. Henderson and Venkatraman [1] supply the SAM theoretical basis.</td>
+      <td style="border: 1px solid;"><code>STR.61</code>–<code>STR.67</code></td>
+      <td style="border: 1px solid;">The code comments identify Zoltán Szabó and Dóra Őri's “How Enterprise Architecture Management Can Support Strategic IS Planning” and describe strategic-planning completeness and driver-response alignment. <code>STR.61</code>–<code>STR.66</code> have executable checks. <code>STR.67</code> is explicitly a non-analyzable manual-review placeholder, not an automatic detection rule.</td>
     </tr>
     <tr>
-      <td style="border: 1px solid;">Business-process/application realization, operational alignment, service realization and cross-layer consistency (<code>B.*</code>, <code>OB.68</code>–<code>OB.79</code>, <code>SEM.*</code>, relevant <code>X.*</code>)</td>
-      <td style="border: 1px solid;">André et al. [15] assess operational alignment between business processes and IT applications using metrics, consistency rules, anti-patterns, and explicit model links. Őri [12] contributes an EA-based symptom-analysis and rule-testing approach.</td>
+      <td style="border: 1px solid;"><code>OB.68</code>–<code>OB.79</code></td>
+      <td style="border: 1px solid;">The code comments identify Pascal André et al.'s “Assessing Operational Business-IT Alignment for Architecture Improvement” and describe checks of operational alignment between business processes and application implementations. The project associates this title with the block based on its bibliography and topic; the mapping cannot be independently verified against a source copy in this checkout. The comment is not evidence that each check duplicates that paper's method or findings.</td>
     </tr>
     <tr>
-      <td style="border: 1px solid;">Architecture-pattern, application interaction, configuration and deployment checks (<code>P.*</code>, <code>EV.90</code>, and relevant <code>A.*</code>/<code>T.*</code>)</td>
-      <td style="border: 1px solid;">Choudhry [16] studies specification and testing of enterprise application architecture patterns. The foundational paper's TOGAF artifact and EA-analysis catalogues [2] provide the broader architecture-analysis context.</td>
+      <td style="border: 1px solid;"><code>ABF.S.01</code>–<code>ABF.S.21</code></td>
+      <td style="border: 1px solid;">These are the 21 symptoms attributed in the code to Dóra Őri's “An Artifact-Based Framework for Business-IT Misalignment Symptom Detection.” The script uses the distinct <code>ABF.S.*</code> prefix to preserve the paper's source codes without colliding with its pre-existing <code>S.*</code> checks. The script's severity labels and executable model tests are its own implementation choices.</td>
     </tr>
     <tr>
-      <td style="border: 1px solid;">Data mappings, security and technology governance (<code>D.*</code>, <code>SEC.85</code>, <code>OB.72</code>–<code>OB.75</code>, and relevant <code>T.*</code>)</td>
-      <td style="border: 1px solid;">André et al. [15] inform operational business/IT model consistency; Luftman [13] provides alignment-maturity context for governance, scope/architecture, and skills. The individual rules are the script's model-based operationalizations, not quotations from these works.</td>
+      <td style="border: 1px solid;"><code>ABF.I.01</code>–<code>ABF.I.02</code></td>
+      <td style="border: 1px solid;">These are two additional checks derived from relationships in “An Artifact-Based Framework for Business-IT Misalignment Symptom Detection,” not two more symptoms in its 21-item symptom catalogue. The code labels their mappings as implicit applications of that framework.</td>
     </tr>
     <tr>
-      <td style="border: 1px solid;">Ownership, skills, resources, governance and alignment maturity (including relevant <code>B.*</code>, <code>STR.*</code>, <code>A.*</code>, and <code>T.*</code>)</td>
-      <td style="border: 1px solid;">Luftman's maturity framework [13] addresses communication, competence, governance, partnership, scope/architecture, and value measurement; Szabó and Őri [11] relate EAM to strategic IS planning.</td>
+      <td style="border: 1px solid;"><code>S.01</code>–<code>S.10</code>; <code>B.11</code>–<code>B.19</code>; <code>D.21</code>–<code>D.30</code>; <code>A.31</code>–<code>A.40</code>; <code>T.41</code>–<code>T.48</code>; <code>X.49</code>–<code>X.62</code>; <code>OB.80</code>; <code>SEM.01</code>–<code>SEM.03</code>; <code>P.81</code>–<code>P.83</code>; <code>EV.90</code>; <code>SEC.85</code></td>
+      <td style="border: 1px solid;">These remaining supplementary catalogue entries have executable checks, but their code contains no direct attribution to a cited work. “Strategic Alignment: Leveraging Information Technology for Transforming Organizations” (Henderson and Venkatraman), “Assessing Business-IT Alignment Maturity” (Luftman), “Exploring Business Strategy Modelling with ArchiMate: A Case Study Approach” (Kitsios et al.), “Testing Enterprise Application Architecture Patterns” (Choudhry), and <em>The Strategic Management of Information Systems: Building a Digital Strategy</em> (Peppard and Ward) inform the conceptual discussion; they are not established as the origin of these individual rules. Other cited EA and research-method works likewise provide context, not a code-level provenance mapping.</td>
     </tr>
     <tr>
-      <td style="border: 1px solid;">Research-method and architecture/strategy context</td>
-      <td style="border: 1px solid;">Hevner et al. [17] provide design-science research guidance. This is methodological and contextual resources, not standalone symptom catalogue.</td>
+      <td style="border: 1px solid;"><code>B.20</code> (execution/catalogue discrepancy)</td>
+      <td style="border: 1px solid;">The English script has an executable <code>B.20</code> check, but <code>B.20</code> is absent from <code>SYMPTOM_CATALOGUE</code>; it is therefore not one of the 112 catalogue entries and has no catalogue-defined severity or description. It is not attributed to a cited source in the code.</td>
     </tr>
   </tbody>
 </table>
 
-These clusters make the supplementary papers and their relevance explicit
-without implying unsupported one-to-one provenance. The 21 `ABF.S.*` entries
-are the direct 'Misalignment symptom catalogue'; the two `ABF.I.*` entries 
-are explicitly labeled implicit applications of the foundational framework. 
-The supplementary entries are additional research-informed checks, with the
-specific cited sources and themes above.
+The Luftman crosswalk in the Introduction is conceptual: “Assessing Business-IT
+Alignment Maturity” is not the provenance of any detection rule. Its related
+code examples are listed narrowly, rather than assigning broad families such
+as all data, security, business-process, application, or technology checks to
+Luftman. The same
+distinction applies to the other context-only references above. The catalogue
+contains 112 entries (21 foundational symptoms, two implicit framework checks,
+and 89 supplementary entries); the separate executable-but-uncatalogued
+<code>B.20</code> check is the exception noted in the table.
 
 ## Running the script and interpreting results
 
