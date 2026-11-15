@@ -289,6 +289,61 @@ detection, not a complete specification of every model query or property-value t
 
 ### Translating the framework into this script
 
+**Five Phases**
+“Business–IT Alignment” Research Methodology The Business–IT Alignment module applies
+a five-phase Enterprise Architecture (EA) assessment methodology informed by Őri’s 
+research [8], [9]. It adapts the research framework to BizDiag’s own rules and jArchi 
+implementation; it does not reproduce the papers’ Schematron/XPath implementation.
+
+- **Phase 1**: Preliminary Review — The assessment is organized around six core EA domains: 
+Strategy (core-based on paper 1: S.01–S.10, supplementary-based on paper 2: STR.61–STR.67), 
+Business Process (B.11–B.20), Data Governance (D.21–D.30), Application Portfolio (A.31–A.40), 
+Technology Infrastructure (T.41–T.48), and Cross-Layer Alignment (X.49–X.60). The script 
+inspects modeled elements and relationships in these domains. Additional Operational and 
+Semantic checks and artifact-framework checks extend the core code families.
+
+
+- **Phase 2**: Malfunctioning-Area Analysis — The script applies rules to the model’s elements, 
+relationships, and—where needed—declared properties to identify potential alignment gaps. 
+Findings use several code patterns, including S.01, STR.61, SEM.03, and ABF.S.12; the prefix
+identifies a rule family, and the number identifies the check.
+
+
+- **Phase 3**: Symptom Categorization — Each finding is associated with catalogue metadata: its EA
+aspect, severity (CRITICAL, HIGH, MEDIUM, or LOW), description, and analyzability classification.
+Some framework-related catalogue entries also include research mappings.
+
+
+- **Phase 4**: Analyzability and Severity Filtering — The catalogue distinguishes checks marked 
+analyzable from those marked non-analyzable, such as checks that may depend on metadata or 
+modeling context. This flag is a classification, not a guarantee that every analyzable check 
+is determined by relationships alone. In the English script, non-analyzable findings are 
+included by default, and the minimum severity is LOW; the report controls allow filtering.
+
+
+- **Phase 5**: Assessment and Reporting — Findings are summarized by severity and aspect, shown in
+the interactive report, and exported to CSV and Excel. The script also records finding codes 
+and notes on affected model elements and applies severity-based visual colors.
+
+
+```json
+{
+"elementId": "arch-123",
+"elementName": "Strategic Goal",
+"elementType": "Goal",
+"code": "S.01",
+"severity": "CRITICAL",
+"desc": "Goal without Outcome/KPI",
+"documentation": "",
+"analyzable": true,
+"aspect": "Strategy"
+}
+```
+
+**Internal Finding Records**
+
+The internal finding record contains these fields:
+
 The script keeps the research identifiers and the executable rule identifiers
 distinct. The foundational paper's 'Misalignment symptom catalogue' codes are
 `S.01`–`S.21`; those codes already have different meanings elsewhere in this 
