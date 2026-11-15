@@ -229,6 +229,7 @@ The Business-IT Alignment module implements a five-phase Enterprise Architecture
   the interactive report, and exported to CSV and Excel. The script also records finding codes
   and notes on affected model elements and applies severity-based visual colors.
 
+Therefore, each finding captures a misalignment JSON object as follows:
 
 ```json
 {
