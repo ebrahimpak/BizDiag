@@ -325,6 +325,7 @@ included by default, and the minimum severity is LOW; the report controls allow 
 the interactive report, and exported to CSV and Excel. The script also records finding codes 
 and notes on affected model elements and applies severity-based visual colors.
 
+Therefore, each finding is represented by a JSON object describing the identified misalignment:
 
 ```json
 {
