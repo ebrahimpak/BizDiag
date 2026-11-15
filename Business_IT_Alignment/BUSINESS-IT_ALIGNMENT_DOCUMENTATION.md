@@ -290,6 +290,8 @@ detection, not a complete specification of every model query or property-value t
 ### Translating the framework into this script
 
 **Five Phases**
+
+
 “Business–IT Alignment” Research Methodology The Business–IT Alignment module applies
 a five-phase Enterprise Architecture (EA) assessment methodology informed by Őri’s 
 research [8], [9]. It adapts the research framework to BizDiag’s own rules and jArchi 
