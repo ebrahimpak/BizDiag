@@ -1,5 +1,136 @@
 # Business–IT Alignment and Misalignment Detection
 
+## Introduction to Digital Strategy & Alignment
+
+Digital strategy is not simply a technology plan. It connects business
+direction with the information systems and technology choices, organizational
+changes, and capabilities needed to execute that direction and create value.
+Because markets and technologies change, alignment is an ongoing process of
+mutual adjustment—not a one-time state to achieve. Peppard and Ward discuss
+this relationship through Henderson and Venkatraman's Strategic Alignment
+Model (SAM) and the evolution toward a broader, adaptive digital capability.
+
+### Henderson and Venkatraman's Strategic Alignment Model
+
+SAM examines the coherence of four domains: **business strategy** and
+**digital/IT strategy** (external choices), and **organizational
+infrastructure and processes** and **IT infrastructure and processes**
+(internal arrangements). It emphasizes both strategic fit—whether internal
+organization and technology can realize strategic choices—and functional
+integration—whether business and IT choices reinforce one another.
+
+This SAM domain map shows how the four domains relate. Vertical links
+connect external strategy with internal organization in each domain; horizontal
+links show functional integration between the business and IT domains:
+
+```text
+                         BUSINESS DOMAIN                 IT DOMAIN
+
+EXTERNAL choices    [Business strategy] <----------> [Digital strategy]
+                            |                               |
+                            | strategic                     | strategic
+                            | integration                   | integration
+                            v                               v
+INTERNAL execution  [Organizational infrastructure] <--> [IT infrastructure]
+                    [and processes]                       [and processes]
+
+                    Across domains: functional integration
+```
+
+The following complementary concept sketch emphasizes the ongoing movement
+from strategic choices through implementation to outcomes:
+
+```text
+Business strategy -----> Organizational change and processes -----> Outcomes
+       ^                            ^                                  |
+       |                            |                                  |
+       +---- learning/feedback -----+                                  |
+       |                                                               |
+Digital/IT strategy --> IT capabilities and effective use -------------+
+
+Business and IT choices inform each other and adapt as conditions change.
+```
+
+In practice, IT can both support a business strategy and enable new strategic
+options. Alignment, therefore, includes internal fit and the ability to respond
+to external change.
+
+### Luftman's alignment dimensions
+
+Luftman's alignment components are organized around four domains. The domain
+and component names are as follows:
+
+**I. Business Strategy**
+
+1. **Business Scope** — Defines the organization's markets, offerings, and
+   business boundaries.
+2. **Distinctive Competencies** — Identifies the capabilities that
+   differentiate the business and support its strategic position.
+3. **Business Governance** — Describes how business authority, decisions, and
+   key relationships are directed.
+
+**II. Organizational Infrastructure and Processes**
+
+4. **Administrative Structure** — Describes the organization of roles,
+   responsibilities, reporting, and decision-making.
+5. **Processes** — Covers the workflows through which the organization
+   performs and coordinates its work.
+6. **Skills** — Captures the people, knowledge, and competencies needed to
+   carry out business activities.
+
+**III. Digital strategy**
+
+7. **Technology scope** — Sets the information technologies and digital
+   opportunities relevant to the organization's strategy.
+8. **Systemic Competences** — Describes the IT capabilities that enable and
+   differentiate the organization's use of technology.
+9. **IT Governance** — Defines how IT decisions, investments, and
+   responsibilities are overseen.
+
+**IV. IT Infrastructure and Processes**
+
+10. **Architecture** — Describes the design and organization of the
+    technology, applications, and infrastructure.
+11. **Processes** — Covers the processes used to develop, deliver, operate,
+    and maintain IT services and systems.
+12. **Skills** — Captures the IT workforce's knowledge and technical and
+    managerial competencies.
+
+These are organizational and managerial conditions as well as technical ones:
+senior support, leadership, trust, communication, and understanding of both
+business and technical environments all affect whether alignment can be
+sustained.
+
+### Connection to `BusinessITAlignment_EN.ajs`
+
+The script turns part of this strategic discussion into a model-based
+diagnostic. It checks modeled strategy, business processes, data, applications,
+technology, and cross-layer relationships, plus operational and semantic
+checks, using 112 catalogued symptoms. Examples include traceability from
+goals to outcomes or capabilities, business-process support by applications,
+application and technology relationships, ownership, and governance metadata.
+Findings are attached to model elements and presented in a report; related
+sections below describe the rule families and their research mappings in more
+detail.
+
+This is a **screening aid, not a complete alignment-maturity assessment**.
+The model can provide evidence of documented structures and relationships,
+but cannot by itself establish the quality of strategy, the reality of
+business practice, trust, communication, leadership, partnership, realized
+benefits, or whether people use systems effectively. A missing model link may
+indicate incomplete architecture documentation rather than an operational
+failure. Use findings to guide stakeholder review and validation, not as
+standalone proof of organizational misalignment.
+
+The broader digital-strategy context also matters: technology can reshape
+products, services, processes, and competitive possibilities, while value
+depends on complementary business capabilities, skills, implementation, and
+effective use—not merely on acquiring IT. The script can expose some
+architecture-level gaps relevant to those choices, but it does not assess an
+organization's ability to sense opportunities, adapt its strategy, or
+successfully realize benefits. Those questions require business analysis and
+ongoing management beyond static model checks [18, pp. 38–43].
+
 ## Purpose and scope
 
 `BusinessITAlignment_EN.ajs` and its Persian-language counterpart,
@@ -1699,6 +1830,9 @@ rule.
 [17] A. R. Hevner, S. T. March, J. Park, and S. Ram, “Design Science in
      Information Systems Research,” *MIS Quarterly*, vol. 28, no. 1,
      pp. 75–105, 2004.
+
+[18] J. Peppard and J. Ward, *The Strategic Management of Information Systems:
+     Building a Digital Strategy*, 4th ed. Wiley, 2016.
 
 ## Author and Copyright
 
