@@ -990,7 +990,7 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
 
   // FILTERING CONFIG: Focus on enterprise-level issues, exclude non-analyzable symptoms
   const REPORT_MODE = {
-    // In FA we prefer to include non-analyzable findings (metadata completeness and low-severity warnings)
+    // In FA, we prefer to include non-analyzable findings (metadata completeness and low-severity warnings)
     // to ensure LOW severity (yellow) rows remain visible by default.
     includeNonAnalyzable: true, // Set true to see all symptoms including metadata completeness
     // Default to LOW in FA to preserve visibility of low-severity (yellow) findings.

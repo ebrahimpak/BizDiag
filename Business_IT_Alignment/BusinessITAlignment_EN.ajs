@@ -990,7 +990,7 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
 
   // FILTERING CONFIG: Focus on enterprise-level issues, exclude non-analyzable symptoms
   const REPORT_MODE = {
-    // In ENG we prefer to include non-analyzable findings (metadata completeness and low-severity warnings)
+    // In EN, we prefer to include non-analyzable findings (metadata completeness and low-severity warnings)
     // to ensure LOW severity (yellow) rows remain visible by default.
     includeNonAnalyzable: true, // Set true to see all symptoms including metadata completeness
     // Default to LOW in ENG to preserve visibility of low-severity (yellow) findings.
@@ -5323,7 +5323,7 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
         // Label to show the current filter state (minSeverity & includeNonAnalyzable)
         const filterLabel = new SWTLabel(sliderComposite, org.eclipse.swt.SWT.NONE);
         filterLabel.setText(
-          " Filter: Minimum Serverity = " + (ENG.SEVERITY_LABELS[REPORT_MODE.minSeverity] || REPORT_MODE.minSeverity) +
+          " Filter: Minimum Severity = " + (ENG.SEVERITY_LABELS[REPORT_MODE.minSeverity] || REPORT_MODE.minSeverity) +
             " | Including Non-Analyzable = " + (REPORT_MODE.includeNonAnalyzable ? "YES" : "NO")
         );
         const filterLabelGD = new SWTGridData(org.eclipse.swt.layout.GridData.CENTER);
@@ -5361,7 +5361,7 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
             REPORT_MODE.minSeverity = newMode.severity;
             REPORT_MODE.includeNonAnalyzable = newMode.includeNonAnalyzable;
             filterLabel.setText(
-              " Filter: Minimum Serverity == " + (ENG.SEVERITY_LABELS[REPORT_MODE.minSeverity] || REPORT_MODE.minSeverity) +
+              " Filter: Minimum Severity == " + (ENG.SEVERITY_LABELS[REPORT_MODE.minSeverity] || REPORT_MODE.minSeverity) +
                 " | Including Non-Analyzable = " + (REPORT_MODE.includeNonAnalyzable ? "YES" : "NO")
             );
             // Recalculate and refresh tables
