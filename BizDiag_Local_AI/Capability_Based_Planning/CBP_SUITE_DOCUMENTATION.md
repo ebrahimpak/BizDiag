@@ -13,21 +13,22 @@ The suite operationalizes selected, repeatable parts of the capability-based pla
 - R. Karami, “Capability-based Planning in 7 moves!” LinkedIn, Dec. 21, 2022. [Online]. Available: https://www.linkedin.com/pulse/capability-based-planning-7-moves-reza-karami/.
 - The Open Group, "Capability-Based Planning Supporting Project/Portfolio and Digital Capabilities Mapping Using the TOGAF® and ArchiMate® Standards," 16 July 2019. [Online]. Available: https://publications.opengroup.org/g193.
 
-The 2019 and 2022 papers share a capability-centered, strategy-driven approach to enterprise transformation, in which
+The 2019 and 2022 publications share a capability-centered, strategy-driven approach to enterprise transformation, in which
 business capabilities provide the link between strategic objectives and coordinated organizational change. The 
-seven-moves methodology operationalizes the Open Group’s four CBP stages—Map, Assess, Plan, and Control, through a 
+seven-moves methodology operationalizes the Open Group’s four CBP stages—Map, Assess, Plan, and Control—through a
 practical sequence of identifying capabilities, assessing their maturity and strategic importance, analyzing capability 
 gaps, setting improvement goals, defining actions, and designing a change portfolio. While the Open Group Guide, 
 published in 2019, establishes the broader framework and connects CBP to Enterprise Architecture, TOGAF ADM, and 
 ArchiMate, the seven-moves methodology provides more specific techniques for capability assessment and improvement 
-planning. Both emphasize aligning change initiatives with strategy, prioritizing capability development, and 
-monitoring progress through an iterative planning cycle.
+planning [2], [3]. The earlier Open Group work also frames capability-based planning as a link between strategy and
+enterprise architecture [1]. Together, these sources emphasize aligning change initiatives with strategy, prioritizing
+capability development, and monitoring progress through an iterative planning cycle [1]–[3].
 
 On the whole, these three publications provide the method and motivation; they do not prescribe this software's property
 names, code structure, score normalization, views, or implementation details. Those are explicit BizDiag design 
 decisions documented below. The software validates and visualizes supplied information. It does not replace the human 
 work of discovering and validating capabilities, selecting strategies, assessing evidence, setting targets, designing 
-actions, or governing a change portfolio.
+actions, or governing a change portfolio [1]–[3].
 
 The current implementation is a two-stage, user-controlled workflow. It requires Archi with jArchi and an active
 ArchiMate model. Local Ollama is optional and, when explicitly requested in Move 1, proposes evidence-linked
@@ -69,7 +70,7 @@ Capability elements.
 
 The discovery method follows a value-exchange shortlist rather than attempting to synthesize a complete capability
 model: Key Activities are a primary clue, while other BMC blocks provide context for abilities that enable the value
-proposition, customers, channels, partners, or value creation, delivery, and capture. This does not imply a
+proposition, customers, channels, partners, or value creation, delivery, and capture [4], [6]. This does not imply a
 one-to-one mapping from blocks or stages to Capabilities.
 
 ### 2.2 Selection and discovery
@@ -93,9 +94,9 @@ Potential strategy Courses of Action are discovered model-wide, independently of
 appear only in the separate Strategy Inputs worklist and are not treated as strategies unless the user sets
 `CBP.Role=Strategy`.
 
-The “Capability-based Planning in 7 moves!” artcile describes extracting needed
+The “Capability-based Planning in 7 moves!” article describes extracting needed
 capabilities from strategic documents and analyzing value streams to identify the capabilities needed at their
-stages. Optional Move 1 discovery supports this analysis with a single compact Ollama request containing up to 10
+stages [2]. Optional Move 1 discovery supports this analysis with a single compact Ollama request containing up to 10
 non-generated Value Stream names, up to 15 directly composed stage names (maximum three per selected stream), up to
 10 Course of Action, Resource, Goal, Outcome, or Driver names, and up to 20 existing Capability names for duplicate
 avoidance context (the actual duplicate check searches all non-generated Capabilities). These labels
@@ -586,16 +587,23 @@ increment, dimension, start and target levels, project name, priority, and sourc
 
 ## 5. Calculation rules by move
 
+The move sequence and planning concerns are drawn from capability-based planning literature [1]–[3]. The equations,
+input scales, validation thresholds, and output rules below document BizDiag's particular implementation; they are
+not attributed as prescribed formulas from those publications.
+
 ### Move 1 — Identify and frame the capability map
 
 Move 1 performs Capability-only scope discovery, optional evidence-grounded proposal generation, hierarchy
 visualization from existing Composition/Aggregation relationships, Capability code allocation, property preparation,
 and checkpoint creation. It is not a quantitative assessment. AI proposals become reviewable Capability elements;
 hierarchy is never inferred. Courses of Action remain potential strategy inputs in a separate worklist.
+The capability-map and strategy-to-capability framing follows the cited planning guidance [1]–[3]; the exact
+Capability-only map scope and input handling are BizDiag implementation decisions.
 
 ### Move 2 — Assess maturity
 
-For one Capability, let `P`, `Pr`, and `T` be People, Process, and Technology maturity values, and let `wP`, `wPr`,
+The move operationalizes the capability-maturity assessment stage in the seven-move planning method [2]. For one
+Capability, let `P`, `Pr`, and `T` be People, Process, and Technology maturity values, and let `wP`, `wPr`,
 and `wT` be their positive weights (defaulting to `1`). Each rating must be an integer in `[0,4]`.
 
 ```text
@@ -608,8 +616,9 @@ nearest integer band for color/placement.
 
 ### Move 3 — Assess strategic importance
 
-Move 3 estimates how strongly a capability supports the selected sttrategies, the expresses that estimate on the same
-0-4 scale used for maturity.
+Move 3 operationalizes the method's assessment of each capability's strategic importance [2], [3]. It estimates
+how strongly a capability supports the selected strategies and expresses that estimate on the same 0–4 scale used
+for maturity.
 
 - Iᵢ is the impact rating for one Capability against strategy i: 0 = no contribution, 1 = moderate contribution, 2 = strong contribution.
 
@@ -639,7 +648,8 @@ Capability, its importance score is unresolved rather than calculated from only 
 
 ### Move 4 — Analyze the maturity/importance landscape
 
-When both current assessments exist:
+The comparison of maturity and strategic importance follows the capability-landscape analysis described in the
+planning sources [2], [3]. The following difference and tolerance-based classification are BizDiag's implementation:
 
 ```text
 Gap = StrategicImportance - Maturity
@@ -676,7 +686,9 @@ are vertically offset to remain visible.
 
 ### Move 5 — Set and validate improvement goals
 
-For each configured increment and Capability, the engine validates:
+Setting staged targets and defining actions and change portfolios follow the planning sequence described in [1]–[3].
+The exact properties, numerical checks, and generated ArchiMate concepts below are implementation-specific. For each
+configured increment and Capability, the engine validates:
 
 - overall target `CBP.TargetML.<YYYY>` is a number in `[0,4]`;
 - each dimension target is an integer in `[0,4]`;
@@ -775,7 +787,7 @@ Heatmap colors are generated from low to high maturity (red through green) and l
 (green through red). In the ML-SI matrix, `Gap` is red, `Comfort` green, and `Acceptance` yellow.
 In the portfolio view, action Work Packages are colored by People, Process, or Technology; Capability diagram objects
 use the same Gap/Comfort/Acceptance colors as the matrix, with a legend at the top of the view.
-The Strategic Importance and Maturity Diagrams view contains three panels modeled on the  7-Moves article's figures: (1) a
+The Strategic Importance and Maturity Diagrams view contains three panels modeled on the 7-Moves article's figures [2]: (1) a
 neutral 0–4 maturity/importance grid with a diagonal alignment reference, (2) a Gap Zone / Acceptance Band /
 Comfort Zone landscape, and (3) maturity targets by configured increment at each Capability's current strategic
 importance. All panels use the current managed Capability Map scope and the already-calculated assessment results. The first two
@@ -896,17 +908,17 @@ inside qualifying views. It does not infer context that is absent from those nam
 included BMC text.
 
 The method is a strategic shortlist, not a complete capability-model generator. Following Laudicina's
-[BMC-to-capability approach](https://medium.com/@jlaudicina/business-model-to-capability-building-b504c0c89059),
+[BMC-to-capability approach](https://medium.com/@jlaudicina/business-model-to-capability-building-b504c0c89059) [4],
 Key Activities are a primary clue to what the business must do; the other blocks are examined for abilities that
 enable the value proposition, customer relationships, channels, partners, or value creation, delivery, and capture.
 Resources, costs, and revenues are contextual evidence, not capabilities by themselves. A Value Stream stage is
 supporting context, never a Capability merely because it is a stage. The prompt also applies SAP LeanIX's
 "Best practices to define business capability maps" poster principles: define what rather than how, favor durable and
-consistently named abilities, and avoid overlap. It prohibits one-to-one block/stage conversion and unsupported
+consistently named abilities, and avoid overlap [6]. It prohibits one-to-one block/stage conversion and unsupported
 hierarchy.
 
 The prompt does not ask for build/buy or strategic-value ratings. Those belong to a separate investment decision:
-Laudicina's [9-Box approach](https://medium.com/analysts-corner/capability-investment-planning-use-a-build-vs-buy-9-box-12971a342f7d)
+Laudicina's [9-Box approach](https://medium.com/analysts-corner/capability-investment-planning-use-a-build-vs-buy-9-box-12971a342f7d) [5]
 uses strategic value and market availability to frame build/buy discussion after capabilities have been identified;
 the discovery model has no grounded market-availability evidence.
 
@@ -1137,7 +1149,7 @@ This section describes how to recreate the suite from first principles without r
 
 ## 12. Sources and traceability
 
-The workflow's seven-move structure is inspired by the cited capability-based planning publications. The software
+The workflow's seven-move structure is inspired by the cited capability-based planning publications [1]–[3]. The software
 mapping is:
 
 <table border="1" cellpadding="4" cellspacing="0" style="border-collapse: collapse;">
@@ -1205,6 +1217,10 @@ mathematical normalization, ArchiMate relationship types, or generated-view desi
 [5] J. Laudicina, “Capability Investment Planning: Use a Build vs. Buy
     9-Box,” Analyst’s Corner, Medium, Jan. 31, 2023. [Online]. Available:
     https://medium.com/analysts-corner/capability-investment-planning-use-a-build-vs-buy-9-box-12971a342f7d.
+
+[6] SAP LeanIX, “Best Practices to Define Business Capability Maps,” n.d.
+    [Online]. Available:
+    https://www.leanix.net/en/download/best-practices-to-define-business-capability-maps.
 
 ## Author and Copyright
 

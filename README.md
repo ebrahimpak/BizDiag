@@ -20,7 +20,7 @@ an umbrella product with high-end EA applications for specific industries, e.g.,
 “BizDiag Manufacturing Intelligence™”, and “BizDiag Banking Intelligence™”.
 
 BizDiag™ extracts data from EA models, and transforms ArchiMate® models into structured, analyzable data that can be 
-queried, transformed, enriched with AI, and used to support architecture analysis and strategic decision-making.
+queried, transformed, enriched with AI, and used to support architecture analysis and strategic decision-making [1].
 
 A central principle of BizDiag™ is to make Enterprise Architecture information programmable. This makes it possible to
 develop reusable automation around Enterprise Architecture models. Built around ArchiMate®, Archi, jArchi, GraalVM®, 
@@ -151,7 +151,7 @@ knowledge and the practical challenges faced by enterprise architects.
 BizDiag builds on established academic research in Enterprise Architecture, software architecture, and Design 
 Science Research. Its Business–IT Alignment module, UML module, and BizModelCanvas operationalize these 
 foundations through an original, research-driven assessment methodology developed by the author. A forthcoming 
-white paper will elaborate on the methodology and its research contributions.
+white paper will elaborate on the methodology and its research contributions [3, 6, 12–14, 21, 33, 34].
 
 ---
 
@@ -165,7 +165,7 @@ white paper will elaborate on the methodology and its research contributions.
 #### 3.1.1 A Business–IT Alignment/Misalignment Analysis
 
 BizDiag's Business_IT_Alignment subsystem includes analysis capabilities intended to help architects investigate
-relationships between business and IT architecture. This module has leveraged the previously-conducted studies on
+relationships between business and IT architecture [2, 8–10, 14, 16–18]. This module has leveraged the previously-conducted studies on
 the Business–IT alignment research methodology, mostly the studies by Őri and Szabó. However, my analysis and 
 utilized technology stack drastically differ from those used by the mentioned researchers. Unlike approaches that
 rely on Schematron/XPath-style rule-based validation, BizDiag’s Business–IT Alignment module employs a five-stage
@@ -174,7 +174,7 @@ cycles of Hevner et al.’s Design Science Research framework: the **Relevance C
 assessment to practical EA alignment concerns; the **Design Cycle**, which supports the development and 
 application of a literature-informed catalogue of misalignment symptoms; and the **Rigor Cycle**, which grounds 
 symptom selection and classification in established academic literature. Together, these cycles inform the 
-module’s systematic identification, classification, and assessment of Business–IT misalignments.
+module’s systematic identification, classification, and assessment of Business–IT misalignments [3–6, 15].
 
 The analysis can identify structural conditions that may indicate potential Business–IT alignment issues. 
 Detected conditions can be classified according to configurable severity levels such as:
@@ -201,14 +201,14 @@ architecture teams systematically examine areas such as:
 <a id="business-it-alignment-research-methodology"></a>
 #### 3.1.2 Business-IT Alignment Research Methodology
 
-The Business-IT Alignment module implements a five-phase Enterprise Architecture (EA) assessment process, conceptually based on extensive conducted research. This module is grounded in original research conducted by the Ebrahim Pak (2026).The five main phases are as follows:
+The Business-IT Alignment module implements a five-phase Enterprise Architecture (EA) assessment process, conceptually based on extensive conducted research. This module is grounded in original research conducted by the Ebrahim Pak (2026).The five main phases are as follows [3–6, 15]:
 
 - **Phase 1**: Preliminary Review — The assessment is organized around six core EA domains:
   Strategy (core-based on paper 1: S.01–S.10, supplementary-based on paper 2: STR.61–STR.67),
   Business Process (B.11–B.20), Data Governance (D.21–D.30), Application Portfolio (A.31–A.40),
   Technology Infrastructure (T.41–T.48), and Cross-Layer Alignment (X.49–X.60). The script
   inspects modeled elements and relationships in these domains. Additional Operational and
-  Semantic checks and artifact-framework checks extend the core code families.
+  Semantic checks and artifact-framework checks extend the core code families [4, 5, 15].
 
 
 - **Phase 2**: Malfunctioning-Area Analysis — The script applies rules to the model’s elements,
@@ -501,10 +501,11 @@ view using UML-style diagram notation enhanced with AI-generated semantic classi
 
 **UML Module Research Methodology**
 
-The UML module is based on Kruchten’s 4+1 View Model of Software Architecture, mapping UML 2 diagrams to five 
-architectural views: Logical, Implementation, Process, Deployment, and Use Case. It also draws on Desfray’s UML 
-Profiles technique to extend UML metaclasses using stereotypes and tagged values, enabling standardized 
-UML/ArchiMate integration.
+Kruchten’s 4+1 model informs the module’s view-oriented architectural context, while Open Group guidance informs its
+ArchiMate/UML cross-notation context [21–23]. The script does not implement the complete 4+1 model or a formal
+ArchiMate-to-UML transformation: it creates a UML-inspired, component-style ArchiMate view, optionally enriched with
+AI-suggested semantic annotations. See the [UML module documentation](BizDiag_Local_AI/UML/UML_MODULE_DOCUMENTATION.md)
+for scope, workflow, and limitations.
 
 
 <a id="docmaker-subsystem"></a>
@@ -857,6 +858,7 @@ between Strategy and Enterprise Architecture" and "Capability-based Planning in 
 Move 1 creates the Capability Map, input worklists, and durable model-local run record. For production planning, the
 architect enters and validates evidence-based values in model Properties, saves, and runs the continuation. The planning
 scripts do not infer maturity ratings, strategic impact, targets, actions, or priorities from element names or counts.
+The seven-move planning method and capability-map practices inform the workflow's modeled stages and inputs [26–30].
 
 <a id="cbp-data-entry-properties-and-values"></a>
 ##### 3.3.3.1 CBP Data-Entry Properties and Values
@@ -943,7 +945,7 @@ name identifies it as a Business Model Canvas. Folder names do not affect select
 labels/documentation, and diagram-note text inside qualifying views. At most three qualifying content-bearing views,
 12 items per view, 24 items total, 180 characters per item, and 2,400 BMC text characters total are included.
 View and item names are limited to 60 characters. These labels and excerpts are limited evidence, so architects must
-review proposals and determine coverage, granularity, hierarchy, and strategic relevance.
+review proposals and determine coverage, granularity, hierarchy, and strategic relevance [27–30].
 
 1. **Identify and model capabilities:** show a structured, Capability-only map from existing Capability concepts,
 their modeled hierarchy, and any provisional discovery candidates for architect review, plus separate input worklists.
@@ -961,7 +963,7 @@ declared priority.
 
 The article's moves are an architecture-and-planning method. The script operationalizes the parts that can be represented
 as explicit model inputs and repeatable checks. It cannot replace the human analysis that creates and governs those
-inputs.
+inputs [26–28].
 
 | Move | EA purpose in the paper | What the script does | What remains a human responsibility                                                                                                                                                                                                        |
 |---|---|---|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -1014,7 +1016,8 @@ Archi using the jArchi (GraalJS) environment and includes two GUI launchers (Biz
 BizModelCanvas-GUI-FA.ajs) which serve as the GUI for accessing and executing a set of helper/analysis scripts in the 
 scripts/ folder. The scripts in this script-suite are the result of deeply researching the field of digital business 
 model, and applying the findings of the conducted research on these scripts. These scripts perform a wide range of 
-operations on the BMC, namely, they analyze models for all the nine building blocks of their business model canvas.
+operations on the BMC, namely, they analyze models for all the nine building blocks of their business model canvas
+[32, 33].
 
 BizDiag provides a bilingual, unified GUI system for managing nine BizModelCanvas jArchi scripts. This
 system provides professional access to enterprise architecture analysis tools with full English and Persian language 
@@ -1042,7 +1045,7 @@ utilizing Business Model Canvas Detector (`lib/bmcDetector.ajs`), and Business M
 
 3. The third tab, 'Testing', provides tools for debugging the view and model, providing deep model intelligence, as well
 as testing relationship types. When available, the Business Model Canvas (BMC) is commonly located within the  
-Architecture Vision (TOGAF Phase A) section of an EA repository, although many models may not contain a BMC artifact. 
+Architecture Vision (TOGAF Phase A) section of an EA repository, although many models may not contain a BMC artifact [11].
 BMC can be used as an input for analytical and transformation workflows, for the BizModelCanvas script-suite.
 
 4. The fourth tab, called BMC Generation, does only one thing through the scripts/Draw BMC Graphic.ajs, which is to draw
@@ -1085,7 +1088,10 @@ process the BMC in the ArchiMate view, and hence relating to the model as a whol
 architectural view representation can help organizations to analyze the business model in the context of the overall 
 architecture, and hence to identify potential gaps, misalignments, or opportunities for improvement. Moreover, a wide 
 variety of new views, e.g., 'Core Capability View', 'Customer Interaction View', and 'Value Proposition View', in 
-ArchiMate notation, will be derived from the BMC input.
+ArchiMate notation, will be derived from the BMC input [33, 34].
+
+See the [BizModelCanvas module documentation](BizModelCanvas/BIZMODELCANVAS_DOCUMENTATION.md) for a concise account
+of its research basis, implemented capabilities, and usage considerations.
 
 There are three omnipresent traits, constructing business model foundation, on almost each and every definition of
 business model:
@@ -1097,7 +1103,7 @@ business model:
 | **Value Proposition** | How the business converts the delivered value into revenue or other economic returns. |
 
 Therefore, I decided to factor in the aforementioned attributes to BizModelCanvas scripts, and these concepts should be
-reflected in the future developments of BizModelCanvas script-suite.
+reflected in the future developments of BizModelCanvas script-suite [32–34].
 
 Occasionally, you also have to tend your ArchiMate model and its evolutions over time, and be mindful of the very fact
 that business model is not a static entity, and it changes throughout your organization lifetime. As a result, you have
@@ -1109,7 +1115,7 @@ of you!
 ## 4. Why ArchiMate & jArchi?
 
 BizDiag is built around the ArchiMate modeling language and the Archi modeling tool, with jArchi providing scripting 
-capabilities. This combination provides a practical foundation for architecture automation:
+capabilities [1, 25]. This combination provides a practical foundation for architecture automation:
 
 - ArchiMate provides a structured architecture language.
 - Archi provides a practical modeling environment.
@@ -1837,3 +1843,9 @@ BizDiag does not replace professional Enterprise Architecture judgment or organi
      Specification: Using the ArchiMate 3.1 Specification to Model the
      Building Blocks of the Business Model Canvas,” The Open Group, Feb. 2020.
      [Online]. Available: https://publications.opengroup.org/w195.
+
+[34] W. Engelsman, J. Gordijn, T. Haaker, M. van Sinderen, and R. Wieringa,
+     “Quantitative Alignment of Enterprise Architectures with the Business
+     Model,” in *Conceptual Modeling: 40th International Conference, ER 2021*,
+     Lecture Notes in Computer Science, vol. 13011, pp. 189–198. Cham,
+     Switzerland: Springer, 2021, doi: 10.1007/978-3-030-89022-3_16.

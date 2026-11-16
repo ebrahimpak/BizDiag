@@ -9,6 +9,7 @@ Because markets and technologies change, alignment is an ongoing process of
 mutual adjustment—not a one-time state to achieve. Peppard and Ward discuss
 this relationship through Henderson and Venkatraman's Strategic Alignment
 Model (SAM) and the evolution toward a broader, adaptive digital capability.
+[1, 18].
 
 ### 1.1 Henderson and Venkatraman's Strategic Alignment Model
 
@@ -17,7 +18,7 @@ SAM examines the coherence of four domains: **business strategy** and
 infrastructure and processes** and **IT infrastructure and processes**
 (internal arrangements). It emphasizes both strategic fit—whether internal
 organization and technology can realize strategic choices—and functional
-integration—whether business and IT choices reinforce one another.
+integration—whether business and IT choices reinforce one another [1].
 
 This SAM domain map shows how the four domains relate. Vertical links
 connect external strategy with internal organization in each domain; horizontal
@@ -58,7 +59,7 @@ to external change.
 ### 1.2 Luftman's Alignment Dimensions
 
 Luftman's alignment components are organized around four domains. The domain
-and component names are as follows:
+and component names are as follows [13]:
 
 **I. Business Strategy**
 
@@ -99,7 +100,7 @@ and component names are as follows:
 These are organizational and managerial conditions as well as technical ones:
 senior support, leadership, trust, communication, and understanding of both
 business and technical environments all affect whether alignment can be
-sustained.
+sustained [13].
 
 #### 1.2.1 Connection to `BusinessITAlignment_EN.ajs` and `BusinessITAlignment_FA.ajs`
 
@@ -115,22 +116,35 @@ detail. Luftman's 12 components provide the conceptual framework for relating
 the diagnostic's rule families to business–IT alignment. The checks translate
 selected parts of those organizational dimensions into evidence that can be
 examined in an ArchiMate model; the table below explains that translation and
-where a component is not yet operationalized by an automated check.
+where a component is not yet operationalized by an automated check [13].
 
 ##### 1.2.1.1 How the Checks Operationalize Luftman's Components
 
-Luftman's “Assessing Business-IT Alignment Maturity” supplies the
+Luftman's “Assessing Business-IT Alignment Maturity” [13] supplies the
 **framework-level design basis** for this crosswalk: its components identify
 the organizational dimensions the diagnostic is intended to examine. The
-executable rules are **model-level operationalizations** of aspects of those
-dimensions. They check declared ArchiMate relationships, properties, and
-metadata that can serve as indicators of alignment-related conditions. They
-do not reproduce Luftman's assessment instrument, interview criteria, or
-maturity scoring, and a model indicator is not a direct measurement of an
-organizational capability. Where another research framework is the documented
-source of a specific symptom family (such as `ABF.S.*`), that rule-level
-source complements the Luftman organizing framework; the two claims are not
-the same.
+paper defines alignment in terms of business and IT being in harmony, presents
+the 12 components of the strategic alignment model, and describes a maturity
+assessment based on six criteria and five maturity levels. Its assessment
+process also calls for analyzing the gap between the organization's current
+and desired maturity [13]. It, therefore, grounds the diagnostic's alignment dimensions
+and gap-oriented purpose. Those tests are BizDiag's rule-based operationalization
+of model-observable misalignment symptoms, organized against Luftman's components.
+Where another research framework is the documented source of a specific symptom
+family (such as`ABF.S.*`), that source gives the symptom its rule-level 
+provenance within the Luftman-based diagnostic.
+
+In another words, The 19 symptoms were **mapped retrospectively and deliberately** 
+to Luftman’s 12 alignment components by comparing each rule’s defined condition 
+with the organizational dimension described in his framework. This creates a 
+conceptual operationalization: for example, checks for strategic traceability, 
+process support, governance documentation, and skills representation test whether 
+corresponding concerns are represented coherently in the ArchiMate model. The 
+mapping is, therefore, reasoned, not incidental, but it is this study’s analytical 
+interpretation—not a set of symptoms proposed or validated by Luftman. A triggered
+check identifies its specified condition in the model; it does not, by itself, 
+assess the full organizational construct or assign a Luftman maturity level
+[13].
 
 <table border="1" cellpadding="4" cellspacing="0" style="border-collapse: collapse;">
   <thead>
@@ -204,22 +218,26 @@ the same.
   </tbody>
 </table>
 
-Thus, the 12 components are the **organizing alignment framework**, while the
-table makes explicit which components have implemented model-level
-operationalizations and which remain gaps. A finding means the model meets a
-rule's trigger: it is evidence about the modeled indicator, not by itself a
-Luftman maturity score or proof of organizational misalignment. Missing
-metadata may reflect incomplete architecture documentation rather than an
-operational deficiency.
+The 12 components are the **organizing alignment framework**; the table shows
+how the implemented rules operationalize model-observable aspects of each
+component and where automated coverage is absent. BizDiag therefore performs
+rule-based detection of its catalogued misalignment symptoms in an ArchiMate
+model. When an executable rule triggers, it detects that rule's defined
+symptom in the model; this is a finding, not merely a possible concern or a
+prompt to conduct a separate model check. Catalogue entries marked
+non-analyzable require manual review; and this is another sign of BizDiag's
+human-in-the-loop maxim.
 
-This is a **screening aid, not a complete alignment-maturity assessment**.
-The model can provide evidence of documented structures and relationships,
-but cannot by itself establish the quality of strategy, the reality of
-business practice, trust, communication, leadership, partnership, realized
-benefits, or whether people use systems effectively. A missing model link may
-indicate incomplete architecture documentation rather than an operational
-failure. Use findings to guide stakeholder review and validation, not as
-standalone proof of organizational misalignment.
+The boundary is the conclusion that can be drawn from that detection. A
+triggered rule establishes the symptom in the model as represented; it does
+not, on its own, establish that the model is complete or that the represented
+condition accurately describes organizational practice. Nor does BizDiag
+assign Luftman's five maturity levels by assessing all six criteria through
+the stakeholder evaluation described in Luftman's paper. The model cannot by
+itself establish the quality of strategy, trust, communication, leadership,
+partnership, realized benefits, or whether people use systems effectively.
+Validate findings against organizational evidence when drawing conclusions
+about business–IT misalignment beyond the model.
 
 The broader digital-strategy context also matters: technology can reshape
 products, services, processes, and competitive possibilities, while value
@@ -239,7 +257,7 @@ catalogue of symptoms with model checks, record findings against model
 elements, and present findings in an interactive table and export files.
 It is a model-based diagnostic aid: a finding is evidence that the modeled
 architecture meets a rule's trigger, not conclusive proof that the same
-condition exists in organizational practice or in a running system.
+condition exists in organizational practice or in a running system [12].
 
 The scripts (both the English and the Persian-localized script) contain **112 symptom catalogue entries**:
 
@@ -296,17 +314,17 @@ parts of its framework, and 89 supplementary entries. Two of four
 framework-derived concepts reuse supplementary checks rather than creating
 duplicate catalogue entries; their mappings are explained below. The aspect
 names and descriptions in the inventory tables are the values in the English
-script's catalogue, not a retrospective reclassification.
+script's catalogue, not a retrospective reclassification [2].
 
 ## 3. Research Basis and Conceptual Derivation
 
 ### 3.1 Strategic Alignment Model (SAM)
 
 The foundational paper (An Artifact-Based Framework for Business-IT Misalignment 
-Symptom Detection, by Dóra Őri) structures its analysis around the Strategic 
+Symptom Detection, by Dóra Őri) [2] structures its analysis around the Strategic 
 Alignment Model (SAM) associated with Henderson and Venkatraman [1]. SAM treats
 alignment as a relationship between business and IT across external strategy
-and internal organization/infrastructure:
+and internal organization/infrastructure [1, 2]:
 
 <table border="1" cellpadding="4" cellspacing="0" style="border-collapse: collapse;">
   <thead>
@@ -515,7 +533,7 @@ demonstrates this logic with dependency analysis between process tasks and
 applications: a task supported by multiple applications can be examined as 
 S.07 in the Strategy Execution perspective, using the application/function 
 artifact and dependency analysis. This is a research framework for organizing
-detection, not a complete specification of every model query or property-value test.
+detection, not a complete specification of every model query or property-value test [2].
 
 ### 3.3 Translating the Framework into This Script
 
@@ -530,7 +548,7 @@ particular paper. The script uses BizDiag's own rules and jArchi implementation.
 - **Phase 1**: Preliminary Review — The assessment is organized around six core EA domains: 
 Strategy (existing checks: S.01–S.10; strategic-planning checks associated with
 “How Enterprise Architecture Management Can Support Strategic IS Planning”:
-STR.61–STR.67),
+STR.61–STR.67) [11],
 Business Process (B.11–B.20), Data Governance (D.21–D.30), Application Portfolio (A.31–A.40), 
 Technology Infrastructure (T.41–T.48), and Cross-Layer Alignment (X.49–X.60). The script 
 inspects modeled elements and relationships in these domains. Additional Operational and 
@@ -587,7 +605,7 @@ script. The 'Misalignment symptom catalogue' rules therefore use
 `sourceCode` field. The `ABF` prefix means the entry is associated with the 
 artifact-based framework; it avoids collisions and does not imply a different
 symptom. The `ABF.S.*` prefix distinguishes that paper’s symptom codes from 
-BizDiag’s existing `S.*` codes.
+BizDiag’s existing `S.*` codes [2].
 
 The code translates the paper's qualitative descriptions into model-level
 criteria using ArchiMate element types, relationships, and—where the
@@ -597,7 +615,7 @@ model-level anchor when a required construct is absent), and appends the
 observed evidence and available research mappings to the finding notes. This
 is a rule-based operationalization of the paper's symptom-and-artifact
 approach, not an implementation of every general EA analysis named in the 
-foundational paper's 'EA analysis catalogue'.
+foundational paper's 'EA analysis catalogue' [2].
 
 Two mapping distinctions are important:
 
@@ -612,14 +630,14 @@ Two mapping distinctions are important:
 The absence of a perspective, artifact, or analysis field is not silently
 filled with a guessed paper mapping. The distinction preserves the boundary
 between what the paper explicitly tabulates and how its framework can be
-applied to model checks.
+applied to model checks [2].
 
 ### 3.4 Foundational Symptom Catalogue: All 21 Symptoms of 'Misalignment Symptom Catalogue'
 
 The symptom wording below reproduces the English script's `desc` fields.
 “Paper code” is the original 'Misalignment symptom catalogue' identifier; 
 “Script code” is the unique catalogue identifier. Perspective, artifact, and
-analysis references use the foundational paper's identifiers. An asterisk 
+analysis references use the foundational paper's identifiers [2]. An asterisk 
 (`*`) marks an implicit mapping stored in an `implicitArtifacts` or `implicitAnalyses`
 field, not a direct mapping from Tables 5–8.
 
@@ -840,7 +858,7 @@ code column.
 #### 3.4.1 What the 'Misalignment Symptom Catalogue' Checks Examine
 
 The paper names symptoms at a conceptual level. The following summarizes how
-the current script seeks model evidence for them:
+the current script seeks model evidence for them [2]:
 
 <table border="1" cellpadding="4" cellspacing="0" style="border-collapse: collapse;">
   <thead>
@@ -898,7 +916,7 @@ assignment does not establish that no person performs that role.
 The foundational paper's artifact and analysis catalogues add detection
 structure beyond 'Misalignment symptom catalogue', but they are not themselves
 additional symptom lists. Applying that structure makes further traceability and
-consistency checks possible. The script documents four such concepts as IF.01–IF.04:
+consistency checks possible [2]. The script documents four such concepts as IF.01–IF.04:
 
 <table border="1" cellpadding="4" cellspacing="0" style="border-collapse: collapse;">
   <thead>
@@ -961,7 +979,7 @@ The two additional standalone catalogue entries are:
 
 “Implicit” describes the framework derivation: these two concepts are not
 separately enumerated among the foundational paper's 21 symptoms, mentioned
-in the 'Misalignment symptom catalogue'. Their findings also state the limits
+in the 'Misalignment symptom catalogue' [2]. Their findings also state the limits
 of the model evidence. The checks do not claim that the underlying runtime 
 deployment or human assignment is absent when only the model relationship is 
 missing.
@@ -972,7 +990,7 @@ The following are the 25 artifact identifiers and names in the script's
 `ABF_ARTIFACT_CATALOGUE`, corresponding to the 'Artifact catalogue' of the 
 foundational paper. The short purpose descriptions summarize the content in 
 that table. They identify model/documentation contexts that can contain evidence; 
-they are not additional symptom codes.
+they are not additional symptom codes [2].
 
 <table border="1" cellpadding="4" cellspacing="0" style="border-collapse: collapse;">
   <thead>
@@ -1116,7 +1134,7 @@ they are not additional symptom codes.
 The script's `ABF_ANALYSIS_CATALOGUE` preserves the foundational paper's 
 'EA analysis catalogue' eight analysis identifiers. The descriptions below
 follow the catalogue names in the script; the purpose column condenses the
-paper's accompanying definitions.
+paper's accompanying definitions [2].
 
 <table border="1" cellpadding="4" cellspacing="0" style="border-collapse: collapse;">
   <thead>
@@ -1194,7 +1212,7 @@ research listed in “Supplementary literature and provenance.” Since these
 works address overlapping subjects—strategic planning, operational
 alignment, architecture analysis, and model quality—the relationship is
 described by code family and research theme rather than implying that every
-rule is a verbatim symptom from a single publication. The tables below retain
+rule is a verbatim symptom from a single publication [11, 14–16, 18]. The tables below retain
 the exact code and catalogue wording from the English script.
 
 #### 3.8.1 Strategy (17 Supplementary Entries)
@@ -1770,15 +1788,15 @@ basis is distinct from the **rule-level provenance** of an individual symptom.
 The code does not attribute every supplementary check to a particular
 publication or establish that a rule reproduces an author's instrument. The
 `STR.61`–`STR.67` comments name Zoltán Szabó and Dóra Őri's
-“How Enterprise Architecture Management Can Support Strategic IS Planning.”
+“How Enterprise Architecture Management Can Support Strategic IS Planning” [11].
 The `OB.68`–`OB.79` comments name Pascal André et al.'s “Assessing Operational
-Business-IT Alignment for Architecture Improvement”; this association reflects
+Business-IT Alignment for Architecture Improvement” [15]; this association reflects
 the project's existing bibliography and topic, but cannot be independently
 verified against a source copy because no companion `papers` directory or paper
 PDFs are present in this checkout. These comments identify the research
 references, not proof that every rule is a verbatim or validated reproduction.
 Other literature associations below are conceptual context, not verified
-rule-level provenance.
+rule-level provenance [13].
 
 <table border="1" cellpadding="4" cellspacing="0" style="border-collapse: collapse;">
   <thead>
@@ -1790,23 +1808,23 @@ rule-level provenance.
   <tbody>
     <tr>
       <td style="border: 1px solid;"><code>STR.61</code>–<code>STR.67</code></td>
-      <td style="border: 1px solid;">The code comments identify Zoltán Szabó and Dóra Őri's “How Enterprise Architecture Management Can Support Strategic IS Planning” and describe strategic-planning completeness and driver-response alignment. <code>STR.61</code>–<code>STR.66</code> have executable checks. <code>STR.67</code> is explicitly a non-analyzable manual-review placeholder, not an automatic detection rule.</td>
+      <td style="border: 1px solid;">The code comments identify Zoltán Szabó and Dóra Őri's “How Enterprise Architecture Management Can Support Strategic IS Planning” [11] and describe strategic-planning completeness and driver-response alignment. <code>STR.61</code>–<code>STR.66</code> have executable checks. <code>STR.67</code> is explicitly a non-analyzable manual-review placeholder, not an automatic detection rule.</td>
     </tr>
     <tr>
       <td style="border: 1px solid;"><code>OB.68</code>–<code>OB.79</code></td>
-      <td style="border: 1px solid;">The code comments identify Pascal André et al.'s “Assessing Operational Business-IT Alignment for Architecture Improvement” and describe checks of operational alignment between business processes and application implementations. The project associates this title with the block based on its bibliography and topic; the mapping cannot be independently verified against a source copy in this checkout. The comment is not evidence that each check duplicates that paper's method or findings.</td>
+      <td style="border: 1px solid;">The code comments identify Pascal André et al.'s “Assessing Operational Business-IT Alignment for Architecture Improvement” [15] and describe checks of operational alignment between business processes and application implementations. The project associates this title with the block based on its bibliography and topic; the mapping cannot be independently verified against a source copy in this checkout. The comment is not evidence that each check duplicates that paper's method or findings.</td>
     </tr>
     <tr>
       <td style="border: 1px solid;"><code>ABF.S.01</code>–<code>ABF.S.21</code></td>
-      <td style="border: 1px solid;">These are the 21 symptoms attributed in the code to Dóra Őri's “An Artifact-Based Framework for Business-IT Misalignment Symptom Detection.” The script uses the distinct <code>ABF.S.*</code> prefix to preserve the paper's source codes without colliding with its pre-existing <code>S.*</code> checks. The script's severity labels and executable model tests are its own implementation choices.</td>
+      <td style="border: 1px solid;">These are the 21 symptoms attributed in the code to Dóra Őri's “An Artifact-Based Framework for Business-IT Misalignment Symptom Detection” [2]. The script uses the distinct <code>ABF.S.*</code> prefix to preserve the paper's source codes without colliding with its pre-existing <code>S.*</code> checks. The script's severity labels and executable model tests are its own implementation choices.</td>
     </tr>
     <tr>
       <td style="border: 1px solid;"><code>ABF.I.01</code>–<code>ABF.I.02</code></td>
-      <td style="border: 1px solid;">These are two additional checks derived from relationships in “An Artifact-Based Framework for Business-IT Misalignment Symptom Detection,” not two more symptoms in its 21-item symptom catalogue. The code labels their mappings as implicit applications of that framework.</td>
+      <td style="border: 1px solid;">These are two additional checks derived from relationships in “An Artifact-Based Framework for Business-IT Misalignment Symptom Detection” [2], not two more symptoms in its 21-item symptom catalogue. The code labels their mappings as implicit applications of that framework.</td>
     </tr>
     <tr>
       <td style="border: 1px solid;"><code>S.01</code>–<code>S.10</code>; <code>B.11</code>–<code>B.19</code>; <code>D.21</code>–<code>D.30</code>; <code>A.31</code>–<code>A.40</code>; <code>T.41</code>–<code>T.48</code>; <code>X.49</code>–<code>X.62</code>; <code>OB.80</code>; <code>SEM.01</code>–<code>SEM.03</code>; <code>P.81</code>–<code>P.83</code>; <code>EV.90</code>; <code>SEC.85</code></td>
-      <td style="border: 1px solid;">These remaining supplementary catalogue entries have executable checks. Luftman's 12 components provide the diagnostic's top-level alignment framework, and these rules operationalize model-observable aspects of relevant components; the code does not cite Luftman as the verbatim or separately validated source of each individual rule. “Strategic Alignment: Leveraging Information Technology for Transforming Organizations” (Henderson and Venkatraman), “Exploring Business Strategy Modelling with ArchiMate: A Case Study Approach” (Kitsios et al.), “Testing Enterprise Application Architecture Patterns” (Choudhry), and <em>The Strategic Management of Information Systems: Building a Digital Strategy</em> (Peppard and Ward) inform the broader conceptual discussion. Other cited EA and research-method works likewise provide context, not a code-level provenance mapping.</td>
+      <td style="border: 1px solid;">These remaining supplementary catalogue entries have executable checks. Luftman's 12 components provide the diagnostic's top-level alignment framework, and these rules operationalize model-observable aspects of relevant components; the code does not cite Luftman as the verbatim or separately validated source of each individual rule [13]. “Strategic Alignment: Leveraging Information Technology for Transforming Organizations” (Henderson and Venkatraman) [1], “Exploring Business Strategy Modelling with ArchiMate: A Case Study Approach” (Kitsios et al.) [14], “Testing Enterprise Application Architecture Patterns” (Choudhry) [16], and <em>The Strategic Management of Information Systems: Building a Digital Strategy</em> (Peppard and Ward) [18] inform the broader conceptual discussion. Other cited EA and research-method works likewise provide context, not a code-level provenance mapping [3, 8–10, 17].</td>
     </tr>
     <tr>
       <td style="border: 1px solid;"><code>B.20</code> (execution/catalogue discrepancy)</td>
@@ -1816,13 +1834,12 @@ rule-level provenance.
 </table>
 
 The Luftman crosswalk in the Introduction describes the **framework-level
-design basis** and the operationalization of its components in model checks.
-It does not claim that every rule is a verbatim Luftman symptom or a validated
-Luftman maturity measure. Rule-level attributions to other research frameworks
-are recorded separately above. The catalogue contains 112 entries (21
-foundational symptoms, two implicit framework checks, and 89 supplementary
-entries); the separate executable-but-uncatalogued <code>B.20</code> check is
-the exception noted in the table.
+design basis** and how its components are operationalized as model-level
+symptom checks [13]. Rule-level attributions to other research frameworks are 
+recorded separately above. The catalogue contains 112 entries (21 foundational 
+symptoms, two implicit framework checks, and 89 supplementary entries); the 
+separate executable-but-uncatalogued <code>B.20</code> check is the exception 
+noted in the table.
 
 ## 5. Running the Script and Interpreting Results
 
