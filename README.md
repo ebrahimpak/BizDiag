@@ -111,21 +111,53 @@ ArchiMate Model
       │
       ▼
 BizDiag modules
+      ├── BizModelCanvas
+      │   ├── BizModelCanvas-GUI-EN.ajs
+      │   ├── BizModelCanvas-GUI-FA.ajs
+      │   └── scripts
+      │       ├── Analyze Model for Value Proposition.ajs
+      │       ├── Cleanup Value Propositions.ajs
+      │       ├── convertBMCtoArchiMate.ajs
+      │       ├── Create Enhanced Value View.ajs
+      │       ├── Debug View and Model.ajs
+      │       ├── Deep Model Intelligence.ajs
+      │       ├── Detect Duplicate Value Propositions.ajs
+      │       ├── Diagnose Value Proposition Structure.ajs
+      │       ├── Draw BMC Graphic.ajs
+      │       ├── Generate BMC from Model.ajs
+      │       └── Test Relationship Types.ajs
       ├── Business_IT_Alignment
+      │   ├── BusinessITAlignment_EN.ajs
+      │   └── BusinessITAlignment_FA.ajs
+      ├── Capability_Based_Planning
+      │   ├── CBP_Move_1_Setup.ajs
+      │   ├── CBP_Continue_Moves_2_to_7.ajs
+      │   └── lib
+      │       ├── CBP_Assessment_Engine.js
+      │       ├── CBP_Capability_Discovery.js
+      │       ├── CBP_Improvement_Tables.js
+      │       ├── CBP_Model_Inputs.js
+      │       ├── CBP_Ollama_Worker.js
+      │       ├── CBP_Run_State.js
+      │       ├── CBP_Strategic_Importance_Maturity_Diagrams.js
+      │       └── CBP_View_Generator.js
       ├── ClientServer_DB
       │   ├── DB_Log
       │   ├── GraalJS_ClientServer_Template
       │   ├── GraalJS_Element_RESTLogger
       │   ├── GraalJS_NIOLoggerServer
       │   └── Java_DBLoggerServer
-      ├── Capability_Based_Planning
-      │   └── lib
-      │       ├── CBP_Capability_Discovery.js
-      │       └── CBP_Ollama_Worker.js
       ├── DocMaker
-      ├── UML
-      └── BizModelCanvas
-      │
+      │   ├── AI_Element_DocMaker_EN.ajs
+      │   ├── AI_Element_DocMaker_FA.ajs
+      │   ├── AI_View_DocMaker_EN.ajs
+      │   ├── AI_View_DocMaker_FA.ajs
+      │   ├── AI_REST_JSON.js
+      │   ├── Mark_it_Down.ajs
+      │   └── Ollama_Olalla.ajs
+      └── UML
+          ├── Application_View_to_UML.ajs
+          └── sendToAI.js
       ▼
 Architecture Intelligence and decision support
 ```
