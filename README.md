@@ -44,7 +44,7 @@ as structured data for analysis, automation, decision support, and strategy.
         - [3.2.3 GraalJS_Element_RESTLogger](#clientserver-db-graaljs-element-restlogger)
         - [3.2.4 GraalJS_NIOLoggerServer](#clientserver-db-graaljs-niologgerserver)
         - [3.2.5 Java_DBLoggerServer](#clientserver-db-java-dbloggerserver)
-    - [3.3 BizDiag Local AI: Leveraging AI REST API for Smart Enterprise Architecture Operations](#bizdiag-local-ai)
+    - [3.3 AI-Assisted Architecture Tools](#ai-assisted-architecture-tools)
         - [3.3.1 UML Subsystem](#uml-subsystem)
         - [3.3.2 DocMaker Subsystem](#docmaker-subsystem)
         - [3.3.3 Capability-Based Planning](#capability-based-planning)
@@ -118,13 +118,12 @@ BizDiag modules
       │   ├── GraalJS_Element_RESTLogger
       │   ├── GraalJS_NIOLoggerServer
       │   └── Java_DBLoggerServer
-      ├── BizDiag_Local_AI
-      │   ├── Capability_Based_Planning
-      │   │   └── lib
-      │   │       ├── CBP_Capability_Discovery.js
-      │   │       └── CBP_Ollama_Worker.js
-      │   ├── DocMaker
-      │   └── UML
+      ├── Capability_Based_Planning
+      │   └── lib
+      │       ├── CBP_Capability_Discovery.js
+      │       └── CBP_Ollama_Worker.js
+      ├── DocMaker
+      ├── UML
       └── BizModelCanvas
       │
       ▼
@@ -343,18 +342,18 @@ and sends it over TCP to `NioInteropServer.java`. The server runs outside Archi 
 providing a deployment option for environments that require a pure-Java server rather than a GraalJS runtime.
 
 
-<a id="bizdiag-local-ai"></a>
-### 3.3 **BizDiag Local AI**: Leveraging AI REST API for Smart Enterprise Architecture Operations
+<a id="ai-assisted-architecture-tools"></a>
+### 3.3 **AI-Assisted Architecture Tools**: Leveraging AI REST APIs for Enterprise Architecture Operations
 
-The BizDiag Local AI subsystem follows a layered, microservice-inspired architecture that separates Enterprise
-Architecture model interaction from AI inference. It is organized around three capabilities:
+These three root-level modules form BizDiag's AI-assisted architecture capabilities. Together, they separate Enterprise
+Architecture model interaction from AI inference and planning workflows:
 
 - an AI-enhanced ArchiMate Application View to UML transformation script
 - an AI-driven DocMaker subsystem for generating documentation
 - the Capability-Based Planning workflow with optional Move 1 Ollama Capability discovery
 
-```
-BizDiag_Local_AI/
+```text
+BizDiag/
 ├── Capability_Based_Planning/
 │   ├── CBP_Move_1_Setup.ajs
 │   ├── CBP_Continue_Moves_2_to_7.ajs
@@ -367,7 +366,7 @@ BizDiag_Local_AI/
 │       ├── CBP_Run_State.js
 │       ├── CBP_View_Generator.js
 │       └── CBP_Ollama_Worker.js
-├── DocMaker
+├── DocMaker/
 │   ├── AI_Element_DocMaker_EN.ajs
 │   ├── AI_Element_DocMaker_FA.ajs
 │   ├── AI_View_DocMaker_EN.ajs
@@ -375,7 +374,7 @@ BizDiag_Local_AI/
 │   ├── AI_REST_JSON.js
 │   ├── Ollama_Olalla.ajs
 │   └── Mark_it_Down.ajs
-└── UML
+└── UML/
     ├── Application_View_to_UML.ajs
     └── sendToAI.js
 ```
@@ -392,8 +391,8 @@ AI-assisted capabilities can be used to support tasks such as:
 - Generation of structured architecture-related content
 - Leveraging locally-installed Ollama, together with local AI Models
 
-The architecture workflow supports offline AI models. BizDiag_Local_AI uses Java NIO.2 for robust filesystem and
-directory management. The following are the jArchi scripts and JavaScript files of this application:
+These workflows support locally hosted, offline AI models. Some scripts use Java NIO.2 for robust filesystem and
+directory management. The following are the jArchi scripts and JavaScript files in these modules:
 
 <table width="100%">
   <colgroup>
@@ -486,7 +485,7 @@ directory management. The following are the jArchi scripts and JavaScript files 
 
 <a id="uml-subsystem"></a>
 #### 3.3.1 UML Subsystem
-The first BizDiag Local AI capability is `Application_View_to_UML.ajs`, a jArchi script that transformed the selected 
+The UML module's main script is `Application_View_to_UML.ajs`, a jArchi script that transforms the selected
 application-layer views into new views using UML-like notation instead of ArchiMate notation. It is an AI-enhanced 
 UML-like view  generation script designed for architectural transformation and semantic enrichment. The script does not 
 generate idiomatic UML, but instead it generates a UML-inspired component-diagram view from the selected ArchiMate 
@@ -504,15 +503,16 @@ view using UML-style diagram notation enhanced with AI-generated semantic classi
 Kruchten’s 4+1 model informs the module’s view-oriented architectural context, while Open Group guidance informs its
 ArchiMate/UML cross-notation context [7, 20, 21]. The script does not implement the complete 4+1 model or a formal
 ArchiMate-to-UML transformation: it creates a UML-inspired, component-style ArchiMate view, optionally enriched with
-AI-suggested semantic annotations. See the [UML module documentation](BizDiag_Local_AI/UML/UML_MODULE_DOCUMENTATION.md)
+AI-suggested semantic annotations. See the [UML module documentation](UML/UML_MODULE_DOCUMENTATION.md)
 for scope, workflow, and limitations.
 
 
 <a id="docmaker-subsystem"></a>
 #### 3.3.2 DocMaker Subsystem
-This application consists of `AI_View_DocMaker_EN.ajs`, `AI_Element_DocMaker_FA.ajs`, `AI_Element_DocMaker_EN.ajs`,
-`AI_Element_DocMaker_FA.ajs`, `AI_REST_JSON.js`, `Ollama_Olalla.ajs`, and `Mark_it_Down.ajs`.
-The DocMaker subsystem within BizDiag Local AI is organized into three principal layers. First, the jArchi layer 
+This module consists of `AI_View_DocMaker_EN.ajs`, `AI_View_DocMaker_FA.ajs`,
+`AI_Element_DocMaker_EN.ajs`, `AI_Element_DocMaker_FA.ajs`, `AI_REST_JSON.js`,
+`Ollama_Olalla.ajs`, and `Mark_it_Down.ajs`.
+The DocMaker module is organized into three principal layers. First, the jArchi layer
 operates inside Archi and consists of bilingual documentation scripts—`AI_Element_DocMaker_EN.ajs` / 
 `AI_Element_DocMaker_FA.ajs` and `AI_View_DocMaker_EN.ajs` / `AI_View_DocMaker_FA.ajs`—which extract ArchiMate element 
 and view metadata in response to user selection and coordinate processing through Ollama_Olalla.ajs. Second, 
@@ -531,7 +531,7 @@ logic.
 
 ```
 ================================================================================
-        BizDiag_Local_AI: High-Level Architectural Overview
+        AI-Assisted Architecture Tools: High-Level Architectural Overview
 ================================================================================
 ```
 ```
@@ -853,8 +853,8 @@ requirements.
 
 The Capability-Based Planning (CBP) module implements the seven moves described in "Capability-Based Planning, The Link
 between Strategy and Enterprise Architecture" and "Capability-based Planning in 7 moves!" through
-[`CBP_Move_1_Setup.ajs`](BizDiag_Local_AI/Capability_Based_Planning/CBP_Move_1_Setup.ajs) and
-[`CBP_Continue_Moves_2_to_7.ajs`](BizDiag_Local_AI/Capability_Based_Planning/CBP_Continue_Moves_2_to_7.ajs).
+[`CBP_Move_1_Setup.ajs`](Capability_Based_Planning/CBP_Move_1_Setup.ajs) and
+[`CBP_Continue_Moves_2_to_7.ajs`](Capability_Based_Planning/CBP_Continue_Moves_2_to_7.ajs).
 Move 1 creates the Capability Map, input worklists, and durable model-local run record. For production planning, the
 architect enters and validates evidence-based values in model Properties, saves, and runs the continuation. The planning
 scripts do not infer maturity ratings, strategic impact, targets, actions, or priorities from element names or counts.
@@ -1343,7 +1343,8 @@ BizDiag architecture-analysis workflows operate on ArchiMate models created or m
 
 ## 14. Repository Structure
 
-The repository is organized by its four primary modules. Build outputs and IDE metadata are omitted from this overview.
+The repository is organized into module folders at the repository root. Build outputs and IDE metadata are omitted from
+this overview.
 
 ```text
 BizDiag/
@@ -1351,26 +1352,34 @@ BizDiag/
 ├── LICENSE
 ├── LICENSE-FR
 ├── CITATION.cff
+├── Capability_Based_Planning/
+│   ├── CBP_Move_1_Setup.ajs
+│   ├── CBP_Continue_Moves_2_to_7.ajs
+│   └── lib/
+│       ├── CBP_Capability_Discovery.js
+│       ├── CBP_Improvement_Tables.js
+│       ├── CBP_Strategic_Importance_Maturity_Diagrams.js
+│       ├── CBP_Assessment_Engine.js
+│       ├── CBP_Model_Inputs.js
+│       ├── CBP_Run_State.js
+│       ├── CBP_View_Generator.js
+│       └── CBP_Ollama_Worker.js
 ├── Business_IT_Alignment/
 │   ├── BusinessITAlignment_EN.ajs
 │   ├── BusinessITAlignment_FA.ajs
 │   └── img/
-├── BizDiag_Local_AI/
-│   ├── Capability_Based_Planning/
-│   │   ├── CBP_Move_1_Setup.ajs
-│   │   ├── CBP_Continue_Moves_2_to_7.ajs
-│   │   └── lib/
-│   │       ├── CBP_Capability_Discovery.js
-│   │       ├── CBP_Improvement_Tables.js
-│   │       ├── CBP_Strategic_Importance_Maturity_Diagrams.js
-│   │       ├── CBP_Assessment_Engine.js
-│   │       ├── CBP_Model_Inputs.js
-│   │       ├── CBP_Run_State.js
-│   │       ├── CBP_View_Generator.js
-│   │       └── CBP_Ollama_Worker.js
-│   │   
-│   ├── DocMaker/
-│   └── UML/
+├── DocMaker/
+│   ├── AI_Element_DocMaker_EN.ajs
+│   ├── AI_Element_DocMaker_FA.ajs
+│   ├── AI_View_DocMaker_EN.ajs
+│   ├── AI_View_DocMaker_FA.ajs
+│   ├── AI_REST_JSON.js
+│   ├── Ollama_Olalla.ajs
+│   └── Mark_it_Down.ajs
+├── UML/
+│   ├── Application_View_to_UML.ajs
+│   ├── sendToAI.js
+│   └── UML_MODULE_DOCUMENTATION.md
 ├── BizModelCanvas/
 │   ├── BizModelCanvas-GUI-EN.ajs
 │   ├── BizModelCanvas-GUI-FA.ajs
@@ -1500,7 +1509,8 @@ review and do not supply maturity or strategic-impact assessments.
 
 BizDiag is organized as distinct tools rather than one mandatory,
 all-or-nothing workflow. Business–IT Alignment, ClientServer_DB,
-BizModelCanvas, and BizDiag Local AI capabilities can serve different needs;
+BizModelCanvas, and the root-level UML, DocMaker, and Capability-Based Planning
+modules can serve different needs;
 inside Capability-Based Planning, setup and assessment continuation are
 separate stages supported by focused helper modules. This separation lets
 teams use relevant capabilities independently and combine them where a broader
