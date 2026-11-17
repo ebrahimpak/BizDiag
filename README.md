@@ -143,10 +143,27 @@ BizDiag modules
       │       └── CBP_View_Generator.js
       ├── ClientServer_DB
       │   ├── DB_Log
+      │   │   ├── ArchiModelDumper.ajs
+      │   │   └── src\main\java\ArchiJDBC
+      │   │       ├── H2JdbcProcessor_EN.java
+      │   │       ├── H2JdbcProcessor_FA.java
+      │   │       └── H2ConsoleLauncher.java
       │   ├── GraalJS_ClientServer_Template
+      │   │   ├── log_click.ajs
+      │   │   ├── nio_interop_client.ajs
+      │   │   └── nio_interop_server.js
       │   ├── GraalJS_Element_RESTLogger
+      │   │   ├── GraalJSRESTClient.ajs
+      │   │   └── GraalJSRESTServer.js
       │   ├── GraalJS_NIOLoggerServer
+      │   │   ├── nio_interop_client.js
+      │   │   ├── nio_interop_server.js
+      │   │   └── src\main\java\com\bizdiag
+      │   │       └── NioInteropLauncher.java
       │   └── Java_DBLoggerServer
+      │       ├── nio_interop_client.js
+      │       └── src\main\java\com\archi
+      │           └── NioInteropServer.java
       ├── DocMaker
       │   ├── AI_Element_DocMaker_EN.ajs
       │   ├── AI_Element_DocMaker_FA.ajs
@@ -155,9 +172,9 @@ BizDiag modules
       │   ├── AI_REST_JSON.js
       │   ├── Mark_it_Down.ajs
       │   └── Ollama_Olalla.ajs
-      └── UML
-          ├── Application_View_to_UML.ajs
-          └── sendToAI.js
+      ├── UML
+      │   ├── Application_View_to_UML.ajs
+      │   └── sendToAI.js
       ▼
 Architecture Intelligence and decision support
 ```
