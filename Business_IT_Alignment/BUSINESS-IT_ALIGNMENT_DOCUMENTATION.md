@@ -431,7 +431,7 @@ misalignment conceptually and finding evidence for it in an enterprise
 architecture. Figure 1 describes the framework's construction; Figure 2 and
 Section 4 describe its operation. Its framework has five connected parts:
 
-Figure 1. Framework construction
+Figure 1. Framework construction (Adapted from [5])
 
 ```text
 +------------------------+       +---------------------------------------+
@@ -479,7 +479,7 @@ Figure 1. Framework construction
 
 
 
-Figure 2. artifact-based misalignment detection framework operation
+Figure 2. artifact-based misalignment detection framework operation (Derived from [5])
 
 ```text
 +--------------------------------+
@@ -517,6 +517,46 @@ Figure 2. artifact-based misalignment detection framework operation
 In Figure 2, C.01–C.04 are the paper’s SAM domain matches (alignment components). 
 They connect pairs of business/IT strategy and structure domains. The C catalogue 
 is associated with the alignment perspectives.
+
+Figure 3. Decomposition of alignment perspectives (Adapted from [5])
+
+```text
++------------------------------------------------------+----------------------+---------------------------+----------------------+----------------+
+| Alignment perspective component                      | P.01                 | P.02                      | P.03                 | P.04           |
+|                                                      | Strategy execution   | Technology transformation | Competitive potential| Service level  |
++------------------------------------------------------+----------------------+---------------------------+----------------------+----------------+
+| C.01 Matching of business strategy and business      |          X           |                           |          X           |                |
+|      structure domains                               |                      |                           |                      |                |
++------------------------------------------------------+----------------------+---------------------------+----------------------+----------------+
+| C.02 Matching of business structure and IT           |          X           |                           |                      |       X        |
+|      structure domains                               |                      |                           |                      |                |
++------------------------------------------------------+----------------------+---------------------------+----------------------+----------------+
+| C.03 Matching of business strategy and IT            |                      |            X              |          X           |                |
+|      strategy domains                                |                      |                           |                      |                |
++------------------------------------------------------+----------------------+---------------------------+----------------------+----------------+
+| C.04 Matching of IT strategy and IT structure        |                      |            X              |                      |       X        |
+|      domains                                         |                      |                           |                      |                |
++------------------------------------------------------+----------------------+---------------------------+----------------------+----------------+
+```
+
+Figure 3 makes explicit which of the four SAM domain matches belongs to each
+alignment perspective: an `X` means the component is associated with that
+perspective. In the script, the perspective labels correspond to
+`ABF_PERSPECTIVES` (`P.01` Strategy execution, `P.02` Technology transformation,
+`P.03` Competitive potential, and `P.04` Service level), and the component labels
+correspond to `ABF_COMPONENTS` (`C.01` business strategy–business structure,
+`C.02` business structure–IT structure, `C.03` business strategy–IT strategy, and
+`C.04` IT strategy–IT structure). The dot pattern is therefore:
+`P.01` → `C.01`/`C.02`; `P.02` → `C.03`/`C.04`; `P.03` → `C.01`/`C.03`;
+`P.04` → `C.02`/`C.04`.
+
+The figure is a reference for interpreting the framework codes and the
+perspective-to-component associations used to organize misalignment analysis.
+It shows the paper's conceptual decomposition—not results from analyzing a
+particular enterprise, executable detection logic, or a claim that the script
+automatically tests every component in every perspective. The script's
+symptom-to-perspective/component references provide the subsequent traceability
+to artifacts and analysis types described in Figure 2.
 
 A.01–A.08 are the paper’s EA analysis types. In the paper, it was mentioned as EA
 analysis catalogue. The script stores their names and references them in symptom 
