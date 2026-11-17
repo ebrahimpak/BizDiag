@@ -1,4 +1,12 @@
+1)In [Archi] > [Script Manager] > [Select the ArchiMate model in the Models panel] > [Run: "ArchiModelDumper.ajs"]
+
+This will create "archi_model_dump.json" in the "ArchiSyncDump" directory. This file is now ready for external Java (H2JdbcProcessor) application.
+
+2) Run the any of the following Java files from the terminal. On executing "H2ConsoleLauncher.java", the H2 console will be opnened in your default browser, letting you to interact with the created database, directly from the H2 console:
+
 mvn "-DmainClass=ArchiJDBC.H2ConsoleLauncher" exec:java
+
+On executing "H2JdbcProcessor_EN" or "H2JdbcProcessor_FA", a Java Swing GUI will be opened, allowing you to interact with the dumped ArchiMate model in the H2 database by executing any SQL queries, directly from the Java application. "H2JdbcProcessor_FA" is the Persian version of "H2JdbcProcessor_EN".
 
 mvn "-DmainClass=ArchiJDBC.H2JdbcProcessor_EN" exec:java
 
