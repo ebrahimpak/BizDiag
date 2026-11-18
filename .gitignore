@@ -13,6 +13,6 @@
 *.lock.db
 
 # Generated DocMaker documentation
-BizDiag_Local_AI/DocMaker/documentation/
-/BizDiag_Local_AI/Capability_Based_Planning/CBP_Test_Data_Entry.ajs
-/BizDiag_Local_AI/Capability_Based_Planning/AI_CASE_LIBRARY_DESIGN.md
+DocMaker/documentation/
+Capability_Based_Planning/CBP_Test_Data_Entry.ajs
+Capability_Based_Planning/AI_CASE_LIBRARY_DESIGN.md
