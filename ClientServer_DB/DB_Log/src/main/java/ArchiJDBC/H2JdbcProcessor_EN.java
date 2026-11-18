@@ -541,7 +541,7 @@ public class H2JdbcProcessor_EN {
 
         try {
             if (!Files.exists(Paths.get(imagePath))) {
-                iconLabel.setText("BizDiag icon not found: " + imagePath");
+                iconLabel.setText("BizDiag icon not found: " + imagePath);
                 return iconLabel;
             }
 

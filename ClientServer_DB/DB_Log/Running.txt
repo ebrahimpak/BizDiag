@@ -2,7 +2,7 @@
 
 This will create "archi_model_dump.json" in the "ArchiSyncDump" directory. This file is now ready for external Java (H2JdbcProcessor) application.
 
-2) Run the any of the following Java files from the terminal. On executing "H2ConsoleLauncher.java", the H2 console will be opnened in your default browser, letting you to interact with the created database, directly from the H2 console:
+2) Run any of the following Java files from the terminal. On executing "H2ConsoleLauncher.java", the H2 console will be opnened in your default browser, letting you interact with the created database, directly from the H2 console:
 
 mvn "-DmainClass=ArchiJDBC.H2ConsoleLauncher" exec:java
 
