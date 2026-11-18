@@ -1881,13 +1881,14 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
       "efficient", "speedy", "effective", "full load", "heavy load", "logarithmic",
       "quick growth", "scalability", "logarithmic growth", "temporal throughput",
       "output", "large-scale operation", "full operation", "apex",
-      "بزرگ‌مقیاس", "مقیاس‌پذیر", "درزمانی", "زمان واقعی", "حجم بالا", "حجم زیاد",
-      "پهنای‌باند", "پهنای باند", "تأخیر کم", "بی‌درنگ", "بی درنگ", "بلادرنگ",
-      "بی‌وقفه", "بی وقفه", "کم تأخیر‌", "توان‌رسانی", "توان رسانی", "پیک",
-      "بزرگ", "درخواست‌های", "درخواست های", "رفت‌وآمد", "رفت و آمد", "عملکرد بالا",
-      "بازده زیاد", "بار زیاد", "بار‌زیاد", "رشد لوگاریتمی", "رشد سریع",
-      "مقیاس‌پذیری", "مقیاس پذیری", "توانش زمانی", "ظرفیت پذیرش", "خروجی", "ظرفیت",
-      "توان عملیاتی", "اوج", "شبانه‌روز"
+      "elastic", "elasticity", "auto-scaling", "autoscaling", "horizontal scaling",
+      "vertical scaling", "scale-out", "scale-up", "high availability", "always-on",
+      "24/7", "uninterrupted", "continuous operation", "fault-tolerant",
+      "low response time", "response time", "sub-second", "millisecond",
+      "milliseconds", "concurrent", "concurrency", "parallel processing",
+      "distributed processing", "load balancing", "load-balanced", "peak demand",
+      "burst traffic", "heavy traffic", "transactions per second", "data-intensive",
+      "compute-intensive", "rapidly growing", "elastic capacity"
     ];
     let mentionsScale = scaleTokens.some(function (t) {
       return text.indexOf(t) >= 0;
@@ -2005,21 +2006,10 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
   eachOfGroup(TYPES.GOAL, function (g) {
     if (
       !hasAnyProp(g, [
-        "timeframe",
-        "priority",
-        "due",
-        "deadline",
-        "target-date",
-        "period",
-        "precedence",
-        "time limit",
-        "fuinishing date",
-        "cut-off point",
-        "بازه زمانی",
-        "اولویت",
-        "مهلت",
-        "مهلت زمانی",
-        "تاریخ هدف",
+        "timeframe", "priority", "due", "deadline", "target-date", "period", "precedence",
+        "time limit", "fuinishing date", "cut-off point", "limit", "target time", "finish date",
+        "zero hour", "drop-dead date", "time constraint", "time crunch", "closing date",
+        "finishing date", "final date", "appointed time"
       ])
     )
       markElement(g, "S.09");
