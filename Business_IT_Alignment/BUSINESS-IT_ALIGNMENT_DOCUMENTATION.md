@@ -584,6 +584,21 @@ detection, not a complete specification of every model query or property-value t
 describe how this module organizes its Enterprise Architecture (EA) assessment.
 They are a project-level summary, not a phase structure attributed to a
 particular paper. The script uses BizDiag's own rules and jArchi implementation.
+The project itself follows a **Design Science in Information Systems Research**
+approach [18]. The scripts and their catalogue/reporting interface are the
+resulting design artifacts: they embody a structured response to the problem of
+finding and presenting model-observable misalignment symptoms. The five phases
+therefore combine problem-oriented framework development with the construction
+and demonstration of a usable jArchi artifact. Recker's §5.2 in
+*Scientific Research in Information Systems: A Beginner's Guide* informs the
+research-method guidance used for this work [19].
+
+This use of Design Science should be distinguished from the methodology
+discussion in Őri's XML-based EA-model paper [4]. Őri reports the use of
+Design Science, BEAMS, and case-study research methods in that work. The
+present BizDiag scripts use **Design Science only**; BEAMS and case-study
+research are not claimed as methods used to construct or evaluate this
+implementation.
 
 - **Phase 1**: Preliminary Review — The assessment is organized around six core EA domains: 
 Strategy (existing checks: S.01–S.10; strategic-planning checks associated with
@@ -1926,7 +1941,81 @@ contains a corresponding rule definition; it does not mean every rule will produ
 a finding in every model, or that every model element is expected to satisfy every
 rule.
 
-## 6. References
+## 6. Conclusion and Future-Work Realization
+
+Őri's foundational paper identifies further investigation of
+**(1) the automatization of EA analysis types** and **(2) decoupling the
+framework from built-in EA-tool features** [5]. It also proposes a next step
+toward a tool-independent automated implementation, an alignment-performance
+assessment framework, and further refinement to improve the accuracy and quality
+of misalignment-symptom detection [5]. This project delivers a substantial and
+authorial realization of the first of these directions.
+
+**Ebrahim Pak authored and implemented the
+`BusinessITAlignment_EN.ajs` and `BusinessITAlignment_FA.ajs` scripts as an
+implementation of the automation proposed in Őri's paper.**
+This implementation is not merely a transcription of the paper's catalogue: it
+translates the framework into executable jArchi rules that inspect ArchiMate
+elements, relationships, names, documentation, and custom properties, attach
+findings to the relevant model elements, and report results interactively and
+through native SWT GUI, CSV and Excel-compatible exports. The
+scripts operationalize 112 catalogue entries, including the 21 foundational
+symptoms, 2 explicitly identified implicit symptoms, and 89 supplementary
+entries. Their shared rule families cover Strategy, Cross-Layer, Business, 
+Operational, Data, Application, Technology, and Semantic concerns.
+
+The scripts were developed using the Design Science approach described by
+Hevner et al. [18], with methodological guidance also taken from Recker's
+§5.2 [19]. In practice, the method shaped the work in four connected ways:
+first, the framework was identified as a relevant problem and operationalized
+as a set of EA model-level requirements; second, the shared symptom catalogue
+was implemented in two human-language variants—English
+(`BusinessITAlignment_EN.ajs`) and Persian
+(`BusinessITAlignment_FA.ajs`)—as executable jArchi artifacts; third,
+the scripts were demonstrated in ArchiMate models through rule execution,
+interactive findings, tagging, and exports; and fourth, the catalogue,
+mappings, severity labels, and reporting behavior remain subject to further
+accuracy, coverage, and test-based evaluation. This is a Design Science
+account of the scripts' construction and intended evaluation, not a claim that
+the present implementation has completed all empirical evaluation.
+
+Pak also developed the framework refinements and supporting implementation
+work needed to make that automation usable as an assessment:
+
+* It distinguishes direct, implicit, and absent symptom-to-artifact or
+  symptom-to-analysis mappings instead of silently inventing paper mappings.
+* It separates foundational and supplementary symptom identifiers, while
+  preserving their source codes and research provenance.
+* It adds analyzability and severity classifications, element-level evidence,
+  visual tagging, report filtering, and responsible interpretation guidance.
+* It extends the initial framework with 89 supplementary catalogue entries,
+  including evidence-based cross-layer, business, data, application,
+  technology, operational, semantic, and strategic checks.
+* It provides both English and Persian-localized implementations and a
+  bilingual alignment framework within one documented assessment approach.
+* It creates a testable, rule-based catalogue for model-level criteria,
+  enabling findings to be reproduced and later evaluated against test
+  models or empirical organizational evidence.
+
+These advances directly address the paper's call for automated EA analysis,
+further framework refinement, and evaluation against testable criteria. They
+also establish an initial reporting and severity-prioritization foundation for
+post-detection alignment assessment. However, this implementation should not
+be represented as complete fulfillment of all of the paper's future agenda:
+the scripts remain jArchi/Archi implementations rather than a fully
+tool-independent engine, and the project does not yet provide the general
+alignment-performance maturity assessment or organization-wide correction and
+re-alignment process proposed for later research.
+
+The principal original contribution here is therefore twofold: **Pak automated
+artifact-based misalignment-symptom detection in a working ArchiMate model
+environment, and he simultaneously refined and expanded the underlying
+framework so that the automated checks can be categorized, evidenced,
+filtered, reported, and reused.** Completing tool-independent execution,
+longitudinal alignment-performance measurement, and correction/re-alignment
+recommendations remains appropriate future work.
+
+## 7. References
 
 [1] J. C. Henderson and N. Venkatraman, “Strategic Alignment: Leveraging
     Information Technology for Transforming Organizations,” *IBM Systems
@@ -2003,7 +2092,12 @@ rule.
      Information Systems Research,” *MIS Quarterly*, vol. 28, no. 1,
      pp. 75–105, 2004.
 
-## 7. Author and Copyright
+[19] J. Recker, *Scientific Research in Information Systems: A Beginner's
+     Guide*, Springer, 2012, doi: 10.1007/978-3-642-30048-6.
+     Section 5.2 was used as methodological guidance for the research
+     approach and the development of the scripts.
+
+## 8. Author and Copyright
 
 **Author:** Ebrahim Pak
 
