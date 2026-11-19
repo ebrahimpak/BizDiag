@@ -21,6 +21,7 @@ an umbrella product with high-end EA applications for specific industries, e.g.,
 
 BizDiag™ extracts data from EA models, and transforms ArchiMate® models into structured, analyzable data that can be 
 queried, transformed, enriched with AI, and used to support architecture analysis and strategic decision-making [1].
+Its decision-support role also relates to research on decision-support frameworks for collaborative networks [30].
 
 A central principle of BizDiag™ is to make Enterprise Architecture information programmable. This makes it possible to
 develop reusable automation around Enterprise Architecture models. Built around ArchiMate®, Archi, jArchi, GraalVM®, 
@@ -196,10 +197,15 @@ knowledge and the practical challenges faced by enterprise architects.
 
 ## 2. Research Foundation
 
-BizDiag builds on established academic research in Enterprise Architecture, software architecture, and Design 
-Science Research. Its Business–IT Alignment module, UML module, and BizModelCanvas operationalize these 
-foundations through an original, research-driven assessment methodology developed by the author. A forthcoming 
-white paper will elaborate on the methodology and its research contributions [2–9].
+BizDiag draws on information-systems research methods [2] and Design Science Research [3], alongside research on
+Enterprise Architecture analysis approaches and IT governance [4, 5] and practice-based enterprise coherence [6].
+The Business–IT Alignment module is informed by strategic and operational Business–IT alignment studies [10–16]
+and research on misalignment symptom detection [17–19]. The UML subsystem's view-oriented and cross-notation
+context draws on software architecture views and ArchiMate/UML guidance [7, 20, 21]. BizModelCanvas builds on
+research into modeling the Business Model Canvas with ArchiMate and aligning enterprise architecture with business
+models [8, 9], as well as value proposition design [27]. These sources inform the modules' research context; the
+implementations and assessment methodology are original work by the author. A forthcoming white paper will
+elaborate on the methodology and its research contributions.
 
 ---
 
@@ -388,7 +394,8 @@ tools.
 This module connects a jArchi client to a standalone Java server for database-backed logging. The client sends selected
 element metadata as Base64 through `log_click.ajs`; the `nio_interop_client.js` transport adapter decodes the payload
 and sends it over TCP to `NioInteropServer.java`. The server runs outside Archi and jArchi as a vanilla Java program,
-providing a deployment option for environments that require a pure-Java server rather than a GraalJS runtime.
+providing a deployment option for environments that require a pure-Java server rather than a GraalJS runtime. These
+examples illustrate client/server integration patterns for enterprise applications [31].
 
 
 <a id="ai-assisted-architecture-tools"></a>
@@ -534,13 +541,23 @@ directory management. The following are the jArchi scripts and JavaScript files 
 
 <a id="uml-subsystem"></a>
 #### 3.3.1 UML Subsystem
+Unlike Archi, which is primarily dedicated to ArchiMate modeling, Modelio software supports multiple modeling languages, 
+including UML and ArchiMate. Since version 3.6, Modelio has supported dedicated ArchiMate subprojects that can coexist 
+with UML subprojects within the same model. ArchiMate modeling was introduced through a free, dedicated plug-in and has 
+continued to be provided as an installable extension in subsequent versions. Although Modelio’s UML Profiles provide a 
+UML/ArchiMate lightweight, flexible, and dynamic shared mechanism for extending UML meta-classes through stereotypes and
+tagged values, they should not be confused with the dedicated ArchiMate metamodel. By utilizing this mechanism, a UML 
+developer can apply the profile on an existing model, even if the developer is in the middle of a project, the developer
+can use the other extension, ArchiMate. Archi, by contrast, does not natively support UML and is not designed to provide 
+UML modeling through its plug-in ecosystem [20, 33].
+
 The UML module's main script is `Application_View_to_UML.ajs`, a jArchi script that transforms the selected
 application-layer views into new views using UML-like notation instead of ArchiMate notation. It is an AI-enhanced 
 UML-like view  generation script designed for architectural transformation and semantic enrichment. The script does not 
 generate idiomatic UML, but instead it generates a UML-inspired component-diagram view from the selected ArchiMate 
 Application View.
 
-Application_View_to_UML.ajs
+`Application_View_to_UML.ajs`
 converts the currently selected ArchiMate view into a new UML-style view displayed directly in Archi’s Models panel.
 The script uses Ollama through `sendToAI.js` to semantically analyze each element and generate more informed UML
 stereotypes and enriched documentation. It reads a user-selected source view—typically a Phase C -
@@ -575,7 +592,8 @@ Post-processing is performed by `Mark_it_Down.ajs`, which formats AI-generated o
 Java NIO.2 APIs for reliable file-system operations. Overall, this architecture emphasizes data privacy, reduced 
 operational cost, offline functionality, and extensibility, allowing organizations to replace underlying LLMs, add 
 language variants, or integrate alternative AI runtimes without modifying the core enterprise architecture extraction 
-logic.
+logic. Its use of AI with Java-based enterprise development reflects a broader area of work on applying generative AI
+to enterprise Java [32].
 
 
 ```
@@ -1022,7 +1040,7 @@ inputs [22–24].
 | **4. Analyze the capability landscape** | Combine maturity and importance in an ML-SI matrix; interpret gaps, comfort, and an acceptance band. | Plots fully assessed concepts in rounded matrix cells, classifies using exact score difference and tolerance, and records `CBP.Result.Zone` and `CBP.Result.Gap`. | Interpreting strategic risk, deciding what constitutes acceptable capability risk, and validating that the threshold suits the enterprise.                                                                                                 |
 | **5. Set improvement goals** | Define target maturity and staged increments, informed by strategy, resources, timelines, and management judgment. | Validates supplied overall and dimension targets, progression, weighted consistency, and the final target relative to strategic importance; creates a Goal per valid increment. | Choosing targets, timelines, resource feasibility, and which capabilities should be improved. The article explicitly treats goal setting as contextual, not a rigid algorithm.                                                             |
 | **6. Define actions** | Translate each planned dimension-level maturity transition into concrete People, Process, and Technology actions. | For every dimension whose target rises, requires an action description, project name, and priority. Validated records become traceable Work Package concepts and links. | Defining actions that are sufficient, feasible, sequenced, owned, resourced, and appropriate to the actual capability. Text is supplied by the architect; the script does not invent it.                                                   |
-| **7. Design the change portfolio** | Consolidate actions into coordinated projects/programs using capability-based, dimension-based, or hybrid grouping and organizational context. | Groups actions by increment and entered project name, requires a consistent priority within a project/year, sorts lower priorities first, creates project Work Packages, and displays containment links. | Selecting a grouping strategy, resolving dependencies, capacity and budget trade-offs, preparing charters, and governing implementation.                                                                                                   |
+| **7. Design the change portfolio** | Consolidate actions into coordinated projects/programs using capability-based, dimension-based, or hybrid grouping and organizational context. | Groups actions by increment and entered project name, requires a consistent priority within a project/year, sorts lower priorities first, creates project Work Packages, and displays containment links. | Selecting a grouping strategy, resolving dependencies, capacity and budget trade-offs, including build-versus-buy choices [34], preparing charters, and governing implementation. |
 
 Move 1 optionally uses local Ollama to propose provisional Capabilities from a single compact request containing
 bounded strategic element names/types, directly composed Value Stream stage names, and capped content from
@@ -1162,7 +1180,7 @@ all, if you take care of your business model, your business model will take care
 ## 4. Why ArchiMate & jArchi?
 
 BizDiag is built around the ArchiMate modeling language and the Archi modeling tool, with jArchi providing scripting 
-capabilities [1, 29]. This combination provides a practical foundation for architecture automation:
+capabilities [1, 29, 33]. This combination provides a practical foundation for architecture automation:
 
 - ArchiMate provides a structured architecture language.
 - Archi provides a practical modeling environment.
@@ -1848,7 +1866,8 @@ BizDiag does not replace professional Enterprise Architecture judgment or organi
      The bibliographic venue and year are not identified in the supplied
      paper copy.
 
-[20] The Open Group, “The Advantages of Combining the ArchiMate®, UML®, and
+[20] The Open Group, “The Advantages of Combining the ArchiMate®, UML®, and jarchi
+
      BPMN™ Modeling Standards,” video, Modeliosoft, 2016.
 
 [21] C. Armstrong, J. D. Baker, I. Band, S. Courtney, H. Jonkers, V. Muchandi,
