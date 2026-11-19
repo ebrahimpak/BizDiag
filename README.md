@@ -1151,12 +1151,12 @@ business model:
 | **Value Creation**    | How the business creates and delivers that value.                                     |
 | **Value Proposition** | How the business converts the delivered value into revenue or other economic returns. |
 
-Therefore, I decided to factor in the aforementioned attributes to BizModelCanvas scripts, and these concepts should be
-reflected in the future developments of BizModelCanvas script-suite [8, 9, 27]. Occasionally, you also have to tend your 
-ArchiMate model and its evolutions over time, and be mindful of the very fact that business model is not a static entity, 
-and it changes throughout your organization lifetime. As a result, you have to mend your business model canvas, 
-periodically, and run this script suite against your model to see if the model changes lead to a different BMC. After 
-all, if you take care of your business model, your business model will take care of you!
+<p><small>Therefore, I decided to factor in the aforementioned attributes to BizModelCanvas scripts, and these concepts should be
+reflected in the future developments of BizModelCanvas script-suite [8, 9, 27]. Occasionally, you also have to tend your
+ArchiMate model and its evolutions over time, and be mindful of the very fact that business model is not a static entity,
+and it changes throughout your organization lifetime. As a result, you have to mend your business model canvas,
+periodically, and run this script suite against your model to see if the model changes lead to a different BMC. After
+all, if you take care of your business model, your business model will take care of you!</small></p>
 ---
 
 ## 4. Why ArchiMate & jArchi?
