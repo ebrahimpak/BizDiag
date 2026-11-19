@@ -1318,18 +1318,21 @@ Deployment architecture depends on the specific BizDiag component and its intend
 
 BizDiag is intended for people and organizations working with Enterprise Architecture and related disciplines, including:
 
-- Strategy firms
+- Date Engineers
+- Strategy Firms
+- Digital Strategists
 - Business Architects
+- IT Solution Providers
 - Enterprise Architects
-- IT Solution Companies
 - Business Model Analysts
-- Digital business analysts
-- Architecture governance teams
-- Enterprise Architecture consultants
-- Digital Transformation practitioners
-- Enterprise Architecture researchers and academics
-- Software developers working with software architecture models
-- 'Information Technology', 'Computer Science', and 'Software Engineering' Students
+- Digital Business Analysts
+- Architecture Governance Teams
+- Enterprise Architecture Consultants
+- Digital Transformation Practitioners
+- Enterprise Architecture Researchers and Academics
+- Research & Development Departments of IT Solution Firms
+- Software Developers Interested in Software Architecture Models & Polyglot Programming
+- 'Information Technology', 'Computer Science', and 'Software Engineering' Professors & Students
 
 ---
 
