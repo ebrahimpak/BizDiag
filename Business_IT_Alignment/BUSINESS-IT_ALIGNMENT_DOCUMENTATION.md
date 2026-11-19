@@ -473,9 +473,11 @@ Figure 1. Framework construction (Adapted from [5])
    25 TOGAF-based architecture artifacts [10]. These are potential places in which
    evidence for a symptom may be represented; they are not 25 more symptoms.
 5. **EA analysis catalogue:** The foundational paper's 'EA analysis catalogue'
-   identifies eight analysis types from related EA-analysis literature [11–13].
-   They describe analytical approaches that can reveal evidence in artifacts;
-   the catalog itself is not a set of executable detection rules.
+   identifies eight analysis types, drawing on work classifying EA analysis
+   approaches [11], EA governance [12], and practice-based enterprise
+   coherence [13]. These describe analytical approaches that can reveal
+   evidence in artifacts; the catalog itself is not a set of executable
+   detection rules.
 
 
 
