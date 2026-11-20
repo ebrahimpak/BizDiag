@@ -475,7 +475,7 @@ directory management. The following are the jArchi scripts and JavaScript files 
       <td>Generates AI analysis for the selected view in Archi, in English</td>
     </tr>
     <tr>
-      <td><code><AI_<br>View_<br>DocMaker_<br>FA.ajs</code></td>
+      <td><code>AI_<br>View_<br>DocMaker_<br>FA.ajs</code></td>
       <td>Generates AI analysis for the selected view in Archi, in Persian</td>
     </tr>
     <tr>
