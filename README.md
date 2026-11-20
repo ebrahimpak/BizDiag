@@ -1862,9 +1862,8 @@ BizDiag does not replace professional Enterprise Architecture judgment or organi
 [18] P. Kruchten, “Architectural Blueprints—The ‘4+1’ View Model of Software
      Architecture,” *IEEE Software*, vol. 12, no. 6, pp. 42–50, Nov. 1995.
 
-[19] The Open Group, “The Advantages of Combining the ArchiMate®, UML®, and jarchi
-
-     BPMN™ Modeling Standards,” video, Modeliosoft, 2016.
+[19] The Open Group, “The Advantages of Combining the ArchiMate®, UML®, and 
+     jarchi BPMN™ Modeling Standards,” video, Modeliosoft, 2016.
 
 [20] C. Armstrong, J. D. Baker, I. Band, S. Courtney, H. Jonkers, V. Muchandi,
      and M. Owen, “How to Use the ArchiMate® Language with UML®,” Sep. 2013.
