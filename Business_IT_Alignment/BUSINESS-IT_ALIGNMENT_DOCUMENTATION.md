@@ -9,7 +9,7 @@ Because markets and technologies change, alignment is an ongoing process of
 mutual adjustment—not a one-time state to achieve. Peppard and Ward discuss
 this relationship through Henderson and Venkatraman's Strategic Alignment
 Model (SAM) and the evolution toward a broader, adaptive digital capability.
-[1, 2].
+[1–2].
 
 ### 1.1 Henderson and Venkatraman's Strategic Alignment Model
 
@@ -582,30 +582,41 @@ detection, not a complete specification of every model query or property-value t
 **Five Phases**
 
 
-**“Business–IT Alignment” research methodology** — The following five phases
-describe how this module organizes its Enterprise Architecture (EA) assessment.
-They are a project-level summary, not a phase structure attributed to a
+**“Business–IT Alignment” research methodology** — This use of Design Science 
+should be distinguished from the methodology discussion in Őri's XML-based EA-model
+paper [4]. Őri reports the use of Design Science, BEAMS (Building Blocks for 
+Enterprise Architecture Management Solutions), and case-study research methods in 
+that work. The present BizDiag scripts use **Design Science only**; BEAMS and 
+case-study research are not claimed as methods used to construct or evaluate this 
+implementation.
+
+Methodologically, this objective reflects the adoption of a Design Science 
+Research paradigm rather than a case study research approach. Case study research 
+aims to generate deep, descriptive insights within specific, bounded contexts, which 
+inherently limits the generalizability of its findings across different industries [3]. 
+In contrast, Design Science Research focuses on prescriptive problem-solving through 
+the creation and evaluation of standardized, broadly applicable artifacts. By explicitly
+seeking to engineer a universal assessment vehicle capable of functioning consistently 
+across varied industries, roles, and timeframes, the research prioritizes artifact 
+creation over context-bound empirical observation, aligning directly with the core tenets 
+of Design Science Research [14–15].
+
+The following five phases describe how this module organizes its Enterprise Architecture 
+assessment. They are a project-level summary, not a phase structure attributed to a
 particular paper. The script uses BizDiag's own rules and jArchi implementation.
 The project itself follows a **Design Science in Information Systems Research**
-approach [18]. The scripts and their catalogue/reporting interface are the
+approach [14]. The scripts and their catalogue/reporting interface are the
 resulting design artifacts: they embody a structured response to the problem of
 finding and presenting model-observable misalignment symptoms. The five phases
 therefore combine problem-oriented framework development with the construction
 and demonstration of a usable jArchi artifact. Recker's §5.2 in
 *Scientific Research in Information Systems: A Beginner's Guide* informs the
-research-method guidance used for this work [19].
-
-This use of Design Science should be distinguished from the methodology
-discussion in Őri's XML-based EA-model paper [4]. Őri reports the use of
-Design Science, BEAMS, and case-study research methods in that work. The
-present BizDiag scripts use **Design Science only**; BEAMS and case-study
-research are not claimed as methods used to construct or evaluate this
-implementation.
+research-method guidance used for this work [15].
 
 - **Phase 1**: Preliminary Review — The assessment is organized around six core EA domains: 
 Strategy (existing checks: S.01–S.10; strategic-planning checks associated with
 “How Enterprise Architecture Management Can Support Strategic IS Planning”:
-STR.61–STR.67) [14],
+STR.61–STR.67) [16],
 Business Process (B.11–B.20), Data Governance (D.21–D.30), Application Portfolio (A.31–A.40), 
 Technology Infrastructure (T.41–T.48), and Cross-Layer Alignment (X.49–X.60). The script 
 inspects modeled elements and relationships in these domains. Additional Operational and 
@@ -1269,7 +1280,7 @@ research listed in “Supplementary literature and provenance.” Since these
 works address overlapping subjects—strategic planning, operational
 alignment, architecture analysis, and model quality—the relationship is
 described by code family and research theme rather than implying that every
-rule is a verbatim symptom from a single publication [2, 14–17]. The tables below retain
+rule is a verbatim symptom from a single publication [2, 16–19]. The tables below retain
 the exact code and catalogue wording from the English script.
 
 #### 3.8.1 Strategy (17 Supplementary Entries)
@@ -1845,9 +1856,9 @@ basis is distinct from the **rule-level provenance** of an individual symptom.
 The code does not attribute every supplementary check to a particular
 publication or establish that a rule reproduces an author's instrument. The
 `STR.61`–`STR.67` comments name Zoltán Szabó and Dóra Őri's
-“How Enterprise Architecture Management Can Support Strategic IS Planning” [14].
+“How Enterprise Architecture Management Can Support Strategic IS Planning” [16].
 The `OB.68`–`OB.79` comments name Pascal André et al.'s “Assessing Operational
-Business-IT Alignment for Architecture Improvement” [16]; this association reflects
+Business-IT Alignment for Architecture Improvement” [18]; this association reflects
 the project's existing bibliography and topic, but cannot be independently
 verified against a source copy because no companion `papers` directory or paper
 PDFs are present in this checkout. These comments identify the research
@@ -1865,11 +1876,11 @@ rule-level provenance [3].
   <tbody>
     <tr>
       <td style="border: 1px solid;"><code>STR.61</code>–<code>STR.67</code></td>
-      <td style="border: 1px solid;">The code comments identify Zoltán Szabó and Dóra Őri's “How Enterprise Architecture Management Can Support Strategic IS Planning” [14] and describe strategic-planning completeness and driver-response alignment. <code>STR.61</code>–<code>STR.66</code> have executable checks. <code>STR.67</code> is explicitly a non-analyzable manual-review placeholder, not an automatic detection rule.</td>
+      <td style="border: 1px solid;">The code comments identify Zoltán Szabó and Dóra Őri's “How Enterprise Architecture Management Can Support Strategic IS Planning” [16] and describe strategic-planning completeness and driver-response alignment. <code>STR.61</code>–<code>STR.66</code> have executable checks. <code>STR.67</code> is explicitly a non-analyzable manual-review placeholder, not an automatic detection rule.</td>
     </tr>
     <tr>
       <td style="border: 1px solid;"><code>OB.68</code>–<code>OB.79</code></td>
-      <td style="border: 1px solid;">The code comments identify Pascal André et al.'s “Assessing Operational Business-IT Alignment for Architecture Improvement” [16] and describe checks of operational alignment between business processes and application implementations. The project associates this title with the block based on its bibliography and topic; the mapping cannot be independently verified against a source copy in this checkout. The comment is not evidence that each check duplicates that paper's method or findings.</td>
+      <td style="border: 1px solid;">The code comments identify Pascal André et al.'s “Assessing Operational Business-IT Alignment for Architecture Improvement” [18] and describe checks of operational alignment between business processes and application implementations. The project associates this title with the block based on its bibliography and topic; the mapping cannot be independently verified against a source copy in this checkout. The comment is not evidence that each check duplicates that paper's method or findings.</td>
     </tr>
     <tr>
       <td style="border: 1px solid;"><code>ABF.S.01</code>–<code>ABF.S.21</code></td>
@@ -1881,7 +1892,7 @@ rule-level provenance [3].
     </tr>
     <tr>
       <td style="border: 1px solid;"><code>S.01</code>–<code>S.10</code>; <code>B.11</code>–<code>B.19</code>; <code>D.21</code>–<code>D.30</code>; <code>A.31</code>–<code>A.40</code>; <code>T.41</code>–<code>T.48</code>; <code>X.49</code>–<code>X.62</code>; <code>OB.80</code>; <code>SEM.01</code>–<code>SEM.03</code>; <code>P.81</code>–<code>P.83</code>; <code>EV.90</code>; <code>SEC.85</code></td>
-      <td style="border: 1px solid;">These remaining supplementary catalogue entries have executable checks. Luftman's 12 components provide the diagnostic's top-level alignment framework, and these rules operationalize model-observable aspects of relevant components; the code does not cite Luftman as the verbatim or separately validated source of each individual rule [3]. “Strategic Alignment: Leveraging Information Technology for Transforming Organizations” (Henderson and Venkatraman) [1], “Exploring Business Strategy Modelling with ArchiMate: A Case Study Approach” (Kitsios et al.) [15], “Testing Enterprise Application Architecture Patterns” (Choudhry) [17], and <em>The Strategic Management of Information Systems: Building a Digital Strategy</em> (Peppard and Ward) [2] inform the broader conceptual discussion. Other cited EA and research-method works likewise provide context, not a code-level provenance mapping [6, 11–13, 18].</td>
+      <td style="border: 1px solid;">These remaining supplementary catalogue entries have executable checks. Luftman's 12 components provide the diagnostic's top-level alignment framework, and these rules operationalize model-observable aspects of relevant components; the code does not cite Luftman as the verbatim or separately validated source of each individual rule [3]. “Strategic Alignment: Leveraging Information Technology for Transforming Organizations” (Henderson and Venkatraman) [1], “Exploring Business Strategy Modelling with ArchiMate: A Case Study Approach” (Kitsios et al.) [17], “Testing Enterprise Application Architecture Patterns” (Choudhry) [19], and <em>The Strategic Management of Information Systems: Building a Digital Strategy</em> (Peppard and Ward) [2] inform the broader conceptual discussion. Other cited EA and research-method works likewise provide context, not a code-level provenance mapping [6, 11–14].</td>
     </tr>
     <tr>
       <td style="border: 1px solid;"><code>B.20</code> (execution/catalogue discrepancy)</td>
@@ -1967,8 +1978,8 @@ entries. Their shared rule families cover Strategy, Cross-Layer, Business,
 Operational, Data, Application, Technology, and Semantic concerns.
 
 The scripts were developed using the Design Science approach described by
-Hevner et al. [18], with methodological guidance also taken from Recker's
-§5.2 [19]. In practice, the method shaped the work in four connected ways:
+Hevner et al. [14], with methodological guidance also taken from Recker's
+§5.2 [15]. In practice, the method shaped the work in four connected ways:
 first, the framework was identified as a relevant problem and operationalized
 as a set of EA model-level requirements; second, the shared symptom catalogue
 was implemented in two human-language variants—English
@@ -2016,6 +2027,12 @@ framework so that the automated checks can be categorized, evidenced,
 filtered, reported, and reused.** Completing tool-independent execution,
 longitudinal alignment-performance measurement, and correction/re-alignment
 recommendations remains appropriate future work.
+
+## 7. Author and Copyright
+
+**Author:** Ebrahim Pak
+
+**Copyright:** © October 2026 Ebrahim Pak.
 
 ## 7. References
 
@@ -2072,35 +2089,29 @@ recommendations remains appropriate future work.
      Enterprise Coherence,” in *PRET 2013*, Lecture Notes in Business
      Information Processing, vol. 151, pp. 77–95. Springer, 2012.
 
-[14] Z. Szabó and D. Őri, “How Enterprise Architecture Management Can Support
+[14] A. R. Hevner, S. T. March, J. Park, and S. Ram, “Design Science in
+     Information Systems Research,” *MIS Quarterly*, vol. 28, no. 1,
+     pp. 75–105, 2004.
+
+[15] J. Recker, *Scientific Research in Information Systems: A Beginner's
+     Guide*, Springer, 2012, doi: 10.1007/978-3-642-30048-6.
+     Section 5.2 was used as methodological guidance for the research
+     approach and the development of the scripts.
+
+[16] Z. Szabó and D. Őri, “How Enterprise Architecture Management Can Support
      Strategic IS Planning,” in *Information Strategy Challenges in the
      Digital Era*, 11th Int. Conf. Software, Knowledge, Information
      Management and Applications (SKIMA), 2017.
 
-[15] F. Kitsios, G. Kyriakopoulou, and M. Kamariotou, “Exploring Business
+[17] F. Kitsios, G. Kyriakopoulou, and M. Kamariotou, “Exploring Business
      Strategy Modelling with ArchiMate: A Case Study Approach,” *Information*,
      vol. 13, no. 1, Art. no. 31, 2022, doi: 10.3390/info13010031.
 
-[16] P. André, A. Benjilany, H. Bruneliere, and D. Tamzalit, “Assessing
+[18] P. André, A. Benjilany, H. Bruneliere, and D. Tamzalit, “Assessing
      Operational Business-IT Alignment for Architecture Improvement,” in
      *Advances in Information Systems Development: Exploring New Horizons and
      Opportunities*, Lecture Notes in Information Systems and Organisation,
      vol. 77, pp. 231–253. Springer, 2025, doi: 10.1007/978-3-031-87880-0_12.
 
-[17] A. A. Choudhry, *Testing Enterprise Application Architecture Patterns*,
+[19] A. A. Choudhry, *Testing Enterprise Application Architecture Patterns*,
      M.Sc. dissertation, University of Liverpool, 2006.
-
-[18] A. R. Hevner, S. T. March, J. Park, and S. Ram, “Design Science in
-     Information Systems Research,” *MIS Quarterly*, vol. 28, no. 1,
-     pp. 75–105, 2004.
-
-[19] J. Recker, *Scientific Research in Information Systems: A Beginner's
-     Guide*, Springer, 2012, doi: 10.1007/978-3-642-30048-6.
-     Section 5.2 was used as methodological guidance for the research
-     approach and the development of the scripts.
-
-## 8. Author and Copyright
-
-**Author:** Ebrahim Pak
-
-**Copyright:** © 2026 Ebrahim Pak.

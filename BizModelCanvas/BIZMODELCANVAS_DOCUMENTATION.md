@@ -1,13 +1,13 @@
 # BizModelCanvas Module
 
-## Purpose
+## 1. Purpose
 
 BizModelCanvas is a bilingual set of jArchi tools for inspecting Business Model Canvas (BMC) content in an Archi model,
 analyzing value-proposition structures, and translating between BMC and ArchiMate-oriented views. Its scope is
 model-level analysis and transformation; it does not determine whether an organization's business model is viable or
 complete.
 
-## Research basis
+## 2. Research basis
 
 The module's BMC-to-ArchiMate transformation is informed by the Open Group white paper, which demonstrates how BMC
 building blocks can be represented with ArchiMate business-layer concepts and with strategy and motivation concepts,
@@ -21,7 +21,7 @@ The BMC itself organizes a business model into nine interrelated building blocks
 relationship heuristics, analyses, and generated layouts are software implementation choices informed by the cited
 modeling work; they should not be read as a verbatim or exhaustive implementation of either paper.
 
-## Main capabilities
+## 3. Main capabilities
 
 - **Inspect and diagnose value propositions:** analyze value-related elements and relationships, identify structural
   conditions for review, examine duplicate or inconsistently typed value propositions, and report cleanup candidates.
@@ -37,7 +37,7 @@ modeling work; they should not be read as a verbatim or exhaustive implementatio
 The English and Persian GUI launchers provide access to the analysis, view-creation, conversion, and testing scripts.
 Individual scripts are also available in `scripts/`; mapping and generation helpers are in `lib/`.
 
-## Use and interpretation
+## 4. Use and interpretation
 
 Run the scripts inside Archi with jArchi and an open model. For BMC-to-ArchiMate conversion, name the source view so it
 includes “Business Model Canvas” or “BMC”; the detector uses the view name to avoid matching unrelated diagrams.
@@ -45,7 +45,13 @@ Inspect the generated views and any diagnostic or cleanup suggestions before usi
 decisions. In particular, generated model content is a structured starting point, not an automatically validated
 business model.
 
-## References
+## 5. Author and Copyright
+
+**Author:** Ebrahim Pak
+
+**Copyright:** © October 2026 Ebrahim Pak.
+
+## 6. References
 
 [1] E. Walters, “Modeling the Business Model Canvas with the ArchiMate® Specification: Using the ArchiMate 3.1
 Specification to Model the Building Blocks of the Business Model Canvas,” The Open Group, Feb. 2020. [Online].

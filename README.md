@@ -21,7 +21,7 @@ an umbrella product with high-end EA applications for specific industries, e.g.,
 
 BizDiag™ extracts data from EA models, and transforms ArchiMate® models into structured, analyzable data that can be 
 queried, transformed, enriched with AI, and used to support architecture analysis and strategic decision-making [1].
-Its decision-support role also relates to research on decision-support frameworks for collaborative networks [30].
+Its decision-support role also relates to research on decision-support frameworks for collaborative networks [2].
 
 A central principle of BizDiag™ is to make Enterprise Architecture information programmable. This makes it possible to
 develop reusable automation around Enterprise Architecture models. Built around ArchiMate®, Archi, jArchi, GraalVM®, 
@@ -197,13 +197,13 @@ knowledge and the practical challenges faced by enterprise architects.
 
 ## 2. Research Foundation
 
-BizDiag draws on information-systems research methods [2] and Design Science Research [3], alongside research on
-Enterprise Architecture analysis approaches and IT governance [4, 5] and practice-based enterprise coherence [6].
-The Business–IT Alignment module is informed by strategic and operational Business–IT alignment studies [10–16]
-and research on misalignment symptom detection [17–19]. The UML subsystem's view-oriented and cross-notation
-context draws on software architecture views and ArchiMate/UML guidance [7, 20, 21]. BizModelCanvas builds on
+BizDiag draws on information-systems research methods [3] and Design Science Research [4], alongside research on
+Enterprise Architecture analysis approaches and IT governance [5–6] and practice-based enterprise coherence [7].
+The Business–IT Alignment module is informed by strategic and operational Business–IT alignment studies [8–14]
+and research on misalignment symptom detection [15–17]. The UML subsystem's view-oriented and cross-notation
+context draws on software architecture views and ArchiMate/UML guidance [18–20]. BizModelCanvas builds on
 research into modeling the Business Model Canvas with ArchiMate and aligning enterprise architecture with business
-models [8, 9], as well as value proposition design [27]. These sources inform the modules' research context; the
+models [21–22], as well as value proposition design [23]. These sources inform the modules' research context; the
 implementations and assessment methodology are original work by the author. A forthcoming white paper will
 elaborate on the methodology and its research contributions.
 
@@ -219,7 +219,7 @@ elaborate on the methodology and its research contributions.
 #### 3.1.1 A Business–IT Alignment/Misalignment Analysis
 
 BizDiag's Business_IT_Alignment subsystem includes analysis capabilities intended to help architects investigate
-relationships between business and IT architecture [6, 10–16]. This module has leveraged the previously-conducted studies on
+relationships between business and IT architecture [7–14]. This module has leveraged the previously-conducted studies on
 the Business–IT alignment research methodology, mostly the studies by Őri and Szabó. However, my analysis and 
 utilized technology stack drastically differ from those used by the mentioned researchers. Unlike approaches that
 rely on Schematron/XPath-style rule-based validation, BizDiag’s Business–IT Alignment module employs a five-stage
@@ -228,7 +228,7 @@ cycles of Hevner et al.’s Design Science Research framework: the **Relevance C
 assessment to practical EA alignment concerns; the **Design Cycle**, which supports the development and 
 application of a literature-informed catalogue of misalignment symptoms; and the **Rigor Cycle**, which grounds 
 symptom selection and classification in established academic literature. Together, these cycles inform the 
-module’s systematic identification, classification, and assessment of Business–IT misalignments [2, 3, 17–19].
+module’s systematic identification, classification, and assessment of Business–IT misalignments [3–4, 15–17].
 
 The analysis can identify structural conditions that may indicate potential Business–IT alignment issues. 
 Detected conditions can be classified according to configurable severity levels such as:
@@ -255,14 +255,14 @@ architecture teams systematically examine areas such as:
 <a id="business-it-alignment-research-methodology"></a>
 #### 3.1.2 Business-IT Alignment Research Methodology
 
-The Business-IT Alignment module implements a five-phase Enterprise Architecture (EA) assessment process, conceptually based on extensive conducted research. This module is grounded in original research conducted by the Ebrahim Pak (2026).The five main phases are as follows [2, 3, 17–19]:
+The Business-IT Alignment module implements a five-phase Enterprise Architecture (EA) assessment process, conceptually based on extensive conducted research. This module is grounded in original research conducted by the Ebrahim Pak (2026).The five main phases are as follows [3–4, 15–17]:
 
 - **Phase 1**: Preliminary Review — The assessment is organized around six core EA domains:
   Strategy (core-based on paper 1: S.01–S.10, supplementary-based on paper 2: STR.61–STR.67),
   Business Process (B.11–B.20), Data Governance (D.21–D.30), Application Portfolio (A.31–A.40),
   Technology Infrastructure (T.41–T.48), and Cross-Layer Alignment (X.49–X.60). The script
   inspects modeled elements and relationships in these domains. Additional Operational and
-  Semantic checks and artifact-framework checks extend the core code families [17–19].
+  Semantic checks and artifact-framework checks extend the core code families [15–17].
 
 
 - **Phase 2**: Malfunctioning-Area Analysis — The script applies rules to the model’s elements,
@@ -395,7 +395,7 @@ This module connects a jArchi client to a standalone Java server for database-ba
 element metadata as Base64 through `log_click.ajs`; the `nio_interop_client.js` transport adapter decodes the payload
 and sends it over TCP to `NioInteropServer.java`. The server runs outside Archi and jArchi as a vanilla Java program,
 providing a deployment option for environments that require a pure-Java server rather than a GraalJS runtime. These
-examples illustrate client/server integration patterns for enterprise applications [31].
+examples illustrate client/server integration patterns for enterprise applications [24].
 
 
 <a id="ai-assisted-architecture-tools"></a>
@@ -549,7 +549,7 @@ UML/ArchiMate lightweight, flexible, and dynamic shared mechanism for extending 
 tagged values, they should not be confused with the dedicated ArchiMate metamodel. By utilizing this mechanism, a UML 
 developer can apply the profile on an existing model, even if the developer is in the middle of a project, the developer
 can use the other extension, ArchiMate. Archi, by contrast, does not natively support UML and is not designed to provide 
-UML modeling through its plug-in ecosystem [20, 33].
+UML modeling through its plug-in ecosystem [19, 25].
 
 The UML module's main script is `Application_View_to_UML.ajs`, a jArchi script that transforms the selected
 application-layer views into new views using UML-like notation instead of ArchiMate notation. It is an AI-enhanced 
@@ -567,7 +567,7 @@ view using UML-style diagram notation enhanced with AI-generated semantic classi
 **UML Module Research Methodology**
 
 Kruchten’s 4+1 model informs the module’s view-oriented architectural context, while Open Group guidance informs its
-ArchiMate/UML cross-notation context [7, 20, 21]. The script does not implement the complete 4+1 model or a formal
+ArchiMate/UML cross-notation context [18–20]. The script does not implement the complete 4+1 model or a formal
 ArchiMate-to-UML transformation: it creates a UML-inspired, component-style ArchiMate view, optionally enriched with
 AI-suggested semantic annotations. See the [UML module documentation](UML/UML_MODULE_DOCUMENTATION.md)
 for scope, workflow, and limitations.
@@ -593,7 +593,7 @@ Java NIO.2 APIs for reliable file-system operations. Overall, this architecture 
 operational cost, offline functionality, and extensibility, allowing organizations to replace underlying LLMs, add 
 language variants, or integrate alternative AI runtimes without modifying the core enterprise architecture extraction 
 logic. Its use of AI with Java-based enterprise development reflects a broader area of work on applying generative AI
-to enterprise Java [32].
+to enterprise Java [26].
 
 
 ```
@@ -925,7 +925,7 @@ between Strategy and Enterprise Architecture" and "Capability-based Planning in 
 Move 1 creates the Capability Map, input worklists, and durable model-local run record. For production planning, the
 architect enters and validates evidence-based values in model Properties, saves, and runs the continuation. The planning
 scripts do not infer maturity ratings, strategic impact, targets, actions, or priorities from element names or counts.
-The seven-move planning method and capability-map practices inform the workflow's modeled stages and inputs [22–26].
+The seven-move planning method and capability-map practices inform the workflow's modeled stages and inputs [27–31].
 
 <a id="cbp-data-entry-properties-and-values"></a>
 ##### 3.3.3.1 CBP Data-Entry Properties and Values
@@ -1012,7 +1012,7 @@ name identifies it as a Business Model Canvas. Folder names do not affect select
 labels/documentation, and diagram-note text inside qualifying views. At most three qualifying content-bearing views,
 12 items per view, 24 items total, 180 characters per item, and 2,400 BMC text characters total are included.
 View and item names are limited to 60 characters. These labels and excerpts are limited evidence, so architects must
-review proposals and determine coverage, granularity, hierarchy, and strategic relevance [23–26].
+review proposals and determine coverage, granularity, hierarchy, and strategic relevance [28–31].
 
 1. **Identify and model capabilities:** show a structured, Capability-only map from existing Capability concepts,
 their modeled hierarchy, and any provisional discovery candidates for architect review, plus separate input worklists.
@@ -1030,7 +1030,7 @@ declared priority.
 
 The article's moves are an architecture-and-planning method. The script operationalizes the parts that can be represented
 as explicit model inputs and repeatable checks. It cannot replace the human analysis that creates and governs those
-inputs [22–24].
+inputs [27–29].
 
 | Move | EA purpose in the paper | What the script does | What remains a human responsibility                                                                                                                                                                                                        |
 |---|---|---|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -1040,7 +1040,7 @@ inputs [22–24].
 | **4. Analyze the capability landscape** | Combine maturity and importance in an ML-SI matrix; interpret gaps, comfort, and an acceptance band. | Plots fully assessed concepts in rounded matrix cells, classifies using exact score difference and tolerance, and records `CBP.Result.Zone` and `CBP.Result.Gap`. | Interpreting strategic risk, deciding what constitutes acceptable capability risk, and validating that the threshold suits the enterprise.                                                                                                 |
 | **5. Set improvement goals** | Define target maturity and staged increments, informed by strategy, resources, timelines, and management judgment. | Validates supplied overall and dimension targets, progression, weighted consistency, and the final target relative to strategic importance; creates a Goal per valid increment. | Choosing targets, timelines, resource feasibility, and which capabilities should be improved. The article explicitly treats goal setting as contextual, not a rigid algorithm.                                                             |
 | **6. Define actions** | Translate each planned dimension-level maturity transition into concrete People, Process, and Technology actions. | For every dimension whose target rises, requires an action description, project name, and priority. Validated records become traceable Work Package concepts and links. | Defining actions that are sufficient, feasible, sequenced, owned, resourced, and appropriate to the actual capability. Text is supplied by the architect; the script does not invent it.                                                   |
-| **7. Design the change portfolio** | Consolidate actions into coordinated projects/programs using capability-based, dimension-based, or hybrid grouping and organizational context. | Groups actions by increment and entered project name, requires a consistent priority within a project/year, sorts lower priorities first, creates project Work Packages, and displays containment links. | Selecting a grouping strategy, resolving dependencies, capacity and budget trade-offs, including build-versus-buy choices [34], preparing charters, and governing implementation. |
+| **7. Design the change portfolio** | Consolidate actions into coordinated projects/programs using capability-based, dimension-based, or hybrid grouping and organizational context. | Groups actions by increment and entered project name, requires a consistent priority within a project/year, sorts lower priorities first, creates project Work Packages, and displays containment links. | Selecting a grouping strategy, resolving dependencies, capacity and budget trade-offs, including build-versus-buy choices [32], preparing charters, and governing implementation. |
 
 Move 1 optionally uses local Ollama to propose provisional Capabilities from a single compact request containing
 bounded strategic element names/types, directly composed Value Stream stage names, and capped content from
@@ -1084,7 +1084,7 @@ BizModelCanvas-GUI-FA.ajs) which serve as the GUI for accessing and executing a 
 scripts/ folder. The scripts in this script-suite are the result of deeply researching the field of digital business 
 model, and applying the findings of the conducted research on these scripts. These scripts perform a wide range of 
 operations on the BMC, namely, they analyze models for all the nine building blocks of their business model canvas
-[8, 27].
+[21, 23].
 
 BizDiag provides a bilingual, unified GUI system for managing nine BizModelCanvas jArchi scripts. This
 system provides professional access to enterprise architecture analysis tools with full English and Persian language 
@@ -1112,7 +1112,7 @@ utilizing Business Model Canvas Detector (`lib/bmcDetector.ajs`), and Business M
 
 3. The third tab, 'Testing', provides tools for debugging the view and model, providing deep model intelligence, as well
 as testing relationship types. When available, the Business Model Canvas (BMC) is commonly located within the  
-Architecture Vision (TOGAF Phase A) section of an EA repository, although many models may not contain a BMC artifact [28].
+Architecture Vision (TOGAF Phase A) section of an EA repository, although many models may not contain a BMC artifact [33].
 BMC can be used as an input for analytical and transformation workflows, for the BizModelCanvas script-suite.
 
 4. The fourth tab, called BMC Generation, does only one thing through the scripts/Draw BMC Graphic.ajs, which is to draw
@@ -1155,7 +1155,7 @@ process the BMC in the ArchiMate view, and hence relating to the model as a whol
 architectural view representation can help organizations to analyze the business model in the context of the overall 
 architecture, and hence to identify potential gaps, misalignments, or opportunities for improvement. Moreover, a wide 
 variety of new views, e.g., 'Core Capability View', 'Customer Interaction View', and 'Value Proposition View', in 
-ArchiMate notation, will be derived from the BMC input [8, 9].
+ArchiMate notation, will be derived from the BMC input [21–22].
 
 See the [BizModelCanvas module documentation](BizModelCanvas/BIZMODELCANVAS_DOCUMENTATION.md) for a concise account
 of its research basis, implemented capabilities, and usage considerations.
@@ -1170,7 +1170,7 @@ business model:
 | **Value Proposition** | How the business converts the delivered value into revenue or other economic returns. |
 
 <p><small>Therefore, I decided to factor in the aforementioned attributes to BizModelCanvas scripts, and these concepts should be
-reflected in the future developments of BizModelCanvas script-suite [8, 9, 27]. Occasionally, you also have to tend your
+reflected in the future developments of BizModelCanvas script-suite [21–23]. Occasionally, you also have to tend your
 ArchiMate model and its evolutions over time, and be mindful of the very fact that business model is not a static entity,
 and it changes throughout your organization lifetime. As a result, you have to mend your business model canvas,
 periodically, and run this script suite against your model to see if the model changes lead to a different BMC. After
@@ -1180,7 +1180,7 @@ all, if you take care of your business model, your business model will take care
 ## 4. Why ArchiMate & jArchi?
 
 BizDiag is built around the ArchiMate modeling language and the Archi modeling tool, with jArchi providing scripting 
-capabilities [1, 29, 33]. This combination provides a practical foundation for architecture automation:
+capabilities [1, 25, 34]. This combination provides a practical foundation for architecture automation:
 
 - ArchiMate provides a structured architecture language.
 - Archi provides a practical modeling environment.
@@ -1790,141 +1790,141 @@ BizDiag does not replace professional Enterprise Architecture judgment or organi
 [1] The Open Group, *ArchiMate® 3.2 Specification*, Berkshire, U.K., 2022,
      p. 183.
 
-[2] J. Recker, *Scientific Research in Information Systems: A Beginner’s
+[2] O. Noran, “A Decision Support Framework for Collaborative Networks,”
+    *International Journal of Production Research*, vol. 47, no. 17,
+    pp. 4813–4832, 2009.
+
+[3] J. Recker, *Scientific Research in Information Systems: A Beginner’s
      Guide*. Cham, Switzerland: Springer Nature Switzerland, 2021.
 
-[3] A. R. Hevner, S. T. March, J. Park, and S. Ram, “Design Science in
+[4] A. R. Hevner, S. T. March, J. Park, and S. Ram, “Design Science in
      Information Systems Research,” *MIS Quarterly*, vol. 28, no. 1,
      pp. 75–105, 2004.
 
-[4] S. Buckl, F. Matthes, and C. M. Schweda, “Classifying Enterprise
+[5] S. Buckl, F. Matthes, and C. M. Schweda, “Classifying Enterprise
     Architecture Analysis Approaches,” in *Proc. Int. Workshop on Enterprise
     Interoperability*, 2009.
 
-[5] K. D. Niemann, *From Enterprise Architecture to IT Governance*. Springer,
+[6] K. D. Niemann, *From Enterprise Architecture to IT Governance*. Springer,
     2006.
 
-[6] R. Wagter, H. A. Proper, and D. Witte, “A Practice-Based Framework for
+[7] R. Wagter, H. A. Proper, and D. Witte, “A Practice-Based Framework for
      Enterprise Coherence,” in *PRET 2013*, Lecture Notes in Business
      Information Processing, vol. 151, pp. 77–95. Springer, 2012.
 
-[7] P. Kruchten, “Architectural Blueprints—The ‘4+1’ View Model of Software
-     Architecture,” *IEEE Software*, vol. 12, no. 6, pp. 42–50, Nov. 1995.
-
-[8] E. Walters, “Modeling the Business Model Canvas with the ArchiMate
-     Specification: Using the ArchiMate 3.1 Specification to Model the
-     Building Blocks of the Business Model Canvas,” The Open Group, Feb. 2020.
-     [Online]. Available: https://publications.opengroup.org/w195.
-
-[9] W. Engelsman, J. Gordijn, T. Haaker, M. van Sinderen, and R. Wieringa,
-     “Quantitative Alignment of Enterprise Architectures with the Business
-     Model,” in *Conceptual Modeling: 40th International Conference, ER 2021*,
-     Lecture Notes in Computer Science, vol. 13011, pp. 189–198. Cham,
-     Switzerland: Springer, 2021, doi: 10.1007/978-3-030-89022-3_16.
-
-[10] J. C. Henderson and N. Venkatraman, “Strategic Alignment: Leveraging
+[8] J. C. Henderson and N. Venkatraman, “Strategic Alignment: Leveraging
     Information Technology for Transforming Organizations,” *IBM Systems
     Journal*, vol. 32, no. 1, pp. 4–16, 1993.
 
-[11] G. Carvalho and P. Sousa, “Business and Information Systems MisAlignment
+[9] G. Carvalho and P. Sousa, “Business and Information Systems MisAlignment
     Model (BISMAM): An Holistic Model Leveraged on Misalignment and Medical
     Sciences Approaches,” in *Proc. 3rd Int. Workshop on Business/IT Alignment
     and Interoperability (BUSITAL ’08)*, CEUR Workshop Proceedings, vol. 336,
     pp. 104–119, 2008.
 
-[12] C. M. Pereira and P. Sousa, “Enterprise Architecture: Business and IT
+[10] C. M. Pereira and P. Sousa, “Enterprise Architecture: Business and IT
     Alignment,” in *Proc. 2005 ACM Symp. Applied Computing*, pp. 1344–1345,
     2005.
 
-[13] P. Sousa, C. M. Pereira, and J. A. Marques, “Enterprise Architecture
+[11] P. Sousa, C. M. Pereira, and J. A. Marques, “Enterprise Architecture
     Alignment Heuristics,” *Microsoft Architects Journal*, vol. 4,
     pp. 34–39, 2005.
 
-[14] J. Luftman, “Assessing Business-IT Alignment Maturity,” *Communications
+[12] J. Luftman, “Assessing Business-IT Alignment Maturity,” *Communications
      of the Association for Information Systems*, vol. 4, Art. no. 14, 2000,
      doi: 10.17705/1CAIS.00414.
 
-[15] F. Kitsios, G. Kyriakopoulou, and M. Kamariotou, “Exploring Business
+[13] F. Kitsios, G. Kyriakopoulou, and M. Kamariotou, “Exploring Business
      Strategy Modelling with ArchiMate: A Case Study Approach,” *Information*,
      vol. 13, no. 1, Art. no. 31, 2022, doi: 10.3390/info13010031.
 
-[16] P. André, A. Benjilany, H. Bruneliere, and D. Tamzalit, “Assessing
+[14] P. André, A. Benjilany, H. Bruneliere, and D. Tamzalit, “Assessing
      Operational Business-IT Alignment for Architecture Improvement,” in
      *Advances in Information Systems Development: Exploring New Horizons and
      Opportunities*, Lecture Notes in Information Systems and Organisation,
      vol. 77, pp. 231–253. Springer, 2025, doi: 10.1007/978-3-031-87880-0_12.
 
-[17] D. Őri, “An Artifact-Based Framework for Business-IT Misalignment Symptom
+[15] D. Őri, “An Artifact-Based Framework for Business-IT Misalignment Symptom
     Detection,” in *Perspectives in Business Informatics Research (PoEM
     2016)*, Lecture Notes in Business Information Processing, vol. 267,
     pp. 148–163. Springer, 2016, doi: 10.1007/978-3-319-48393-1_11.
 
-[18] Z. Szabó and D. Őri, “How Enterprise Architecture Management Can Support
+[16] Z. Szabó and D. Őri, “How Enterprise Architecture Management Can Support
      Strategic IS Planning,” in *Information Strategy Challenges in the
      Digital Era*, 11th Int. Conf. Software, Knowledge, Information
      Management and Applications (SKIMA), 2017.
 
-[19] D. Őri, “Misalignment Symptom Detection with XML-Based Enterprise
+[17] D. Őri, “Misalignment Symptom Detection with XML-Based Enterprise
      Architecture Model Analysis,” *Novel Directions Talk*, pp. 153–157.
      The bibliographic venue and year are not identified in the supplied
      paper copy.
 
-[20] The Open Group, “The Advantages of Combining the ArchiMate®, UML®, and jarchi
+[18] P. Kruchten, “Architectural Blueprints—The ‘4+1’ View Model of Software
+     Architecture,” *IEEE Software*, vol. 12, no. 6, pp. 42–50, Nov. 1995.
+
+[19] The Open Group, “The Advantages of Combining the ArchiMate®, UML®, and jarchi
 
      BPMN™ Modeling Standards,” video, Modeliosoft, 2016.
 
-[21] C. Armstrong, J. D. Baker, I. Band, S. Courtney, H. Jonkers, V. Muchandi,
+[20] C. Armstrong, J. D. Baker, I. Band, S. Courtney, H. Jonkers, V. Muchandi,
      and M. Owen, “How to Use the ArchiMate® Language with UML®,” Sep. 2013.
      [Online]. Available: https://publications.opengroup.org/w134.
 
-[22] A. Aldea, I. E. Maria, M. Lankhorst, D. Quartel, and B. Wimsatt,
-     “Capability-Based Planning: The Link between Strategy and Enterprise
-     Architecture,” Nov. 2016. [Online]. Available:
-     https://publications.opengroup.org/d183.
+[21] E. Walters, “Modeling the Business Model Canvas with the ArchiMate
+     Specification: Using the ArchiMate 3.1 Specification to Model the
+     Building Blocks of the Business Model Canvas,” The Open Group, Feb. 2020.
+     [Online]. Available: https://publications.opengroup.org/w195.
 
-[23] R. Karami, “Capability-Based Planning in 7 Moves!” LinkedIn, Dec. 21,
-     2022. [Online]. Available:
-     https://www.linkedin.com/pulse/capability-based-planning-7-moves-reza-karami/.
+[22] W. Engelsman, J. Gordijn, T. Haaker, M. van Sinderen, and R. Wieringa,
+     “Quantitative Alignment of Enterprise Architectures with the Business
+     Model,” in *Conceptual Modeling: 40th International Conference, ER 2021*,
+     Lecture Notes in Computer Science, vol. 13011, pp. 189–198. Cham,
+     Switzerland: Springer, 2021, doi: 10.1007/978-3-030-89022-3_16.
 
-[24] The Open Group, “Capability-Based Planning Supporting Project/Portfolio
-     and Digital Capabilities Mapping Using the TOGAF® and ArchiMate®
-     Standards,” Jul. 16, 2019. [Online]. Available:
-     https://publications.opengroup.org/g193.
-
-[25] J. Laudicina, “Business Model to Capability Building,” Medium, Apr. 3,
-     2023. [Online]. Available:
-     https://medium.com/@jlaudicina/business-model-to-capability-building-b504c0c89059.
-
-[26] SAP LeanIX, “Best Practices to Define Business Capability Maps,” n.d.
-     [Online]. Available:
-     https://www.leanix.net/en/download/best-practices-to-define-business-capability-maps.
-
-[27] A. Osterwalder, Y. Pigneur, G. Bernarda, and A. Smith, *Value Proposition
+[23] A. Osterwalder, Y. Pigneur, G. Bernarda, and A. Smith, *Value Proposition
      Design: How to Create Products and Services Customers Want*. Hoboken,
      NJ, USA: Wiley, 2015.
 
-[28] The Open Group, *The Open Group Architecture Framework (TOGAF)*. The
-    foundational paper uses TOGAF as the basis for its Table 3 artifact
-    catalogue.
-
-[29] P. Beauvoir and J.-B. Sarrodie, “Archi, ArchiMate Modeling,” Archi.
-     [Online]. Available: https://www.archimatetool.com/faq/.
-
-[30] O. Noran, “A Decision Support Framework for Collaborative Networks,”
-    *International Journal of Production Research*, vol. 47, no. 17,
-    pp. 4813–4832, 2009.
-
-[31] A. A. Choudhry, *Testing Enterprise Application Architecture Patterns*,
+[24] A. A. Choudhry, *Testing Enterprise Application Architecture Patterns*,
      M.Sc. dissertation, University of Liverpool, 2006.
 
-[32] A. S. Bueno, M. Eisele, and N. Vinto, *Applied AI for Enterprise Java
+[25] Modeliosoft, “[Modelio 3.6] Getting Started with ArchiMate,” video.
+     [Online]. Available: https://www.youtube.com/watch?v=Ka16dax5Qa4.
+
+[26] A. S. Bueno, M. Eisele, and N. Vinto, *Applied AI for Enterprise Java
      Development: Leveraging Generative AI, LLMs, and Machine Learning in the
      Java Enterprise*, S. Calin, M. Potter, and G. Hyman, Eds. Santa Rosa, CA,
      USA: O’Reilly Media, 2026.
 
-[33] Modeliosoft, “[Modelio 3.6] Getting Started with ArchiMate,” video.
-     [Online]. Available: https://www.youtube.com/watch?v=Ka16dax5Qa4.
+[27] A. Aldea, I. E. Maria, M. Lankhorst, D. Quartel, and B. Wimsatt,
+     “Capability-Based Planning: The Link between Strategy and Enterprise
+     Architecture,” Nov. 2016. [Online]. Available:
+     https://publications.opengroup.org/d183.
 
-[34] J. Laudicina, “Capability Investment Planning: Use a Build vs. Buy
+[28] R. Karami, “Capability-Based Planning in 7 Moves!” LinkedIn, Dec. 21,
+     2022. [Online]. Available:
+     https://www.linkedin.com/pulse/capability-based-planning-7-moves-reza-karami/.
+
+[29] The Open Group, “Capability-Based Planning Supporting Project/Portfolio
+     and Digital Capabilities Mapping Using the TOGAF® and ArchiMate®
+     Standards,” Jul. 16, 2019. [Online]. Available:
+     https://publications.opengroup.org/g193.
+
+[30] J. Laudicina, “Business Model to Capability Building,” Medium, Apr. 3,
+     2023. [Online]. Available:
+     https://medium.com/@jlaudicina/business-model-to-capability-building-b504c0c89059.
+
+[31] SAP LeanIX, “Best Practices to Define Business Capability Maps,” n.d.
+     [Online]. Available:
+     https://www.leanix.net/en/download/best-practices-to-define-business-capability-maps.
+
+[32] J. Laudicina, “Capability Investment Planning: Use a Build vs. Buy
      9-Box,” Analyst’s Corner, Medium, Jan. 31, 2023. [Online]. Available:
      https://medium.com/analysts-corner/capability-investment-planning-use-a-build-vs-buy-9-box-12971a342f7d.
+
+[33] The Open Group, *The Open Group Architecture Framework (TOGAF)*. The
+    foundational paper uses TOGAF as the basis for its Table 3 artifact
+    catalogue.
+
+[34] P. Beauvoir and J.-B. Sarrodie, “Archi, ArchiMate Modeling,” Archi.
+     [Online]. Available: https://www.archimatetool.com/faq/.

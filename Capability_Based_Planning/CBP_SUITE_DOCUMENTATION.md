@@ -1194,7 +1194,13 @@ mapping is:
 This mapping is an implementation interpretation, not a claim that the publications specify the exact property schema,
 mathematical normalization, ArchiMate relationship types, or generated-view design used by BizDiag.
 
-## 13. References
+## 13. Author and Copyright
+
+**Author:** Ebrahim Pak
+
+**Copyright:** © October 2026 Ebrahim Pak.
+
+## 14. References
 
 [1] R. Karami, “Capability-Based Planning in 7 Moves!” LinkedIn, Dec. 21,
     2022. [Online]. Available:
@@ -1222,8 +1228,3 @@ mathematical normalization, ArchiMate relationship types, or generated-view desi
     9-Box,” Analyst’s Corner, Medium, Jan. 31, 2023. [Online]. Available:
     https://medium.com/analysts-corner/capability-investment-planning-use-a-build-vs-buy-9-box-12971a342f7d.
 
-## Author and Copyright
-
-**Author:** Ebrahim Pak
-
-**Copyright:** © 2026 Ebrahim Pak.

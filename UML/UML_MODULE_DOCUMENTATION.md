@@ -1,13 +1,13 @@
 # UML-Inspired View Module
 
-## Purpose
+## 1. Purpose
 
 The UML module provides `Application_View_to_UML.ajs`, a jArchi script that creates a UML-inspired view from a
 user-selected ArchiMate view. It is intended to make application architecture easier to inspect through a
 component-diagram-style visual presentation, while retaining the source concepts and relationships in the ArchiMate
 model.
 
-## Research basis
+##2.  Research basis
 
 Kruchten's 4+1 model motivates describing software architecture through multiple views that address different
 stakeholder concerns [1]. The Open Group's guidance on using ArchiMate with UML discusses how the languages can be
@@ -19,7 +19,7 @@ The script instead creates a derivative UML-style representation within Archi: i
 concepts by semantic family and presents them with UML-inspired boxes, labels, and relationship styling. Its output
 is still an ArchiMate view, not a native UML model or a standards-conformant UML component diagram [2], [3].
 
-## Workflow and output
+## 3. Workflow and output
 
 1. In Archi, select the source view to transform, typically an application-architecture view.
 2. Run `Application_View_to_UML.ajs`. The script reads visual objects from the selected view and includes supported
@@ -33,12 +33,18 @@ Concepts and relationships outside the script's supported set are omitted or log
 the selected view is semantically appropriate, nor does AI output establish a concept's UML meaning; review the
 generated view and annotations before relying on them.
 
-## Requirements
+## 4. Requirements
 
 Run the script in Archi with jArchi and an open model. `sendToAI.js` is the optional local-AI integration helper; Ollama
 is not required for heuristic-only generation.
 
-## References
+## 5. Author and Copyright
+
+**Author:** Ebrahim Pak
+
+**Copyright:** © October 2026 Ebrahim Pak.
+
+## 6. References
 
 [1] P. Kruchten, “Architectural Blueprints—The ‘4+1’ View Model of Software Architecture,” *IEEE Software*, vol. 12,
 no. 6, pp. 42–50, Nov. 1995.
