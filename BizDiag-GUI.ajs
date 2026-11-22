@@ -1,0 +1,859 @@
+/**
+ * Copyright © 2026 Ebrahim Pak
+ *
+ * SPDX-License-Identifier: CECILL-B
+ *
+ * This file is part of BizDiag.
+ *
+ * BizDiag is distributed under the CeCILL-B Free Software License Agreement,
+ * Version 1.0. See the LICENSE file for details.
+ *
+ * The French and English versions of the license are available in
+ * LICENSE-FR and LICENSE, respectively.
+ *
+ * Author: Ebrahim Pak
+ *
+ * --------------------------------------------------------------------------------------------------------------------
+ * @file BizDiag-GUI.ajs
+ * @version 1.0
+ *
+ * This module-launcher is an SWT script, created for serving as the entry point to
+ * BizDiag's modules. Version 1.0 of 'BizDiag-GUI.ajs' consists of 10 scripts.
+ * However, since BizDiag is an ongoing project, the future versions of this script
+ * will cater to more BizDiag's modules. As a software-suite, BizDiag needed this
+ * belatedly-added GUI script for gathering its modules under an umbrella, as
+ * BizDiag-GUI is.
+ *
+ * So far, this script is comprised of ten modules, whose second five scripts, are
+ * grouped together in five adjacent tabs in this GUI. The first five tabbed modules
+ * are all GUI-based, while the second five adjacent tabbed are a mix of CLI-cum-GUI,
+ * or only CLI. The bilingual, English and Persian, modules have two buttons, each
+ * executing its respective language script. The tab colors have been chosen for an
+ * enhanced user experience, so the five modules belonging to the ClientServer_DB
+ * category have all a common color, in the blue spectrum; while the other five tabs
+ * have their own distinguished tab color.
+ */
+
+console.clear();
+console.show();
+
+/**
+ * Entry point for the BizDiag launcher.
+ * Resolves the model and script context, creates the complete SWT widget tree, attaches
+ * event handlers, and runs the UI event loop until the user closes the launcher.
+ */
+(function() {
+    "use strict";
+
+    // SWT style constants and widget/graphics classes are Java classes exposed through GraalJS interop;
+    // using these explicit Java.type references keeps the native UI dependencies visible in one place.
+    const File = Java.type("java.io.File");
+    const SWT = Java.type("org.eclipse.swt.SWT");
+    const Display = Java.type("org.eclipse.swt.widgets.Display");
+    const Shell = Java.type("org.eclipse.swt.widgets.Shell");
+    const Composite = Java.type("org.eclipse.swt.widgets.Composite");
+    const Canvas = Java.type("org.eclipse.swt.widgets.Canvas");
+    const CTabFolder = Java.type("org.eclipse.swt.custom.CTabFolder");
+    const CTabItem = Java.type("org.eclipse.swt.custom.CTabItem");
+    const Label = Java.type("org.eclipse.swt.widgets.Label");
+    const StyledText = Java.type("org.eclipse.swt.custom.StyledText");
+    const Button = Java.type("org.eclipse.swt.widgets.Button");
+    const Image = Java.type("org.eclipse.swt.graphics.Image");
+    const GC = Java.type("org.eclipse.swt.graphics.GC");
+    const Color = Java.type("org.eclipse.swt.graphics.Color");
+    const Font = Java.type("org.eclipse.swt.graphics.Font");
+    const StyleRange = Java.type("org.eclipse.swt.custom.StyleRange");
+    const RGB = Java.type("org.eclipse.swt.graphics.RGB");
+    const GridLayout = Java.type("org.eclipse.swt.layout.GridLayout");
+    const GridData = Java.type("org.eclipse.swt.layout.GridData");
+    const DisposeListener = Java.type("org.eclipse.swt.events.DisposeListener");
+    const PaintListener = Java.type("org.eclipse.swt.events.PaintListener");
+    const SelectionListener = Java.type("org.eclipse.swt.events.SelectionListener");
+
+    // Resolve every module script relative to this launcher, not to Archi's current working directory.
+    const rootDirectory = new File(__DIR__).getCanonicalFile();
+    // Used to persist the selection-handoff marker between jArchi script invocations.
+    const System = Java.type("java.lang.System");
+
+    // SWT controls and graphics resources must be created and accessed on the Display's UI thread.
+    const display = Display.getCurrent() || Display.getDefault();
+
+    // The top-level Shell owns the widget tree; it is deliberately not parented to Archi's main Shell.
+    const launcherShell = new Shell(display, SWT.SHELL_TRIM | SWT.RESIZE);
+
+    // Capture the jArchi selection at launch time. In the handoff flow this is the user's selection
+    // made after closing the previous launcher instance.
+    const launchSelection = $(selection).clone();
+
+    // This property bridges the close-select-reopen flow between separate script executions.
+    const selectionHandoffKey = "bizdiag.launcher.selectionHandoff";
+
+    // Read once per launcher run; it must match an action's selectionType before that action uses selection.
+    const pendingSelectionType = System.getProperty(selectionHandoffKey, "");
+
+    // accentPalette is a JavaScript object whose values are RGB arrays.
+    // Colors are deliberately spread across pale-to-deep blues; ClientServer_DB shares one sky-blue.
+    // CTabItem has no per-item background API, so colors also appear as swatches and page ribbons.
+    const accentPalette = {
+        "Business-IT Alignment": [214, 232, 255],
+        "Capability-based Planning": [107, 174, 214],
+        "DocMaker": [49, 130, 189],
+        "UML": [8, 81, 156],
+        "BizModelCanvas": [8, 48, 107],
+        "ClientServer_DB": [145, 205, 240]
+    };
+
+    // SWT Color objects are native resources. Cache by RGB so each distinct color is created only once.
+    const accentColorCache = {};
+
+    // Shared terminal colors and typeface make command examples distinct without extra per-line widgets.
+    const terminalBackground = new Color(display, new RGB(35, 45, 58));
+    const terminalForeground = new Color(display, new RGB(190, 238, 204));
+    const terminalFont = new Font(display, "Consolas", 10, SWT.NORMAL);
+
+    // Recognize only actual command/query starts so explanatory prose and file paths stay normally styled.
+    const terminalCommandPattern = /^(?:&\s|mvn(?:\s|$)|where\s+java\b|java(?:\.exe)?\s|SELECT\b|FROM\b|WHERE\b)/i;
+
+    // CTabItem retains its Image but does not own its disposal; keep references for shell-close cleanup.
+    const tabImages = [];
+
+    // These are disposed explicitly because Image and Color resources are not part of the widget tree.
+    let logoImage = null;
+
+    // Shared by callbacks so actions can report their current state in the bottom status bar.
+    let statusLabel = null;
+
+    // clientServerTabs is an array of JavaScript objects. Its instructions values are built with
+    // string concatenation, which JSON does not support.
+    // The five terminal-oriented modules are instructional tabs, not scripts launched by this GUI.
+    const clientServerTabs = [
+        {
+            title: "DB_Log",
+            executionMode: "CLI + standalone GUI | H2 web console or Java Swing clients",
+            instructions:
+                "DB_Log: export the current model, then query it with the H2 web console or a Java Swing client.\n\n" +
+                "1. In Archi's Scripts Manager, select the model in the Models panel and run:\n" +
+                "   ClientServer_DB\\DB_Log\\ArchiModelDumper.ajs\n" +
+                "   This writes the model dump under DB_Log\\ArchiSyncDump.\n\n" +
+                "2. Open a terminal in ClientServer_DB\\DB_Log (Maven and a compatible JDK must be installed).\n\n" +
+                "3. Start one of the following applications:\n" +
+                "   H2 web console:\n" +
+                "   mvn \"-DmainClass=ArchiJDBC.H2ConsoleLauncher\" exec:java\n\n" +
+                "   English Swing client:\n" +
+                "   mvn \"-DmainClass=ArchiJDBC.H2JdbcProcessor_EN\" exec:java\n\n" +
+                "   Persian Swing client:\n" +
+                "   mvn \"-DmainClass=ArchiJDBC.H2JdbcProcessor_FA\" exec:java\n\n" +
+                "The Java clients query the exported model data in H2. The commands are run from the DB_Log directory."
+        },
+        {
+            title: "GraalJS Template",
+            executionMode: "CLI server + Archi script client | no separate GUI",
+            instructions:
+                "GraalJS_ClientServer_Template is a TCP time-server/client example. The server runs outside Archi; " +
+                "the jArchi client sends the selected model element's data.\n\n" +
+                "Prerequisite: install a GraalJS JVM distribution with Java interoperability. In " +
+                "GraalJS_ClientServer_Template\\log_click.ajs, update graaljsExecutable to your local js.exe.\n\n" +
+                "Start the server in PowerShell from ClientServer_DB\\GraalJS_ClientServer_Template:\n" +
+                "   & \"<GRAALJS_HOME>\\bin\\js.exe\" \".\\nio_interop_server.js\"\n\n" +
+                "Leave the server running. In Archi, select an element and run " +
+                "GraalJS_ClientServer_Template\\log_click.ajs from the Scripts Manager."
+        },
+        {
+            title: "REST Logger",
+            executionMode: "CLI server + Archi script client | no separate GUI",
+            instructions:
+                "GraalJS_Element_RESTLogger pairs a GraalJS REST server with a jArchi client that sends selected " +
+                "element data to H2 database.\n\n" +
+                "1. Set JAVA_HOME to a GraalVM installation with Java interoperability and open a terminal in " +
+                "ClientServer_DB\\GraalJS_Element_RESTLogger.\n\n" +
+                "2. Start the server:\n" +
+                "   & \"$env:JAVA_HOME\\bin\\js\" --vm.classpath=h2-2.4.240.jar .\\GraalJSRESTServer.js\n\n" +
+                "3. Keep the server running. In Archi, select the element(s) to log and run " +
+                "GraalJS_Element_RESTLogger\\GraalJSRESTClient.ajs from the Scripts Manager."
+        },
+        {
+            title: "GraalJS NIO",
+            executionMode: "CLI server + Archi script client | no separate GUI",
+            instructions:
+                "GraalJS_NIOLoggerServer receives selected-element payloads in a standalone GraalJS/JVM server and " +
+                "stores records in H2 database and JSONL file.\n\n" +
+                "Prerequisites: GraalVM JDK 25 and Apache Maven.\n " +
+                "In ClientServer_DB\\GraalJS_NIOLoggerServer\\log_click.ajs, update javaExecutable and projectPath " +
+                "to match your local installation and project location.\n\n" +
+                "If the source has changed, build from the module directory:\n" +
+                "   mvn clean package\n\n" +
+                "Start the server from that directory:\n" +
+                "   mvn exec:java \"-Dexec.mainClass=com.bizdiag.NioInteropLauncher\" " +
+                "\"-Dexec.classpathScope=runtime\" \"-Dexec.args=nio_interop_server.js\"\n\n" +
+                "Leave the server running, select one ArchiMate element, then run " +
+                "GraalJS_NIOLoggerServer\\log_click.ajs from Archi's Scripts Manager."
+        },
+        {
+            title: "Java DB Logger",
+            executionMode: "CLI server + Archi script client | no separate GUI",
+            instructions:
+                "Java_DBLoggerServer uses a standalone Java TCP server for database-backed element logging.\n\n" +
+                "Open a terminal in ClientServer_DB\\Java_DBLoggerServer. To recompile after source changes:\n" +
+                "   mvn clean compile -U\n\n" +
+                "Start the server (the Java source and POM declare com.archi.NioInteropServer as the main class):\n" +
+                "   mvn exec:java -D\"exec.mainClass\"=\"com.archi.NioInteropServer\"\n\n" +
+                "Keep the server running. In Archi, select exactly one element and run " +
+                "Java_DBLoggerServer\\log_click.ajs from the Scripts Manager."
+        }
+    ];
+
+    // GUI-runnable modules appear first. Bilingual implementations are paired in one module tab.
+    const runnableTabs = [
+        {
+            title: "Business-IT Alignment",
+            description:
+                "Run the Business-IT Alignment assessment against the open model. English and Persian entry scripts " +
+                "are provided in this tab; the English version is listed first.",
+            scripts: [
+                { label: "Run English", path: "Business_IT_Alignment\\BusinessITAlignment_EN.ajs" },
+                { label: "Run Persian", path: "Business_IT_Alignment\\BusinessITAlignment_FA.ajs" }
+            ]
+        },
+        {
+            title: "Capability-based Planning",
+            description:
+                "Capability-Based Planning is a two-stage workflow. Run Move 1 to define the scope and prepare inputs. " +
+                "Review, edit, and save the model before running Moves 2-7. Move 1's optional capability discovery " +
+                "uses local Ollama.",
+            scripts: [
+                { label: "Move 1 - Setup", path: "Capability_Based_Planning\\CBP_Move_1_Setup.ajs" },
+                { label: "Moves 2-7 - Continue", path: "Capability_Based_Planning\\CBP_Continue_Moves_2_to_7.ajs" }
+            ]
+        },
+        {
+            title: "DocMaker",
+            description:
+                "Choose the target elements or ArchiMate views directly in Archi using the selection controls below; " +
+                "you do not need to select them before opening this GUI. For each task, the English entry point is listed before its " +
+                "Persian counterpart. AI-assisted scripts require a configured local Ollama installation and model. " +
+                "Mark_it_Down is the module's Markdown post-processing utility.",
+            scripts: [
+                { label: "View documentation - English", path: "DocMaker\\AI_View_DocMaker_EN.ajs", selectionType: "views" },
+                { label: "View documentation - Persian", path: "DocMaker\\AI_View_DocMaker_FA.ajs", selectionType: "views" },
+                { label: "Element documentation - English", path: "DocMaker\\AI_Element_DocMaker_EN.ajs", selectionType: "elements" },
+                { label: "Element documentation - Persian", path: "DocMaker\\AI_Element_DocMaker_FA.ajs", selectionType: "elements" },
+                { label: "Markdown export", path: "DocMaker\\Mark_it_Down.ajs", selectionType: "views" }
+            ]
+        },
+        {
+            title: "UML",
+            description:
+                "Create a UML-inspired ArchiMate view from the selected source view. Select an application-architecture " +
+                "view using the selection controls below. Ollama enrichment is optional; the script can continue with " +
+                "heuristic results.",
+            scripts: [
+                {
+                    label: "Create UML-inspired view",
+                    path: "UML\\Application_View_to_UML.ajs",
+                    selectionType: "views"
+                }
+            ]
+        },
+        {
+            title: "BizModelCanvas",
+            description:
+                "Open the existing Business Model Canvas tool suite. Each language launcher provides the module's " +
+                "analysis, view, conversion, and graphic tools. English is listed before Persian.",
+            scripts: [
+                { label: "Open English GUI", path: "BizModelCanvas\\BizModelCanvas-GUI-EN.ajs" },
+                { label: "Open Persian GUI", path: "BizModelCanvas\\BizModelCanvas-GUI-FA.ajs" }
+            ]
+        }
+    ];
+
+    /**
+     * Adds one CTabItem and its page Composite to the shared tab folder.
+     * The accent is saved as item data so the selection listener can update the folder highlight
+     * when the user changes tabs. A small image swatch keeps each module's color visible even
+     * when its tab is not selected.
+     *
+     * @param {CTabFolder} folder Folder that owns the new tab item and page.
+     * @param {{title: string}} module Module metadata whose title is shown on the tab.
+     * @returns {Composite} Empty page composite for the caller to populate.
+     */
+    function createTab(folder, module) {
+        // A CTabItem is the selectable header; its child Composite holds all content for that page.
+        const item = new CTabItem(folder, SWT.NONE);
+        item.setText(module.title);
+        // CTabItem has no subtitle slot; expose a short module descriptor on hover when available.
+        if (module.executionMode) {
+            item.setToolTipText(module.executionMode);
+        }
+        const accentColor = getAccentColor(module.title);
+        item.setData("bizdiagAccent", accentColor);
+        item.setImage(createAccentSwatch(accentColor));
+        const page = new Composite(folder, SWT.NONE);
+        page.setLayout(new GridLayout(1, false));
+        item.setControl(page);
+        return page;
+    }
+
+    /**
+     * Resolves a module title to its palette entry and returns the shared SWT Color for it.
+     * SWT colors are tied to a Display and allocate native resources, so reusing the cached object
+     * avoids redundant allocations. Unknown module titles use the shared ClientServer_DB blue.
+     *
+     * @param {string} title Exact module title or the ClientServer_DB group key.
+     * @returns {Color} Cached color owned by this launcher's Display.
+     */
+    function getAccentColor(title) {
+        // Match by exact title, with the shared DB blue as a fallback for grouped instruction tabs.
+        const palette = accentPalette[title] || accentPalette.ClientServer_DB;
+        // RGB string uniquely identifies a palette entry and serves as the cache key.
+        const key = palette.join(",");
+        if (!accentColorCache[key]) {
+            accentColorCache[key] = new Color(display, new RGB(palette[0], palette[1], palette[2]));
+        }
+        return accentColorCache[key];
+    }
+
+    /**
+     * Renders an accent color into a small SWT bitmap for use as a CTabItem image.
+     * CTabItem exposes an image but not an individual background color; this swatch is the
+     * per-tab color indicator. The GC is disposed immediately after drawing, while the Image
+     * itself is retained until the shell is disposed.
+     *
+     * @param {Color} color Color used to fill the swatch.
+     * @returns {Image} Tracked SWT image to assign to the tab item.
+     */
+    function createAccentSwatch(color) {
+        // Image and GC are separate native resources; dispose only the GC here and retain the Image for the tab.
+        const image = new Image(display, 16, 16);
+        const gc = new GC(image);
+        try {
+            gc.setBackground(color);
+            gc.fillRectangle(1, 1, 14, 14);
+        } finally {
+            gc.dispose();
+        }
+        tabImages.push(image);
+        return image;
+    }
+
+    /**
+     * Adds a full-width module ribbon and selects black or white text for legibility.
+     * The weighted brightness estimate is a simple contrast heuristic, not a WCAG contrast
+     * calculation; it keeps labels readable across the launcher palette's light and dark blues.
+     *
+     * @param {Composite} parent Page composite that will own the label.
+     * @param {string} text Module name to display in the ribbon.
+     * @param {Color} accentColor Background color shared with the tab's swatch.
+     * @returns {void}
+     */
+    function addHeading(parent, text, accentColor) {
+        // SWT.WRAP is defensive for narrow windows; CENTER aligns the ribbon title horizontally.
+        const heading = new Label(parent, SWT.WRAP | SWT.CENTER);
+        heading.setText(text);
+        heading.setBackground(accentColor);
+        // Use perceived brightness to choose a contrasting foreground; this is intentionally a small palette heuristic.
+        const brightness = 0.299 * accentColor.getRed() +
+            0.587 * accentColor.getGreen() + 0.114 * accentColor.getBlue();
+        // Use the Display's predefined colors; these system colors are managed by SWT, not this script.
+        heading.setForeground(display.getSystemColor(
+            brightness < 150 ? SWT.COLOR_WHITE : SWT.COLOR_BLACK
+        ));
+        const headingData = new GridData(GridData.FILL_HORIZONTAL);
+        headingData.heightHint = 32;
+        heading.setLayoutData(headingData);
+    }
+
+    /**
+     * Places instructions in a read-only SWT StyledText control. When terminal styling is enabled,
+     * recognized command/query lines get a monospace font and green foreground on a dark background;
+     * otherwise the text remains uniformly styled. WRAP keeps long lines within the panel and
+     * V_SCROLL retains access to longer instructions.
+     *
+     * @param {Composite} parent Page composite that will own the text control.
+     * @param {string} text Instructions to display.
+     * @param {boolean} [styleTerminalCommands=false] Whether to style terminal/SQL commands.
+     * @returns {void}
+     */
+    function addInstructions(parent, text, styleTerminalCommands) {
+        // StyledText provides per-line colors/fonts; setEditable(false) preserves the old read-only behavior.
+        const instructions = new StyledText(parent, SWT.MULTI | SWT.WRAP | SWT.V_SCROLL | SWT.BORDER);
+        instructions.setEditable(false);
+        instructions.setMargins(8, 6, 8, 6);
+        instructions.setText(text);
+
+        if (styleTerminalCommands) {
+            // SWT line indices are zero-based; StyleRange offsets are zero-based character offsets.
+            for (let lineIndex = 0; lineIndex < instructions.getLineCount(); lineIndex++) {
+                const lineText = instructions.getLine(lineIndex);
+                const commandText = lineText.trim();
+                if (!terminalCommandPattern.test(commandText)) {
+                    continue;
+                }
+
+                instructions.setLineBackground(lineIndex, 1, terminalBackground);
+                const commandOffset = lineText.search(/\S/);
+                const style = new StyleRange(
+                    instructions.getOffsetAtLine(lineIndex) + commandOffset,
+                    lineText.length - commandOffset,
+                    terminalForeground,
+                    terminalBackground
+                );
+                style.font = terminalFont;
+                instructions.setStyleRange(style);
+            }
+        }
+
+        instructions.setLayoutData(new GridData(GridData.FILL_BOTH));
+    }
+
+    /**
+     * Starts the visual-selection handoff for DocMaker or UML.
+     * Archi cannot accept tree/canvas selection while this launcher script owns the UI event loop.
+     * The requested selection type is stored in a Java system property, the user is instructed to select in
+     * Archi, and the shell is closed. On the next launcher run the saved type gates the action.
+     *
+     * @param {"views"|"elements"} selectionType Target category expected after reopening.
+     * @returns {void}
+     */
+    function closeForArchiSelection(selectionType) {
+        // Tailor the handoff prompt; views are selected in the model tree, while elements may be on a canvas.
+        const targetDescription = selectionType === "views" ?
+            "the ArchiMate view(s) to process" : "the element(s) to document";
+        // The confirmation is explicit because closing the shell is required before direct selection in Archi.
+        const message = "The launcher will close so Archi is available for selection.\n\n" +
+            "1. Select " + targetDescription + " directly in Archi.\n" +
+            "2. Run BizDiag-GUI.ajs again from the Scripts Manager.\n" +
+            "3. Open this module tab and run the desired action.\n\n" +
+            "The reopened launcher will use the selection made in Archi.";
+        System.setProperty(selectionHandoffKey, selectionType);
+        console.log("BizDiag launcher: closing before selecting " + targetDescription +
+            "; rerun BizDiag-GUI.ajs after selecting.");
+        window.alert(message);
+        if (!launcherShell.isDisposed()) {
+            launcherShell.dispose();
+        }
+    }
+
+    /**
+     * Validates prerequisites, verifies any selection handoff, and loads the requested module.
+     * Selection-based actions filter the launch-time selection to the expected ArchiMate type,
+     * show names for user confirmation, and only then replace jArchi's global selection and load
+     * the module. Errors are surfaced in the status bar, console, and alert rather than swallowed.
+     *
+     * @param {{label: string, path: string, selectionType?: string}} script Label, repository-relative path,
+     *        and optional required handoff type for the target script.
+     * @returns {void}
+     */
+    function runScript(script) {
+        try {
+            if (typeof model === "undefined" || !model || !model.isSet()) {
+                throw new Error("Open an ArchiMate model before running this module.");
+            }
+
+            // Resolve and validate paths before calling load(), so missing modules have an explicit error.
+            const scriptFile = new File(rootDirectory, script.path);
+            if (!scriptFile.isFile()) {
+                throw new Error("Script file not found: " + scriptFile.getCanonicalPath());
+            }
+
+            statusLabel.setText("Running: " + script.label);
+            console.log("BizDiag launcher: running " + scriptFile.getCanonicalPath());
+
+            if (script.selectionType) {
+                if (pendingSelectionType !== script.selectionType) {
+                    throw new Error(
+                        "A current selection is not enough because Archi may report the last-opened view by default. " +
+                        "Use the selection handoff button, select the target in Archi after the launcher closes, " +
+                        "then reopen the launcher before running this action."
+                    );
+                }
+
+                // Work on a copy: filter the handoff snapshot without altering the captured source collection.
+                let selectedTargets = launchSelection.clone();
+                if (script.selectionType === "views") {
+                    selectedTargets = selectedTargets.filter("archimate-diagram-model");
+                } else {
+                    selectedTargets = selectedTargets.filter(
+                        /** Keeps direct elements and diagram objects whose underlying concept is an element.
+                         * @param {*} object Candidate from jArchi's selection collection.
+                         * @returns {boolean} True when this selection entry represents an ArchiMate element.
+                         */
+                        function(object) {
+                            if (!object) return false;
+                            if ($(object).is("element")) return true;
+                            return !!object.concept && $(object.concept).is("element");
+                        });
+                }
+                if (selectedTargets.size() === 0) {
+                    throw new Error(script.selectionType === "views" ?
+                        "No ArchiMate view was selected when the launcher opened. Close the launcher, select the view " +
+                            "in Archi's Models panel, then run BizDiag-GUI.ajs again." :
+                        "No element was selected when the launcher opened. Close the launcher, select the element(s) " +
+                            "in Archi, then run BizDiag-GUI.ajs again.");
+                }
+
+                // Build a human-readable confirmation so accidental/default active-view selections are visible.
+                let selectionSummary;
+                if (script.selectionType === "views") {
+                    // Show every chosen view because the view selection list is expected to be short.
+                    const names = [];
+                    for (let i = 0; i < selectedTargets.size(); i++) {
+                        names.push("'" + (selectedTargets.get(i).name || "(unnamed view)") + "'");
+                    }
+                    selectionSummary = "Use selected view(s): " + names.join(", ") + "?";
+                } else {
+                    // Cap element names to keep confirmation dialogs manageable for large selections.
+                    const names = [];
+                    for (let i = 0; i < selectedTargets.size() && i < 5; i++) {
+                        const object = selectedTargets.get(i);
+                        const concept = object.concept || object;
+                        names.push("'" + (concept.name || "(unnamed element)") + "'");
+                    }
+                    const remaining = selectedTargets.size() - names.length;
+                    selectionSummary = "Use " + selectedTargets.size() + " selected element(s): " +
+                        names.join(", ") + (remaining > 0 ? ", and " + remaining + " more" : "") + "?";
+                }
+
+                if (!window.confirm(selectionSummary)) {
+                    statusLabel.setText("Cancelled: " + script.label);
+                    return;
+                }
+
+                selection = selectedTargets;
+
+                // Verify the global jArchi selection now represents the same filtered targets we intend to pass.
+                const activeSelection = $(selection);
+                if (activeSelection.size() !== selectedTargets.length) {
+                    throw new Error("Could not set the selected targets as the jArchi script selection.");
+                }
+                for (let i = 0; i < selectedTargets.size(); i++) {
+                    if (activeSelection.get(i).id !== selectedTargets.get(i).id) {
+                        throw new Error("The current Archi selection could not be passed to the selected module.");
+                    }
+                }
+                System.clearProperty(selectionHandoffKey);
+            }
+
+            load(scriptFile.getCanonicalPath());
+            statusLabel.setText("Finished: " + script.label);
+        } catch (error) {
+            const message = error && error.message ? error.message : String(error);
+            statusLabel.setText("Could not run: " + script.label);
+            console.error("BizDiag launcher: " + message);
+            window.alert("Could not run " + script.label + ".\n\n" + message);
+        }
+    }
+
+    /**
+     * Creates a two-column button grid for the scripts belonging to one runnable module.
+     * Each button closes over its own script metadata and invokes runScript when SWT reports
+     * a selection event; callback errors are shown to the user.
+     *
+     * @param {Composite} parent Page composite that will own the button area.
+     * @param {Array<{label: string, path: string, selectionType?: string}>} scripts Actions to expose.
+     * @returns {void}
+     */
+    function addRunButtons(parent, scripts) {
+        // GridLayout's equalWidth=true gives each button column the same available width.
+        const buttonArea = new Composite(parent, SWT.NONE);
+        buttonArea.setLayout(new GridLayout(2, true));
+        buttonArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+        scripts.forEach(
+            /** Captures one action definition so its button runs the matching script.
+             * @param {{label: string, path: string, selectionType?: string}} script Script represented by this button.
+             */
+            function(script) {
+                // SWT.PUSH creates a standard clickable button; the SelectionListener handles its activation.
+                const button = new Button(buttonArea, SWT.PUSH);
+                button.setText(script.label);
+                button.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+                button.addSelectionListener(new SelectionListener({
+                    /** SWT selection event: run the captured action after the user clicks the button.
+                     * @returns {void}
+                     */
+                    widgetSelected: function() {
+                        try {
+                            runScript(script);
+                        } catch (error) {
+                            const message = error && error.message ? error.message : String(error);
+                            statusLabel.setText("Could not prepare: " + script.label);
+                            console.error("BizDiag launcher: " + message);
+                            window.alert("Could not prepare " + script.label + ".\n\n" + message);
+                        }
+                    },
+                    /** SWT requires both listener methods; double-click/default activation adds no extra action here.
+                     * @returns {void}
+                     */
+                    widgetDefaultSelected: function() {}
+                }));
+            });
+    }
+
+    /**
+     * Builds a ClientServer_DB page with a shared-color ribbon, a concise execution-mode subtitle,
+     * and scrollable CLI/server setup instructions. These tabs explain how to use the module;
+     * they intentionally do not launch terminal processes themselves.
+     *
+     * @param {CTabFolder} folder Tab folder that owns the instruction page.
+     * @param {{title: string, executionMode: string, instructions: string}} module Display name,
+     *        brief CLI/server description, and detailed usage steps.
+     * @returns {void}
+     */
+    function createClientServerTab(folder, module) {
+        const page = createTab(folder, module);
+        addHeading(page, module.title, getAccentColor("ClientServer_DB"));
+        // Separate subtitle keeps the CLI/server nature visible without crowding the colored title ribbon.
+        // SWT.WRAP allows longer descriptors to flow onto another line on smaller displays.
+        const executionMode = new Label(page, SWT.WRAP | SWT.CENTER);
+        executionMode.setText(module.executionMode);
+        executionMode.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        addInstructions(page, module.instructions, true);
+    }
+
+    /**
+     * Builds a runnable-module page with its own ribbon, summary, optional selection guidance,
+     * and buttons for one or more entry scripts (including paired EN/FA versions).
+     * Selection controls are created only when at least one script declares a selectionType.
+     *
+     * @param {CTabFolder} folder Tab folder that owns this module page.
+     * @param {{title: string, description: string, scripts: Array}} module Display name,
+     *        user-facing summary, and script action definitions.
+     * @returns {void}
+     */
+    function createRunnableTab(folder, module) {
+        const page = createTab(folder, module);
+        addHeading(page, module.title, getAccentColor(module.title));
+        addInstructions(page, module.description);
+        // Find the first selection-dependent script; its presence is the flag that handoff controls are needed.
+        const selectionType = module.scripts.filter(
+            /** Finds the first script that declares a required selection category.
+             * @param {{selectionType?: string}} script Script definition being inspected.
+             * @returns {boolean} True when the script needs Archi's selection handoff.
+             */
+            function(script) {
+                return !!script.selectionType;
+            })[0];
+        if (selectionType) {
+            // A module may contain both view and element actions; create one control per unique type.
+            // Deduplicate types so a module with several view actions gets one handoff control, not one per action.
+            const selectionTypes = [];
+            module.scripts.forEach(
+                /** Collects the distinct handoff categories represented by this module's scripts.
+                 * @param {{selectionType?: string}} script Script definition being inspected.
+                 */
+                function(script) {
+                    if (script.selectionType && selectionTypes.indexOf(script.selectionType) === -1) {
+                        selectionTypes.push(script.selectionType);
+                    }
+                });
+
+            selectionTypes.forEach(
+                /** Adds the appropriate user guidance and close-before-select action.
+                 * @param {string} type Selection category requested by these module scripts.
+                 */
+                function(type) {
+                    const isView = type === "views";
+                    // Views must be selected in the model tree; elements can also be selected on a diagram.
+                    const selectionHelp = isView ?
+                        "Select the ArchiMate view itself in Archi's Models panel; do not select objects on its canvas." :
+                        "Select elements in the model tree or directly on a view. Use Ctrl-click for multiple elements.";
+                    addInstructions(page,
+                        selectionHelp + " The launcher must close before Archi can accept selection. After selecting, run " +
+                        "BizDiag-GUI.ajs again from the Scripts Manager; the reopened launcher will use that selection.");
+
+                    const selectButton = new Button(page, SWT.PUSH);
+                    selectButton.setText(isView ?
+                        "Close launcher, then select view(s)" :
+                        "Close launcher, then select element(s)");
+                    selectButton.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+                    selectButton.addSelectionListener(new SelectionListener({
+                        /** SWT selection event: persist the requested type, notify the user, and close this shell.
+                         * @returns {void}
+                         */
+                        widgetSelected: function() {
+                            closeForArchiSelection(type);
+                        },
+                        /** No separate default action is needed for this handoff button.
+                         * @returns {void}
+                         */
+                        widgetDefaultSelected: function() {}
+                    }));
+                });
+        }
+        addRunButtons(page, module.scripts);
+    }
+
+    try {
+        if (!rootDirectory.isDirectory()) {
+            throw new Error("BizDiag repository directory not found: " + rootDirectory.getPath());
+        }
+
+        launcherShell.setText("BizDiag - Module Launcher");
+        // Start wide enough for the module tabs and instruction panel without requiring manual resizing.
+        launcherShell.setSize(1480, 800);
+
+        // One-column shell layout stacks the flexible content region above the status line.
+        launcherShell.setLayout(new GridLayout(1, false));
+
+        // A two-column composite keeps branding fixed at left while the tab area consumes remaining space.
+        const mainArea = new Composite(launcherShell, SWT.NONE);
+        mainArea.setLayout(new GridLayout(2, false));
+        mainArea.setLayoutData(new GridData(GridData.FILL_BOTH));
+
+        // The left column is intentionally non-grabbing; widthHint keeps the logo legible and stable.
+        const sidebar = new Composite(mainArea, SWT.BORDER);
+        sidebar.setLayout(new GridLayout(1, false));
+        const sidebarData = new GridData(SWT.BEGINNING, SWT.FILL, false, true);
+        sidebarData.widthHint = 230;
+        sidebar.setLayoutData(sidebarData);
+
+        // Keep the original file-backed SWT image; the Canvas paint handler scales only for display.
+        const logoFile = new File(rootDirectory, "logo\\BizDiag_Logo.png");
+        logoImage = new Image(display, logoFile.getAbsolutePath());
+
+        // DOUBLE_BUFFERED reduces flicker while this custom-painted logo canvas is redrawn.
+        const logoCanvas = new Canvas(sidebar, SWT.DOUBLE_BUFFERED);
+        const logoCanvasData = new GridData(SWT.CENTER, SWT.BEGINNING, true, false);
+        logoCanvasData.widthHint = 210;
+        logoCanvasData.heightHint = 107;
+        logoCanvas.setLayoutData(logoCanvasData);
+        // Draw the original full-resolution asset directly so SWT can use high-quality interpolation.
+        logoCanvas.addPaintListener(new PaintListener({
+            /** SWT paint callback: scales the source into the canvas while preserving its target aspect ratio.
+             * The PaintEvent's GC is owned by SWT and must not be disposed by this listener.
+             * @param {Object} event PaintEvent containing the system-owned drawing context.
+             * @returns {void}
+             */
+            paintControl: function(event) {
+                const imageBounds = logoImage.getBounds();
+                const canvasSize = logoCanvas.getSize();
+                // HIGH asks SWT to use its best available interpolation for the downscaled logo.
+                event.gc.setInterpolation(SWT.HIGH);
+                event.gc.drawImage(
+                    logoImage,
+                    0, 0, imageBounds.width, imageBounds.height,
+                    0, 0, canvasSize.x, canvasSize.y
+                );
+            }
+        }));
+
+        const sidebarTitle = new Label(sidebar, SWT.WRAP | SWT.CENTER);
+        sidebarTitle.setText("Rᴇꜱᴇᴀʀᴄʜ-Dʀɪᴠᴇɴ Eɴᴛᴇʀᴘʀɪꜱᴇ Aʀᴄʜɪᴛᴇᴄᴛᴜʀᴇ Iɴᴛᴇʟʟɪɢᴇɴᴄᴇ ꜰᴏʀ Dɪɢɪᴛᴀʟ Sᴛʀᴀᴛᴇɢʏ ᴀɴᴅ Bᴜꜱɪɴᴇꜱꜱ Dɪᴀɢɴᴏꜱᴛɪᴄꜱ\n");
+        sidebarTitle.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+        const sidebarDescription = new Label(sidebar, SWT.WRAP);
+        sidebarDescription.setText("\n\nChoose a module from the tabs.\n\n" +
+            "The five ClientServer_DB tabs contain setup and execution instructions.");
+        sidebarDescription.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+        // CTabFolder supports selected-tab highlighting; standard TabFolder does not expose that styling.
+        const tabFolder = new CTabFolder(mainArea, SWT.BORDER | SWT.FLAT);
+        // FILL_BOTH lets the tab control claim the remaining horizontal and vertical space in mainArea.
+        tabFolder.setLayoutData(new GridData(GridData.FILL_BOTH));
+        tabFolder.setUnselectedImageVisible(true);
+        tabFolder.setSelectedImageVisible(true);
+        tabFolder.setHighlightEnabled(true);
+
+        runnableTabs.forEach(
+            /** Creates the GUI action tab for one non-terminal module.
+             * @param {Object} module Runnable module metadata.
+             */
+            function(module) {
+                createRunnableTab(tabFolder, module);
+            });
+        clientServerTabs.forEach(
+            /** Creates the instructional tab for one ClientServer_DB module.
+             * @param {Object} module Terminal-oriented module metadata.
+             */
+            function(module) {
+                createClientServerTab(tabFolder, module);
+            });
+
+        tabFolder.addSelectionListener(new SelectionListener({
+            /** SWT selection event: repaint the selected-tab highlight using the active module accent.
+             * @returns {void}
+             */
+            widgetSelected: function() {
+                // CTabFolder.getSelection() returns one item or null, unlike TabFolder's array API.
+                const selectedItem = tabFolder.getSelection();
+                if (selectedItem) {
+                    tabFolder.setSelectionBackground(selectedItem.getData("bizdiagAccent"));
+                }
+            },
+            /** Required listener callback; default activation does not need additional tab behavior.
+             * @returns {void}
+             */
+            widgetDefaultSelected: function() {}
+        }));
+        const selectedItem = tabFolder.getSelection();
+        if (selectedItem) {
+            tabFolder.setSelectionBackground(selectedItem.getData("bizdiagAccent"));
+        }
+
+        // Kept outside mainArea so status remains visible regardless of which module page is selected.
+        statusLabel = new Label(launcherShell, SWT.BORDER);
+        statusLabel.setText(pendingSelectionType ?
+            "Selection handoff active (" + pendingSelectionType + ") - confirm target before running." :
+            "Ready - selection-based actions require the Select in Archi handoff.");
+        statusLabel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+        launcherShell.addDisposeListener(new DisposeListener({
+            /** Called during shell disposal to release native graphics resources not owned by child widgets.
+             * @returns {void}
+             */
+            widgetDisposed: function() {
+                // SWT images and colors are native resources and must be released with the shell.
+                tabImages.forEach(
+                    /** Disposes one tab swatch after its CTabFolder is closing.
+                     * @param {Image} image SWT bitmap allocated by createAccentSwatch.
+                     */
+                    function(image) {
+                        if (!image.isDisposed()) {
+                            image.dispose();
+                        }
+                    });
+                if (logoImage && !logoImage.isDisposed()) {
+                    logoImage.dispose();
+                }
+                Object.keys(accentColorCache).forEach(
+                    /** Disposes one cached SWT color once no tab or ribbon can use it.
+                     * @param {string} key RGB cache key.
+                     */
+                    function(key) {
+                        const color = accentColorCache[key];
+                        if (!color.isDisposed()) {
+                            color.dispose();
+                        }
+                    });
+                // Shared style resources are not owned by StyledText widgets, so release them here.
+                [terminalBackground, terminalForeground, terminalFont].forEach(
+                    /** Disposes one terminal style resource when the launcher closes.
+                     * @param {Color|Font} resource SWT resource shared by all instruction panels.
+                     */
+                    function(resource) {
+                        if (!resource.isDisposed()) {
+                            resource.dispose();
+                        }
+                    });
+            }
+        }));
+
+        launcherShell.open();
+        console.log("BizDiag module launcher opened from " + rootDirectory.getCanonicalPath());
+
+        // SWT is single-threaded: dispatch queued UI events continuously; sleep avoids busy-spinning
+        // when there is no event to process. Disposing the shell ends this script-owned event loop.
+        while (!launcherShell.isDisposed()) {
+            if (!display.readAndDispatch()) {
+                display.sleep();
+            }
+        }
+    } catch (error) {
+        const message = error && error.message ? error.message : String(error);
+        console.error("BizDiag launcher failed: " + message);
+        window.alert("BizDiag launcher failed.\n\n" + message);
+        if (!launcherShell.isDisposed()) {
+            launcherShell.dispose();
+        }
+    }
+})();

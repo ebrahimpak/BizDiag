@@ -6,4 +6,4 @@ mvn clean compile -U
 ___________________________________________________________________________________
 For running the server:
 
-mvn exec:java -D"exec.mainClass"="com.archi"
+mvn exec:java -D"exec.mainClass"="com.archi.NioInteropServer"

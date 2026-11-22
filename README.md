@@ -1401,6 +1401,16 @@ Typical requirements may include:
 Detailed installation instructions for individual components are provided in their respective documentation. For 
 command-line tools, a running.txt file is included in the repository to provide the commands for running the applications.
 
+### Central module launcher
+
+Run `BizDiag-GUI.ajs` from Archi's jArchi Scripts Manager to open the ten-tab
+BizDiag launcher. Its first five tabs cover the `ClientServer_DB` submodules
+and show their terminal/Archi execution steps. The remaining tabs launch the
+existing BizDiag entry scripts; bilingual modules keep English and Persian
+actions together, with English listed first. Open an ArchiMate model before
+running module actions. External servers and command-line applications must
+still be started separately as described in their tabs.
+
 ---
 
 ## 13. Model Input
@@ -1420,6 +1430,7 @@ BizDiag/
 ├── LICENSE
 ├── LICENSE-FR
 ├── CITATION.cff
+├── BizDiag-GUI.ajs
 ├── Capability_Based_Planning/
 │   ├── CBP_Move_1_Setup.ajs
 │   ├── CBP_Continue_Moves_2_to_7.ajs
