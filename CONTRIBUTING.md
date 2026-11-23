@@ -78,6 +78,8 @@ The principal technologies used across the project include:
 ### 4.1 jArchi Development
 
 Proposals involving jArchi scripts should take into account the Archi environment and the scripting capabilities provided by jArchi.
+Other proposals involving vanilla Java, for the sake of standalone Java programs in interaction with jArchi scripts, should follow the best practices and design patterns of Java programming language.
+Non-jArchi source code could be written in GraalJs, with outer structure of JavaScript and inner invocations of Java APIs, rather than pure Java programs. The source code of such GraalJS files, with '.js' extensions, should be adhered to the Oracle GraalJS guidelines and coding best practices. 
 
 Relevant technical considerations include:
 
