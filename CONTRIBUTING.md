@@ -78,8 +78,6 @@ The principal technologies used across the project include:
 ### 4.1 jArchi Development
 
 Proposals involving jArchi scripts should take into account the Archi environment and the scripting capabilities provided by jArchi.
-Other proposals involving vanilla Java, for the sake of standalone Java programs in interaction with jArchi scripts, should follow the best practices and design patterns of Java programming language.
-Non-jArchi source code could be written in GraalJs, with outer structure of JavaScript and inner invocations of Java APIs, rather than pure Java programs. The source code of such GraalJS files, with '.js' extensions, should be adhered to the Oracle GraalJS guidelines and coding best practices. 
 
 Relevant technical considerations include:
 
@@ -94,7 +92,8 @@ Scripts should be designed to operate predictably within the Archi environment a
 
 ### 4.2 Java Development
 
-Java-related proposals should take into account the existing implementation style and architectural conventions of the relevant module.
+Java-related proposals involving vanilla Java, for the sake of standalone Java programs in interaction with jArchi scripts, should follow the best practices and design patterns of Java programming language.
+These Java-related proposals should take into account the existing implementation style and architectural conventions of the relevant module.
 
 In particular:
 
@@ -108,7 +107,14 @@ In particular:
 
 Where a Java application interacts with jArchi, GraalJS, databases, or external services, its integration requirements should be clearly documented.
 
-### 4.3 AI Integrations
+### 4.3 GraalJS (non-jArchi) Development
+
+GraalJS is a high-performance JavaScript engine, implemented in Java on top of GraalVM. 
+Non-jArchi source code could be written in GraalJs, rather than with pure Java. Such source code have the same structure as that of the jArchi, but they are not dialectal, and are deemed the standard Oracle GraalJs implementation. 
+These GraalJS files, are structurally similar to the jArchi scripts, with outer structure of JavaScript and inner invocations of Java APIs, rather than being pure Java programs.  
+The source code of such GraalJS files, with '.js' extensions, should adhere to the Oracle GraalJS documentation, for accessing Java from JavaScript.
+
+### 4.4 AI Integrations
 
 AI-related proposals should distinguish between experimental functionality and functionality intended for regular use.
 
