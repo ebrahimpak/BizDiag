@@ -59,7 +59,6 @@ console.show();
     const StyledText = Java.type("org.eclipse.swt.custom.StyledText");
     const Button = Java.type("org.eclipse.swt.widgets.Button");
     const Image = Java.type("org.eclipse.swt.graphics.Image");
-    const GC = Java.type("org.eclipse.swt.graphics.GC");
     const Color = Java.type("org.eclipse.swt.graphics.Color");
     const Font = Java.type("org.eclipse.swt.graphics.Font");
     const StyleRange = Java.type("org.eclipse.swt.custom.StyleRange");
@@ -93,7 +92,7 @@ console.show();
 
     // accentPalette is a JavaScript object whose values are RGB arrays.
     // Colors are deliberately spread across pale-to-deep blues; ClientServer_DB shares one sky-blue.
-    // CTabItem has no per-item background API, so colors also appear as swatches and page ribbons.
+    // CTabItem has no per-item background API, so colors appear as category bands and page ribbons.
     const accentPalette = {
         "Business-IT Alignment": [214, 232, 255],
         "Capability-based Planning": [107, 174, 214],
@@ -113,9 +112,6 @@ console.show();
 
     // Recognize only actual command/query starts so explanatory prose and file paths stay normally styled.
     const terminalCommandPattern = /^(?:&\s|mvn(?:\s|$)|where\s+java\b|java(?:\.exe)?\s|SELECT\b|FROM\b|WHERE\b)/i;
-
-    // CTabItem retains its Image but does not own its disposal; keep references for shell-close cleanup.
-    const tabImages = [];
 
     // These are disposed explicitly because Image and Color resources are not part of the widget tree.
     let logoImage = null;
@@ -269,9 +265,8 @@ console.show();
 
     /**
      * Adds one CTabItem and its page Composite to the shared tab folder.
-     * The accent is saved as item data so the selection listener can update the folder highlight
-     * when the user changes tabs. A small image swatch keeps each module's color visible even
-     * when its tab is not selected.
+     * The accent is saved as item data so the tab-folder paint listener can draw a thin
+     * category band along the top edge of every tab.
      *
      * @param {CTabFolder} folder Folder that owns the new tab item and page.
      * @param {{title: string}} module Module metadata whose title is shown on the tab.
@@ -287,7 +282,6 @@ console.show();
         }
         const accentColor = getAccentColor(module.title);
         item.setData("bizdiagAccent", accentColor);
-        item.setImage(createAccentSwatch(accentColor));
         const page = new Composite(folder, SWT.NONE);
         page.setLayout(new GridLayout(1, false));
         item.setControl(page);
@@ -314,36 +308,13 @@ console.show();
     }
 
     /**
-     * Renders an accent color into a small SWT bitmap for use as a CTabItem image.
-     * CTabItem exposes an image but not an individual background color; this swatch is the
-     * per-tab color indicator. The GC is disposed immediately after drawing, while the Image
-     * itself is retained until the shell is disposed.
-     *
-     * @param {Color} color Color used to fill the swatch.
-     * @returns {Image} Tracked SWT image to assign to the tab item.
-     */
-    function createAccentSwatch(color) {
-        // Image and GC are separate native resources; dispose only the GC here and retain the Image for the tab.
-        const image = new Image(display, 16, 16);
-        const gc = new GC(image);
-        try {
-            gc.setBackground(color);
-            gc.fillRectangle(1, 1, 14, 14);
-        } finally {
-            gc.dispose();
-        }
-        tabImages.push(image);
-        return image;
-    }
-
-    /**
      * Adds a full-width module ribbon and selects black or white text for legibility.
      * The weighted brightness estimate is a simple contrast heuristic, not a WCAG contrast
      * calculation; it keeps labels readable across the launcher palette's light and dark blues.
      *
      * @param {Composite} parent Page composite that will own the label.
      * @param {string} text Module name to display in the ribbon.
-     * @param {Color} accentColor Background color shared with the tab's swatch.
+     * @param {Color} accentColor Background color shared with the tab category band.
      * @returns {void}
      */
     function addHeading(parent, text, accentColor) {
@@ -765,6 +736,23 @@ console.show();
         tabFolder.setUnselectedImageVisible(true);
         tabFolder.setSelectedImageVisible(true);
         tabFolder.setHighlightEnabled(true);
+        tabFolder.addPaintListener(new PaintListener({
+            /** Draws a thin category band across the top edge of every tab.
+             * @param {Object} event PaintEvent containing the system-owned drawing context.
+             * @returns {void}
+             */
+            paintControl: function(event) {
+                for (let i = 0; i < tabFolder.getItemCount(); i++) {
+                    const item = tabFolder.getItem(i);
+                    const bounds = item.getBounds();
+                    const accentColor = item.getData("bizdiagAccent");
+                    if (bounds && accentColor) {
+                        event.gc.setBackground(accentColor);
+                        event.gc.fillRectangle(bounds.x, bounds.y, bounds.width, 3);
+                    }
+                }
+            }
+        }));
 
         runnableTabs.forEach(
             /** Creates the GUI action tab for one non-terminal module.
@@ -781,27 +769,6 @@ console.show();
                 createClientServerTab(tabFolder, module);
             });
 
-        tabFolder.addSelectionListener(new SelectionListener({
-            /** SWT selection event: repaint the selected-tab highlight using the active module accent.
-             * @returns {void}
-             */
-            widgetSelected: function() {
-                // CTabFolder.getSelection() returns one item or null, unlike TabFolder's array API.
-                const selectedItem = tabFolder.getSelection();
-                if (selectedItem) {
-                    tabFolder.setSelectionBackground(selectedItem.getData("bizdiagAccent"));
-                }
-            },
-            /** Required listener callback; default activation does not need additional tab behavior.
-             * @returns {void}
-             */
-            widgetDefaultSelected: function() {}
-        }));
-        const selectedItem = tabFolder.getSelection();
-        if (selectedItem) {
-            tabFolder.setSelectionBackground(selectedItem.getData("bizdiagAccent"));
-        }
-
         // Kept outside mainArea so status remains visible regardless of which module page is selected.
         statusLabel = new Label(launcherShell, SWT.BORDER);
         statusLabel.setText(pendingSelectionType ?
@@ -815,15 +782,6 @@ console.show();
              */
             widgetDisposed: function() {
                 // SWT images and colors are native resources and must be released with the shell.
-                tabImages.forEach(
-                    /** Disposes one tab swatch after its CTabFolder is closing.
-                     * @param {Image} image SWT bitmap allocated by createAccentSwatch.
-                     */
-                    function(image) {
-                        if (!image.isDisposed()) {
-                            image.dispose();
-                        }
-                    });
                 if (logoImage && !logoImage.isDisposed()) {
                     logoImage.dispose();
                 }
