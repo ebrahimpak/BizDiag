@@ -1723,6 +1723,11 @@ Copyright © 2026 Ebrahim Pak
 
 BizDiag is free software distributed under the CeCILL-B Free Software License, Version 1.0.
 
+The license is available in both English and French:
+
+- [LICENSE — English](LICENSE)
+- [LICENSE-FR — Français](LICENSE-FR)
+
 The CeCILL-B license grants broad rights to use, copy, modify, and redistribute the software, subject to the terms and 
 conditions of the license, including its requirements concerning intellectual-property notices and attribution.
 
