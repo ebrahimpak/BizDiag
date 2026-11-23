@@ -86,12 +86,13 @@ as structured data for analysis, automation, decision support, and strategy.
     - [19.2 MLA](#192-mla)
     - [19.3 Chicago](#193-chicago)
     - [19.4 IEEE](#194-ieee)
-- [20. License](#20-license)
-- [21. Project](#21-project)
-- [22. Related Documentation](#22-related-documentation)
-- [23. Disclaimer](#23-disclaimer)
-- [24. Author](#24-author)
-- [25. References](#25-references)
+- [20. Citing BizDiag](#20-citing-bizDiag)
+- [21. License](#21-license)
+- [22. Project](#22-project)
+- [23. Related Documentation](#23-related-documentation)
+- [24. Disclaimer](#24-disclaimer)
+- [25. Author](#25-author)
+- [26. References](#26-references)
 
 ---
 
