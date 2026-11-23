@@ -215,6 +215,8 @@ elaborate on the methodology and its research contributions.
 <a id="business-it-alignment"></a>
 ### 3.1 **Business_IT_Alignment**
 
+<p align="center"><img src="logo/img/Business_IT_Alignment.png" alt="Business-IT Alignment module" width="100%"></p>
+
 <a id="business-it-alignment-analysis"></a>
 #### 3.1.1 A Business–IT Alignment/Misalignment Analysis
 
@@ -575,6 +577,9 @@ for scope, workflow, and limitations.
 
 <a id="docmaker-subsystem"></a>
 #### 3.3.2 DocMaker Subsystem
+
+<p align="center"><img src="logo/img/DocMaker.png" alt="DocMaker module" width="100%"></p>
+
 This module consists of `AI_View_DocMaker_EN.ajs`, `AI_View_DocMaker_FA.ajs`,
 `AI_Element_DocMaker_EN.ajs`, `AI_Element_DocMaker_FA.ajs`, `AI_REST_JSON.js`,
 `Ollama_Olalla.ajs`, and `Mark_it_Down.ajs`.
@@ -918,6 +923,8 @@ requirements.
 <a id="capability-based-planning"></a>
 #### 3.3.3 Capability-Based Planning
 
+<p align="center"><img src="logo/img/Capability_Based_Planning.png" alt="Capability-Based Planning module" width="100%"></p>
+
 The Capability-Based Planning (CBP) module implements the seven moves described in "Capability-Based Planning, The Link
 between Strategy and Enterprise Architecture" and "Capability-based Planning in 7 moves!" through
 [`CBP_Move_1_Setup.ajs`](Capability_Based_Planning/CBP_Move_1_Setup.ajs) and
@@ -1028,6 +1035,8 @@ for valid target states.
 7. **Design the change portfolio:** group actions into projects by increment and project name, then order projects by
 declared priority.
 
+<p align="center"><img src="logo/img/Capability_Based_Planning_2.png" alt="Capability-Based Planning maturity and target roadmap" width="100%"></p>
+
 The article's moves are an architecture-and-planning method. The script operationalizes the parts that can be represented
 as explicit model inputs and repeatable checks. It cannot replace the human analysis that creates and governs those
 inputs [27–29].
@@ -1073,6 +1082,8 @@ require architect review.
 
 <a id="bizmodelcanvas"></a>
 ### 3.4 **BizModelCanvas**
+
+<p align="center"><img src="logo/img/BizModelCanvas.png" alt="BizModelCanvas module" width="100%"></p>
 
 <a id="business-model-canvas-generation--analysis"></a>
 #### 3.4.1 A Business Model Canvas Generation & Analysis
