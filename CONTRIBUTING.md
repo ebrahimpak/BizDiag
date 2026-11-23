@@ -12,7 +12,7 @@ Public access to the repository does not grant permission to modify its contents
 
 **All changes to the official BizDiag repository are exclusively managed and committed by the project maintainer.**
 
-External users may report issues, communicate suggestions, ask questions, and submit proposals for consideration. However, all proposed changes must first be communicated directly to the project maintainer by email.
+External users may report issues, communicate suggestions, ask questions, and submit proposals for consideration. However, all proposed changes must first be communicated directly to the project maintainer by email: graaljs@mailfence.com
 
 The project maintainer independently evaluates every proposal and retains exclusive authority to decide whether to implement, modify, postpone, or reject it.
 
@@ -43,7 +43,7 @@ These activities do not grant participants authority to modify the official repo
 
 **All proposals concerning changes to BizDiag must be communicated directly to the project maintainer by email.**
 
-Before developing or preparing a substantial change, users should first describe their proposal and its intended purpose in an email.
+Before developing or preparing a substantial change, users should first describe their proposal and its intended purpose in an email (graaljs@mailfence.com).
 
 A proposal should, where applicable, include:
 
@@ -64,16 +64,16 @@ BizDiag incorporates multiple technologies and development environments. The pre
 
 The principal technologies used across the project include:
 
-| Technology | Purpose |
-|---|---|
-| Archi | Enterprise Architecture modeling environment |
-| ArchiMate | Enterprise Architecture modeling language |
-| jArchi | Scripting and automation within Archi |
-| GraalVM / GraalJS | JavaScript execution and Java interoperability |
-| Java | Supporting applications, services, and infrastructure |
-| H2 Database | Relational data persistence where required |
-| JSON / JSONL | Data exchange, storage, and logging |
-| Ollama | Local AI model integration and experimentation |
+| Technology        | Purpose                                               |
+|-------------------|-------------------------------------------------------|
+| Archi             | Enterprise Architecture modeling environment          |
+| ArchiMate         | Enterprise Architecture modeling language             |
+| jArchi            | Scripting and automation within Archi                 |
+| GraalVM / GraalJS | JavaScript execution and Java interoperability        |
+| Java              | Supporting applications, services, and infrastructure |
+| H2 Database       | Relational data persistence where required            |
+| JSON / JSONL      | Data exchange, storage, and logging                   |
+| Ollama            | Local AI model integration and experimentation        |
 
 ### 4.1 jArchi Development
 
