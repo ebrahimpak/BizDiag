@@ -315,6 +315,7 @@ through client/server workflows, REST or TCP communication, JSON/JSONL exports, 
 
 <a id="clientserver-db-log"></a>
 #### 3.2.1 DB_Log
+<p align="center"><img src="logo/img/DB_Log.png" alt="DB_Log [JDBCLog] module" width="100%"></p>
 
 DB_Log can transform architecture information into structured data suitable for programmatic analysis. Architecture 
 data can be loaded into an in-memory database, like the utilized H2 database, or any other relational database systems, 
