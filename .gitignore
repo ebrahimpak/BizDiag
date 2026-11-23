@@ -16,3 +16,6 @@
 DocMaker/documentation/
 Capability_Based_Planning/CBP_Test_Data_Entry.ajs
 Capability_Based_Planning/AI_CASE_LIBRARY_DESIGN.md
+
+# Generated JSON
+/BizDiag/ClientServer_DB/DB_Log/ArchiSyncDump/archi_model_dump.json
