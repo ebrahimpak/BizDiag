@@ -1667,34 +1667,32 @@ The roadmap is subject to change based on technical development and practical re
 
 Contributions, suggestions, issue reports, and technical discussions are welcome.
 
-Potential contribution areas include:
+BizDiag welcomes contributions in areas including jArchi scripting, Java applications, architecture analysis, 
+business–IT alignment, documentation, integrations, AI capabilities, testing, and performance improvements.
 
-- Bug fixes
-- New jArchi scripts
-- Java applications
-- Architecture analysis algorithms
-- Documentation
-- Examples
-- Integrations
-- Data transformations
-- AI integrations
-- Testing
-- Performance improvements
+Before undertaking substantial changes, please open an issue to discuss the proposed approach.
 
-Before making substantial changes, please consider opening an issue to discuss the proposed approach.
+For contribution guidelines, development conventions, and submission procedures, see [CONTRIBUTING.md](.github/CONTRIBUTING.md).
+
+BizDiag is released under the **CeCILL-B Free Software License**. Contributors and users should observe the applicable 
+licensing, copyright, and attribution requirements described in the [LICENSE](LICENSE) file.
+
+For information on citing BizDiag in academic and professional work, see [Citing BizDiag](#20-citing-bizdiag).
 
 ---
 
-BizDiag is released under the **CeCILL-B Free Software License**. If you incorporate BizDiag or portions of its source 
-code into another software product or work, the applicable copyright, licensing, and attribution notices must be 
+## 20. Citing BizDiag
+
+BizDiag is released under the **CeCILL-B Free Software License**. If you incorporate BizDiag or portions of its source
+code into another software product or work, the applicable copyright, licensing, and attribution notices must be
 preserved in accordance with the terms of the CeCILL-B license.
 
-For research, academic work, technical documentation, presentations, publications, or other works that make substantial 
-use of BizDiag, citation of the project and its author is also requested as a matter of scholarly and professional 
+For research, academic work, technical documentation, presentations, publications, or other works that make substantial
+use of BizDiag, citation of the project and its author is also requested as a matter of scholarly and professional
 attribution.
 
-The repository includes a `CITATION.cff` file containing the preferred citation metadata. GitHub's “Cite this 
-repository” functionality may also be used to obtain the repository's citation information.
+The repository includes a `CITATION.cff` file containing the preferred citation metadata. GitHub's **Cite this repository**
+functionality can also be used to obtain the project's citation information.
 
 ### 19.1 APA
 
@@ -1712,12 +1710,13 @@ Pak, Ebrahim. 2026. “BizDiag: Research-Driven Enterprise Architecture Intellig
 
 [1] E. Pak, “BizDiag: Research-Driven Enterprise Architecture Intelligence for Digital Strategy & Business Diagnostics,” version 1.0.0, software, 2026. [Online]. Available: https://github.com/ebrahimpak/BizDiag.
 
-The `CITATION.cff` file is the authoritative source for the project's citation metadata. If the citation information in 
+
+The `CITATION.cff` file is the authoritative source for the project's citation metadata. If the citation information in
 this document differs from the current `CITATION.cff`, please use the information provided in `CITATION.cff`.
 
 ---
 
-## 20. License
+## 21. License
 
 Copyright © 2026 Ebrahim Pak
 
@@ -1755,7 +1754,7 @@ determining its suitability for their particular technical, operational, securit
 
 ---
 
-## 21. Project
+## 22. Project
 
 BizDiag  
 Intelligent Enterprise Architecture & Digital Strategy Automation
@@ -1767,7 +1766,7 @@ and related professional services.
 
 ---
 
-## 22. Related Documentation
+## 23. Related Documentation
 
 Additional documentation will be added as the project develops.
 
@@ -1783,7 +1782,7 @@ Additional documentation will be added as the project develops.
 
 ---
 
-## 23. Disclaimer
+## 24. Disclaimer
 
 BizDiag provides analytical, automation, and decision-support capabilities.
 
@@ -1794,7 +1793,7 @@ BizDiag does not replace professional Enterprise Architecture judgment or organi
 
 ---
 
-## 24. Author
+## 25. Author
 
 **Author:** Ebrahim Pak, BA, MA, MSc
 
@@ -1808,7 +1807,7 @@ BizDiag does not replace professional Enterprise Architecture judgment or organi
 
 ---
 
-## 25. References
+## 26. References
 
 [1] The Open Group, *ArchiMate® 3.2 Specification*, Berkshire, U.K., 2022,
      p. 183.
