@@ -119,6 +119,7 @@ console.show();
 
     // These are disposed explicitly because Image and Color resources are not part of the widget tree.
     let logoImage = null;
+    let sellIconImage = null;
 
     // Shared by callbacks so actions can report their current state in the bottom status bar.
     let statusLabel = null;
@@ -689,6 +690,17 @@ console.show();
         }
 
         launcherShell.setText("BizDiag - Module Launcher");
+        // Load and set the shell icon, matching the transparent PNG as rendered by SWT.
+        // SWT owns the title-bar icon and preserves the source image dimensions/aspect ratio.
+        try {
+            const iconFile = new File(rootDirectory, "logo" + File.separator + "sellIcon.png");
+            if (iconFile.exists()) {
+                sellIconImage = new Image(display, iconFile.getAbsolutePath());
+                launcherShell.setImage(sellIconImage);
+            }
+        } catch (iconError) {
+            console.error("Could not load the BizDiag shell icon: " + iconError);
+        }
         // Start wide enough for the module tabs and instruction panel without requiring manual resizing.
         launcherShell.setSize(1480, 800);
 
@@ -814,6 +826,9 @@ console.show();
                     });
                 if (logoImage && !logoImage.isDisposed()) {
                     logoImage.dispose();
+                }
+                if (sellIconImage && !sellIconImage.isDisposed()) {
+                    sellIconImage.dispose();
                 }
                 Object.keys(accentColorCache).forEach(
                     /** Disposes one cached SWT color once no tab or ribbon can use it.
