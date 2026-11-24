@@ -217,21 +217,44 @@ elaborate on the methodology and its research contributions.
 ### 2.2 **Learning Resources**
 
 
-## Learning Resources – JCodices
+#### 2.2.1 Learning Resources – JCodices
 
-[JCodices](https://www.youtube.com/@JCodices) is an ongoing educational initiative focused on software development, Enterprise Architecture automation, and related technologies.
+[JCodices](https://www.youtube.com/@JCodices) is an ongoing educational initiative focused on software development, 
+Enterprise Architecture automation, and related technologies.
 
-The channel provides practical educational content on jArchi scripting, ArchiMate automation, and the technological foundations of Enterprise Architecture Intelligence.
+The YouTube channel provides practical educational content on Enterprise Architecture Automation and Intelligence. Its
+main topics deal with jArchi scripting, Java and GraalJS development, ArchiMate language, Developing AI-Infused EA
+Applications, Intelligent Business Model Generation scripting, and theoretical concepts of Digital Strategy. The aim of 
+this YouTube channel is to provide modern and detailed learning materials for the development of digital strategy 
+applications.
+
+It is noteworthy to emphasize that the upcoming videos will explore the theoretical foundations of digital strategy too, 
+bridging academic concepts with practical industry applications. These topics will provide you with the knowledge and 
+perspectives needed to understand how digital technologies can be strategically leveraged to create meaningful business 
+applications, drive innovation, and deliver tangible business value.
+
+My aim is to equip you with both academic insights and industry-based knowledge, combining theoretical understanding 
+with practical experience. I am particularly keen on helping you develop not only the technical skills to build digital 
+solutions but also the strategic thinking required to ensure that these solutions address genuine business needs and 
+contribute to organizational objectives.
 
 ### Course: Enterprise Architecture Automation
 
 #### Unit 01 – Introducing jArchi
 
-[![Unit 01 – Introducing jArchi](https://img.youtube.com/vi/ujlcxfSuajA/maxresdefault.jpg)](https://www.youtube.com/watch?v=ujlcxfSuajA)
+<a href="https://www.youtube.com/watch?v=ujlcxfSuajA">
+  <img src="https://img.youtube.com/vi/ujlcxfSuajA/maxresdefault.jpg"
+       alt="Unit 01 – Introducing jArchi"
+       width="320">
+</a>
 
 #### Unit 02 – An Introduction to jArchi API – GraalJS – SWT/JFace
 
-[![Unit 02 – An Introduction to jArchi API – GraalJS – SWT/JFace](https://img.youtube.com/vi/xnVvNU5-Er0/maxresdefault.jpg)](https://www.youtube.com/watch?v=xnVvNU5-Er0)
+<a href="https://www.youtube.com/watch?v=xnVvNU5-Er0">
+  <img src="https://img.youtube.com/vi/xnVvNU5-Er0/maxresdefault.jpg"
+       alt="Unit 02 – An Introduction to jArchi API – GraalJS – SWT/JFace"
+       width="320">
+</a>
 
 *More educational units are planned as part of this ongoing course.*
 
