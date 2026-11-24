@@ -35,6 +35,8 @@ as structured data for analysis, automation, decision support, and strategy.
 
 - [1. Overview](#1-overview)
 - [2. Research Foundation](#2-research-foundation)
+    - [2.1 Research Foundation](#21-research-foundation)
+    - [2.2 Learning Resources](#22-learning-resources)
 - [3. Key Capabilities](#3-key-capabilities)
     - [3.1 Business_IT_Alignment](#business-it-alignment)
         - [3.1.1 A Business–IT Alignment/Misalignment Analysis](#business-it-alignment-analysis)
@@ -196,7 +198,10 @@ knowledge and the practical challenges faced by enterprise architects.
 
 ---
 
-## 2. Research Foundation
+## 2. Research Foundation & Learning Resources
+
+<a id="research-foundation"></a>
+### 2.1 **Research Foundation**
 
 BizDiag draws on information-systems research methods [3] and Design Science Research [4], alongside research on
 Enterprise Architecture analysis approaches and IT governance [5–6] and practice-based enterprise coherence [7].
@@ -207,6 +212,31 @@ research into modeling the Business Model Canvas with ArchiMate and aligning ent
 models [21–22], as well as value proposition design [23]. These sources inform the modules' research context; the
 implementations and assessment methodology are original work by the author. A forthcoming white paper will
 elaborate on the methodology and its research contributions.
+
+<a id="learning-resources"></a>
+### 2.2 **Learning Resources**
+
+
+## Learning Resources – JCodices
+
+[JCodices](https://www.youtube.com/@JCodices) is an ongoing educational initiative focused on software development, Enterprise Architecture automation, and related technologies.
+
+The channel provides practical educational content on jArchi scripting, ArchiMate automation, and the technological foundations of Enterprise Architecture Intelligence.
+
+### Course: Enterprise Architecture Automation
+
+#### Unit 01 – Introducing jArchi
+
+[![Unit 01 – Introducing jArchi](https://img.youtube.com/vi/ujlcxfSuajA/maxresdefault.jpg)](https://www.youtube.com/watch?v=ujlcxfSuajA)
+
+#### Unit 02 – An Introduction to jArchi API – GraalJS – SWT/JFace
+
+[![Unit 02 – An Introduction to jArchi API – GraalJS – SWT/JFace](https://img.youtube.com/vi/xnVvNU5-Er0/maxresdefault.jpg)](https://www.youtube.com/watch?v=xnVvNU5-Er0)
+
+*More educational units are planned as part of this ongoing course.*
+
+Explore more content on the [JCodices YouTube channel](https://www.youtube.com/@JCodices).
+
 
 ---
 
