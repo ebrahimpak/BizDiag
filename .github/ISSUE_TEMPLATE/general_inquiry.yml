@@ -1,0 +1,94 @@
+name: General Inquiry
+description: Ask a question or seek clarification about BizDiag.
+title: "[Inquiry]: "
+labels:
+  - question
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for your interest in BizDiag.
+
+        Use this form for general questions, technical inquiries,
+        documentation clarification, and project-related feedback.
+
+        Please note that this issue tracker is primarily intended
+        for communication and problem reporting. Proposals involving
+        changes or additions to BizDiag should be communicated
+        directly to the project maintainer by email, as described
+        in CONTRIBUTING.md.
+
+  - type: dropdown
+    id: inquiry_type
+    attributes:
+      label: Inquiry Type
+      description: Select the category that best describes your inquiry.
+      options:
+        - General Question
+        - Technical Question
+        - Documentation Clarification
+        - Usage and Configuration
+        - Compatibility Question
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: subject
+    attributes:
+      label: Subject
+      description: Briefly describe the topic of your inquiry.
+      placeholder: What would you like to know?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: module
+    attributes:
+      label: Related BizDiag Module
+      description: Select the relevant module, if applicable.
+      options:
+        - Business-IT Alignment
+        - Capability-Based Planning
+        - BizModelCanvas
+        - DocMaker
+        - UML
+        - ClientServer DB/DB Log
+        - ClientServer DB/GraalJS ClientServer Template
+        - ClientServer DB/GraalJS Element RESTLogger
+        - ClientServer DB/GraalJS NIOLoggerServer
+        - ClientServer DB/Java DBLoggerServer
+    validations:
+      required: false
+
+  - type: textarea
+    id: details
+    attributes:
+      label: Inquiry Details
+      description: Explain your question or request for clarification.
+      placeholder: Provide relevant context and details.
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Technical Environment
+      description: Include relevant software versions if your inquiry is technical.
+      placeholder: |
+        Operating System:
+        Archi Version:
+        jArchi Version:
+        Java / GraalVM Version:
+        Ollama Version (if applicable):
+        Installed LLM Models and Versions (if applicable):
+    validations:
+      required: false
+
+  - type: textarea
+    id: references
+    attributes:
+      label: References and Additional Information
+      description: Include relevant documentation links, screenshots, or examples.
+    validations:
+      required: false
