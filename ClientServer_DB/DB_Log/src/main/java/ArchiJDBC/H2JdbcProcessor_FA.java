@@ -20,6 +20,11 @@
  *
  * mvn "-DmainClass=ArchiJDBC.H2JdbcProcessor_FA" exec:java
  *
+ * IMPORTANT SECURITY NOTE:
+ * The hardcoded DB_USER & DB_PASS are not standard production-grade style code.
+ * For this application, we should use an OS credential store or a managed secret manager
+ * (for example, Windows Credential Manager or a cloud vault) to provide the H2 password at runtime.
+ * Next version of this program will implement a more secure credential management approach.
  */
 
 package ArchiJDBC;
