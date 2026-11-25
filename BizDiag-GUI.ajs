@@ -27,8 +27,7 @@
  * So far, this script is comprised of ten modules, whose second five scripts, are
  * grouped together in five adjacent tabs in this GUI. The first five tabbed modules
  * are all GUI-based, while the second five adjacent tabbed are a mix of CLI-cum-GUI,
- * or only CLI. The bilingual, English and Persian, modules have two buttons, each
- * executing its respective language script. The tab colors have been chosen for an
+ * or only CLI. The tab colors have been chosen for an
  * enhanced user experience, so the five modules belonging to the ClientServer_DB
  * category have all a common color, in the blue spectrum; while the other five tabs
  * have their own distinguished tab color.
@@ -136,10 +135,8 @@ console.show();
                 "3. Start one of the following applications:\n" +
                 "   H2 web console:\n" +
                 "   mvn \"-DmainClass=ArchiJDBC.H2ConsoleLauncher\" exec:java\n\n" +
-                "   English Swing client:\n" +
+                "   Java Swing client:\n" +
                 "   mvn \"-DmainClass=ArchiJDBC.H2JdbcProcessor_EN\" exec:java\n\n" +
-                "   Persian Swing client:\n" +
-                "   mvn \"-DmainClass=ArchiJDBC.H2JdbcProcessor_FA\" exec:java\n\n" +
                 "The Java clients query the exported model data in H2. The commands are run from the DB_Log directory."
         },
         {
@@ -199,16 +196,14 @@ console.show();
         }
     ];
 
-    // GUI-runnable modules appear first. Bilingual implementations are paired in one module tab.
+    // GUI-runnable modules appear first.
     const runnableTabs = [
         {
             title: "Business-IT Alignment",
             description:
-                "Run the Business-IT Alignment assessment against the open model. English and Persian entry scripts " +
-                "are provided in this tab; the English version is listed first.",
+                "Run the Business-IT Alignment assessment against the open model.",
             scripts: [
-                { label: "Run English", path: "Business_IT_Alignment\\BusinessITAlignment_EN.ajs" },
-                { label: "Run Persian", path: "Business_IT_Alignment\\BusinessITAlignment_FA.ajs" }
+                { label: "Run assessment", path: "Business_IT_Alignment\\BusinessITAlignment_EN.ajs" }
             ]
         },
         {
@@ -226,14 +221,12 @@ console.show();
             title: "DocMaker",
             description:
                 "Choose the target elements or ArchiMate views directly in Archi using the selection controls below; " +
-                "you do not need to select them before opening this GUI. For each task, the English entry point is listed before its " +
-                "Persian counterpart. AI-assisted scripts require a configured local Ollama installation and model. " +
+                "you do not need to select them before opening this GUI. AI-assisted scripts require a configured local " +
+                "Ollama installation and model. " +
                 "Mark_it_Down is the module's Markdown post-processing utility.",
             scripts: [
-                { label: "View documentation - English", path: "DocMaker\\AI_View_DocMaker_EN.ajs", selectionType: "views" },
-                { label: "View documentation - Persian", path: "DocMaker\\AI_View_DocMaker_FA.ajs", selectionType: "views" },
-                { label: "Element documentation - English", path: "DocMaker\\AI_Element_DocMaker_EN.ajs", selectionType: "elements" },
-                { label: "Element documentation - Persian", path: "DocMaker\\AI_Element_DocMaker_FA.ajs", selectionType: "elements" },
+                { label: "View documentation", path: "DocMaker\\AI_View_DocMaker_EN.ajs", selectionType: "views" },
+                { label: "Element documentation", path: "DocMaker\\AI_Element_DocMaker_EN.ajs", selectionType: "elements" },
                 { label: "Markdown export", path: "DocMaker\\Mark_it_Down.ajs", selectionType: "views" }
             ]
         },
@@ -254,11 +247,9 @@ console.show();
         {
             title: "BizModelCanvas",
             description:
-                "Open the existing Business Model Canvas tool suite. Each language launcher provides the module's " +
-                "analysis, view, conversion, and graphic tools. English is listed before Persian.",
+                "Open the Business Model Canvas tool suite, including analysis, view creation, conversion, and graphic tools.",
             scripts: [
-                { label: "Open English GUI", path: "BizModelCanvas\\BizModelCanvas-GUI-EN.ajs" },
-                { label: "Open Persian GUI", path: "BizModelCanvas\\BizModelCanvas-GUI-FA.ajs" }
+                { label: "Open GUI", path: "BizModelCanvas\\BizModelCanvas-GUI-EN.ajs" }
             ]
         }
     ];
@@ -584,7 +575,7 @@ console.show();
 
     /**
      * Builds a runnable-module page with its own ribbon, summary, optional selection guidance,
-     * and buttons for one or more entry scripts (including paired EN/FA versions).
+     * and buttons for one or more entry scripts.
      * Selection controls are created only when at least one script declares a selectionType.
      *
      * @param {CTabFolder} folder Tab folder that owns this module page.

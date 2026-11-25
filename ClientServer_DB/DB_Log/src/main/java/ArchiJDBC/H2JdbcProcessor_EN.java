@@ -12,8 +12,7 @@
  * LICENSE-FR and LICENSE, respectively.
  *
  * ---------------------------------------------------------------------------------------------------------------------
- * H2JdbcProcessor_EN GUI is the English version of H2JdbcProcessor_FA
- *  This Java application processes the output from ArchiModelDumper.ajs jArchi script,
+ * This Java application processes the output from the ArchiModelDumper.ajs jArchi script,
  * which attempts to export the entire active Archimate Model using the most basic,
  * fundamental JArchi global collections. The oputputs will be saved in an in-memory
  * Java file, the following Maven command should run this application:

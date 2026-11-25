@@ -1534,11 +1534,11 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
     return false;
   }
 
-  // Parse boolean-like property values safely including localized tokens
+  // Parse common English boolean-like property values safely
   // Returns: { found: Boolean, key: String|null, val: String|null, truthy: Boolean }
   function getPropBooleanValue(el, keys) {
-    const trueTokens = ['true', '1', 'yes', 'y', 'on', 'enabled', 'enable', 'positive', 'active', 'yeap', 'yeah', 'correct', 'right', 'بله', 'بلی', 'فعال', 'فعال‌شده', 'درست', 'صحیح'];
-    const falseTokens = ['false', '0', 'no', 'n', 'off', 'disabled', 'disable', 'negative', 'inactive', 'nope', 'nah', 'wrong', 'incorrect', 'خیر', 'نه', 'غیرفعال', 'فعال‌نشده', 'نادرست', 'غلط'];
+    const trueTokens = ['true', '1', 'yes', 'y', 'on', 'enabled', 'enable', 'positive', 'active', 'yeap', 'yeah', 'correct', 'right'];
+    const falseTokens = ['false', '0', 'no', 'n', 'off', 'disabled', 'disable', 'negative', 'inactive', 'nope', 'nah', 'wrong', 'incorrect'];
     try {
       if (!el || typeof el.prop !== 'function') return { found: false, key: null, val: null, truthy: false };
       for (let i = 0; i < keys.length; i++) {
@@ -1871,7 +1871,7 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
       (g.prop && g.prop("description")) || (g.prop && g.prop("notes")) || ""
     );
     let text = (safeName(g) + " " + desc).toLowerCase();
-    // Keep the same English and Persian text triggers in both language versions.
+    // Match English text triggers in model names and descriptions.
     let scaleTokens = [
       "real-time", "24x7", "circadian", "round-the-clock", "high volume", "scalab",
       "low-latency", "throughput", "peak", "massive", "large", "large scale",
@@ -3446,11 +3446,11 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
   eachOfGroup(TYPES.SERVICE, function (s) {
     try {
       // Robust shared declaration detection:
-      // - Look for boolean-like properties (english + localized keys)
+      // - Look for boolean-like properties
       // - Heuristic name-based detection for 'shared' (tokens)
-      const sharedKeys = ['shared', 'isShared', 'shared_service', 'sharedService', 'is_shared', 'common', 'joint', 'mutual', 'common service', 'مشترک', 'اشتراکی', 'مشاع', 'خدمات اشتراکی', 'سرویس اشتراکی'];
+      const sharedKeys = ['shared', 'isShared', 'shared_service', 'sharedService', 'is_shared', 'common', 'joint', 'mutual', 'common service'];
       const propResult = getPropBooleanValue(s, sharedKeys);
-      const nameTokens = ['shared', 'shared service', 'shared-service', 'shared_service', 'common services', 'common', 'joint', 'common service', 'joint services', 'مشترک', 'اشتراکی', 'مشاع', 'خدمات مشترک', 'خدمات اشتراکی', 'سرویس اشتراکی'];
+      const nameTokens = ['shared', 'shared service', 'shared-service', 'shared_service', 'common services', 'common', 'joint', 'common service', 'joint services'];
       const sn = (safeName(s) || '').toLowerCase();
       const nameIndicatesShared = nameTokens.some(function (t) { return t && sn.indexOf(t) >= 0; });
       const declaredShared = propResult.truthy || nameIndicatesShared;
@@ -4896,7 +4896,7 @@ const SWTScale = Java.type("org.eclipse.swt.widgets.Scale");
           table,
           org.eclipse.swt.SWT.NONE
         );
-        // Translate labels and description
+        // Resolve labels and description for display
         const severityLabel = ENG.SEVERITY_LABELS[f.severity] || f.severity || "";
         const aspectLabel = ENG.ASPECTS[f.aspect] || f.aspect || "";
         const descLabel = f.desc || (SYMPTOM_CATALOGUE[f.code] && SYMPTOM_CATALOGUE[f.code].desc) || "";

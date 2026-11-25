@@ -6,8 +6,6 @@ This will create "archi_model_dump.json" in the "ArchiSyncDump" directory. This 
 
 mvn "-DmainClass=ArchiJDBC.H2ConsoleLauncher" exec:java
 
-On executing "H2JdbcProcessor_EN" or "H2JdbcProcessor_FA", a Java Swing GUI will be opened, allowing you to interact with the dumped ArchiMate model in the H2 database by executing any SQL queries, directly from the Java application. "H2JdbcProcessor_FA" is the Persian version of "H2JdbcProcessor_EN".
+On executing "H2JdbcProcessor_EN", a Java Swing GUI will be opened, allowing you to interact with the dumped ArchiMate model in the H2 database by executing SQL queries directly from the Java application.
 
 mvn "-DmainClass=ArchiJDBC.H2JdbcProcessor_EN" exec:java
-
-mvn "-DmainClass=ArchiJDBC.H2JdbcProcessor_FA" exec:java

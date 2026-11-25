@@ -61,7 +61,7 @@
       <profile>
         <id>gui</id>
         <properties>
-          <mainClass>ArchiJDBC.H2JdbcProcessor_FA</mainClass>
+          <mainClass>ArchiJDBC.H2JdbcProcessor_EN</mainClass>
         </properties>
       </profile>
 
@@ -132,7 +132,7 @@
                 <archive>
                     <manifest>
                         <mainClass>
-                            ArchiJDBC.H2JdbcProcessor_FA
+                            ArchiJDBC.H2JdbcProcessor_EN
                         </mainClass>
                     </manifest>
                 </archive>

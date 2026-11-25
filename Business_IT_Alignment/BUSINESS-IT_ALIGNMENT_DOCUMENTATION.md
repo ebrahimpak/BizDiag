@@ -102,7 +102,7 @@ senior support, leadership, trust, communication, and understanding of both
 business and technical environments all affect whether alignment can be
 sustained [3].
 
-#### 1.2.1 Connection to `BusinessITAlignment_EN.ajs` and `BusinessITAlignment_FA.ajs`
+#### 1.2.1 Connection to `BusinessITAlignment_EN.ajs`
 
 The script turns part of this strategic discussion into a model-based
 diagnostic. It checks modeled strategy, business processes, data, applications,
@@ -250,8 +250,7 @@ ongoing management beyond static model checks [18, pp. 38–43].
 
 ## 2. Purpose and Scope
 
-`BusinessITAlignment_EN.ajs` and its Persian-language counterpart,
-`BusinessITAlignment_FA.ajs`, are jArchi scripts for examining an ArchiMate
+`BusinessITAlignment_EN.ajs` is a jArchi script for examining an ArchiMate
 model for business–IT alignment symptoms. They combine a research-grounded
 catalogue of symptoms with model checks, record findings against model
 elements, and present findings in an interactive table and export files.
@@ -259,7 +258,7 @@ It is a model-based diagnostic aid: a finding is evidence that the modeled
 architecture meets a rule's trigger, not conclusive proof that the same
 condition exists in organizational practice or in a running system [4].
 
-The scripts (both the English and the Persian-localized script) contain **112 symptom catalogue entries**:
+The script contains **112 symptom catalogue entries**:
 
 <table border="1" cellpadding="4" cellspacing="0" style="border-collapse: collapse;">
   <thead>
@@ -1965,8 +1964,8 @@ of misalignment-symptom detection [5]. This project delivers a substantial and
 authorial realization of the first of these directions.
 
 **Ebrahim Pak authored and implemented the
-`BusinessITAlignment_EN.ajs` and `BusinessITAlignment_FA.ajs` scripts as an
-implementation of the automation proposed in Őri's paper.**
+`BusinessITAlignment_EN.ajs` script as an implementation of the automation
+proposed in Őri's paper.**
 This implementation is not merely a transcription of the paper's catalogue: it
 translates the framework into executable jArchi rules that inspect ArchiMate
 elements, relationships, names, documentation, and custom properties, attach
@@ -1981,10 +1980,9 @@ The scripts were developed using the Design Science approach described by
 Hevner et al. [14], with methodological guidance also taken from Recker's
 §5.2 [15]. In practice, the method shaped the work in four connected ways:
 first, the framework was identified as a relevant problem and operationalized
-as a set of EA model-level requirements; second, the shared symptom catalogue
-was implemented in two human-language variants—English
-(`BusinessITAlignment_EN.ajs`) and Persian
-(`BusinessITAlignment_FA.ajs`)—as executable jArchi artifacts; third,
+as a set of EA model-level requirements; second, the symptom catalogue was
+implemented in the executable jArchi artifact
+(`BusinessITAlignment_EN.ajs`); third,
 the scripts were demonstrated in ArchiMate models through rule execution,
 interactive findings, tagging, and exports; and fourth, the catalogue,
 mappings, severity labels, and reporting behavior remain subject to further
@@ -2004,8 +2002,6 @@ work needed to make that automation usable as an assessment:
 * It extends the initial framework with 89 supplementary catalogue entries,
   including evidence-based cross-layer, business, data, application,
   technology, operational, semantic, and strategic checks.
-* It provides both English and Persian-localized implementations and a
-  bilingual alignment framework within one documented assessment approach.
 * It creates a testable, rule-based catalogue for model-level criteria,
   enabling findings to be reproduced and later evaluated against test
   models or empirical organizational evidence.

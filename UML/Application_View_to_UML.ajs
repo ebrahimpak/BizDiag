@@ -1557,5 +1557,3 @@ const alertMsg =
 
 window.alert(alertMsg);
 
-
-

@@ -2,7 +2,7 @@
  * BizModelCanvas GUI Utilities - Shared infrastructure for GUI operations
  * 
  * Provides:
- * - i18n (internationalization) message loading
+ * - English message loading
  * - Console capture and streaming
  * - Script execution management
  * - Common UI helpers
@@ -10,21 +10,15 @@
 
 const BizCanvas = {
     
-    // =========================== I18N Support ===========================
+    // =========================== Message Support ===========================
     
     messages: {},
-    currentLanguage: 'en',
-    
     /**
-     * Load localization messages from properties file
-     * @param {string} language - 'en' or 'fa'
+     * Load English messages from the properties file
      */
-    loadMessages: function(language) {
-        this.currentLanguage = language;
-        const propertiesFile = language === 'fa' 
-            ? __dirname + '/gui/i18n/fa.properties'
-            : __dirname + '/gui/i18n/en.properties';
-        
+    loadMessages: function() {
+        const propertiesFile = __dirname + '/gui/i18n/en.properties';
+
         // Try to load properties file
         try {
             const content = readFile(propertiesFile);
@@ -41,15 +35,15 @@ const BizCanvas = {
                 });
             }
         } catch (e) {
-            console.error('Failed to load i18n messages: ' + e);
+            console.error('Failed to load English messages: ' + e);
         }
     },
     
     /**
-     * Get localized message
+     * Get a message by key
      * @param {string} key - Message key (e.g., 'btn.execute')
      * @param {string|array} args - Optional replacement arguments
-     * @returns {string} Localized message
+     * @returns {string} Message text
      */
     msg: function(key, args) {
         let message = this.messages[key] || key;

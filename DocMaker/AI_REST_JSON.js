@@ -620,7 +620,7 @@ async function retryOperation(operation) {
           : "";
       const msg = String(raw);
       console.log(
-        `خطایی در تلاش مجدد برای مستندسازی توسط هوش مصنوعی رخ داده. (تلاش شمارۀ ${
+        `AI documentation retry failed (attempt ${
           i + 1
         }): ${msg}`
       );
@@ -633,9 +633,9 @@ async function retryOperation(operation) {
 
       if (retryable && i < MAX_RETRIES - 1) {
         console.log(
-          `تلاش برای مستندسازی ناموفق بود. تلاش ${
+          `AI documentation attempt ${
             i + 1
-          } از ${MAX_RETRIES} — تکرار پس از ${RETRY_DELAY}ms`
+          } of ${MAX_RETRIES} failed; retrying in ${RETRY_DELAY}ms`
         );
         JThread.sleep(RETRY_DELAY);
       } else {

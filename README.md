@@ -117,7 +117,6 @@ ArchiMate Model
 BizDiag modules
       ├── BizModelCanvas
       │   ├── BizModelCanvas-GUI-EN.ajs
-      │   ├── BizModelCanvas-GUI-FA.ajs
       │   └── scripts
       │       ├── Analyze Model for Value Proposition.ajs
       │       ├── Cleanup Value Propositions.ajs
@@ -132,7 +131,6 @@ BizDiag modules
       │       └── Test Relationship Types.ajs
       ├── Business_IT_Alignment
       │   ├── BusinessITAlignment_EN.ajs
-      │   └── BusinessITAlignment_FA.ajs
       ├── Capability_Based_Planning
       │   ├── CBP_Move_1_Setup.ajs
       │   ├── CBP_Continue_Moves_2_to_7.ajs
@@ -150,7 +148,6 @@ BizDiag modules
       │   │   ├── ArchiModelDumper.ajs
       │   │   └── src\main\java\ArchiJDBC
       │   │       ├── H2JdbcProcessor_EN.java
-      │   │       ├── H2JdbcProcessor_FA.java
       │   │       └── H2ConsoleLauncher.java
       │   ├── GraalJS_ClientServer_Template
       │   │   ├── log_click.ajs
@@ -170,9 +167,7 @@ BizDiag modules
       │           └── NioInteropServer.java
       ├── DocMaker
       │   ├── AI_Element_DocMaker_EN.ajs
-      │   ├── AI_Element_DocMaker_FA.ajs
       │   ├── AI_View_DocMaker_EN.ajs
-      │   ├── AI_View_DocMaker_FA.ajs
       │   ├── AI_REST_JSON.js
       │   ├── Mark_it_Down.ajs
       │   └── Ollama_Olalla.ajs
@@ -481,9 +476,7 @@ BizDiag/
 │       └── CBP_Ollama_Worker.js
 ├── DocMaker/
 │   ├── AI_Element_DocMaker_EN.ajs
-│   ├── AI_Element_DocMaker_FA.ajs
 │   ├── AI_View_DocMaker_EN.ajs
-│   ├── AI_View_DocMaker_FA.ajs
 │   ├── AI_REST_JSON.js
 │   ├── Ollama_Olalla.ajs
 │   └── Mark_it_Down.ajs
@@ -524,16 +517,8 @@ directory management. The following are the jArchi scripts and JavaScript files 
       <td>Generates AI analysis for the selected element in Archi, in English</td>
     </tr>
     <tr>
-      <td><code>AI_<br>Element_<br>DocMaker_<br>FA.ajs</code></td>
-      <td>Generates AI analysis for the selected element in Archi, in Persian</td>
-    </tr>
-    <tr>
       <td><code>AI_<br>View_<br>DocMaker_<br>EN.ajs</code></td>
       <td>Generates AI analysis for the selected view in Archi, in English</td>
-    </tr>
-    <tr>
-      <td><code>AI_<br>View_<br>DocMaker_<br>FA.ajs</code></td>
-      <td>Generates AI analysis for the selected view in Archi, in Persian</td>
     </tr>
     <tr>
       <td><code>AI_<br>REST_<br>JSON.js</code></td>
@@ -635,13 +620,12 @@ for scope, workflow, and limitations.
 
 <p align="center"><img src="logo/img/DocMaker.png" alt="DocMaker module" width="100%"></p>
 
-This module consists of `AI_View_DocMaker_EN.ajs`, `AI_View_DocMaker_FA.ajs`,
-`AI_Element_DocMaker_EN.ajs`, `AI_Element_DocMaker_FA.ajs`, `AI_REST_JSON.js`,
+This module consists of `AI_View_DocMaker_EN.ajs`,
+`AI_Element_DocMaker_EN.ajs`, `AI_REST_JSON.js`,
 `Ollama_Olalla.ajs`, and `Mark_it_Down.ajs`.
 The DocMaker module is organized into three principal layers. First, the jArchi layer
-operates inside Archi and consists of bilingual documentation scripts—`AI_Element_DocMaker_EN.ajs` / 
-`AI_Element_DocMaker_FA.ajs` and `AI_View_DocMaker_EN.ajs` / `AI_View_DocMaker_FA.ajs`—which extract ArchiMate element 
-and view metadata in response to user selection and coordinate processing through Ollama_Olalla.ajs. Second, 
+operates inside Archi and consists of the element and view documentation scripts, which extract ArchiMate element
+and view metadata in response to user selection and coordinate processing through Ollama_Olalla.ajs. Second,
 the communication abstraction layer, implemented in pure JavaScript through `AI_REST_JSON.js`, serializes enterprise 
 architecture data to JSON payloads, manages HTTP POST requests to a local Ollama endpoint, saves AI-generated responses 
 to persistent JSON documentation files, and tracks element context (element ID, name, type, view name, and timestamps).   
@@ -650,8 +634,8 @@ the Ollama runtime executes outside Archi on the user's local machine, hosting L
 without cloud dependencies, external API keys, or exposure of sensitive architecture data to remote services.
 Post-processing is performed by `Mark_it_Down.ajs`, which formats AI-generated output as structured Markdown and uses 
 Java NIO.2 APIs for reliable file-system operations. Overall, this architecture emphasizes data privacy, reduced 
-operational cost, offline functionality, and extensibility, allowing organizations to replace underlying LLMs, add 
-language variants, or integrate alternative AI runtimes without modifying the core enterprise architecture extraction 
+operational cost, offline functionality, and extensibility, allowing organizations to replace underlying LLMs or
+integrate alternative AI runtimes without modifying the core enterprise architecture extraction
 logic. Its use of AI with Java-based enterprise development reflects a broader area of work on applying generative AI
 to enterprise Java [26].
 
@@ -675,7 +659,7 @@ to enterprise Java [26].
 │   ┌─────────────────┐         ┌──────────────────┐                          |
 │   │ Element DocMaker│         │ View DocMaker    │                          │
 │   │                 │         │                  │                          │
-│   │ EN.ajs / FA.ajs │         │ EN.ajs / FA.ajs  │                          │
+│   │ Element DocMaker│         │ View DocMaker    │                          │
 │   │                 │         │                  │                          │
 │   │ (jArchi Scripts │         │ (jArchi Scripts) │                          │
 │   │  in Archi)      │         │ in Archi)        │                          │
@@ -782,7 +766,7 @@ User Input
 │
 ├─→ Selects Element/View in Archi
 │
-├─→ Triggers DocMaker Script (EN/FA variant)
+├─→ Triggers the DocMaker Script
 │
 ├─→ Extracts Element/View Metadata
 │
@@ -814,19 +798,17 @@ User Input
 │ jArchi Scripts (Run Inside Archi)                                           │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│ AI_Element_DocMaker_EN.ajs / FA.ajs                                         │
+│ AI_Element_DocMaker_EN.ajs                                                  │
 │   • Triggered when user selects an ArchiMate element                        │
 │   • Extracts element name, type, description, relationships                 │
 │   • Calls Ollama_Olalla to initiate AI processing                           │
 │   • Returns formatted result to user                                        │
-│   • Supports English (EN) and Persian (FA) output                           │
 │                                                                             │
-│ AI_View_DocMaker_EN.ajs / FA.ajs                                            │
+│ AI_View_DocMaker_EN.ajs                                                    │
 │   • Triggered when user selects an ArchiMate view                           │
 │   • Extracts view structure, contained elements, relationships              │
 │   • Prepares comprehensive view metadata                                    │
 │   • Calls Ollama_Olalla for AI analysis                                     │
-│   • Supports English (EN) and Persian (FA) output                           │
 │                                                                             │
 │ Ollama_Olalla.ajs                                                           │
 │   • Orchestrates communication with Ollama                                  │
@@ -838,7 +820,7 @@ User Input
 │   • Formats AI-generated text into structured Markdown                      │
 │   • Adds metadata headers (element type, date, author)                      │
 │   • Creates proper file structure                                           │
-│   • Handles language-specific formatting                                    │
+│   • Formats generated documentation                                         │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 
@@ -854,7 +836,7 @@ User Input
 │   • Persists AI-generated documentation to JSON files via Java NIO.2        │
 │   • Tracks element context (ID, name, type, view name, timestamps)          │
 │   • Bridges jArchi data structures ↔ REST API contract                      │
-│   • Used by: AI_Element_DocMaker_EN/FA.ajs, AI_View_DocMaker_EN/FA.ajs      │
+│   • Used by: AI_Element_DocMaker_EN.ajs and AI_View_DocMaker_EN.ajs        │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 
@@ -877,24 +859,19 @@ User Input
                      KEY ARCHITECTURAL CHARACTERISTICS
 ================================================================================
 ```
-1. LOCALIZATION & OFFLINE OPERATION
+1. LOCAL AI & OFFLINE OPERATION
    ✓ All AI processing occurs on user's local machine via Ollama
    ✓ No cloud API calls, no external service dependencies
    ✓ Full control over sensitive EA data
    ✓ Works without Internet connection
 
-2. MULTI-LANGUAGE SUPPORT
-   ✓ Bilingual scripts: English (EN) and Persian (FA) variants
-   ✓ Documentation output respects language choice
-   ✓ Extensible to additional languages
-
-3. MODULARITY
+2. MODULARITY
    ✓ Each component has clear responsibility
    ✓ Loosely coupled via JSON/REST contracts
    ✓ Can be extended or replaced independently
    ✓ Supports different Ollama models
 
-4. SEPARATION OF CONCERNS
+3. SEPARATION OF CONCERNS
    ✓ jArchi scripts handle EA model interaction (inside Archi)
    ✓ JavaScript libraries handle REST/JSON communication
    ✓ Ollama handles AI inference (external runtime)
@@ -959,7 +936,7 @@ based on Ollama.
 
 **Ollama model selection (interactive)**
 
-- The DocMaker scripts (Element and View variants, English & Persian) provide an interactive Ollama model selector.
+- The DocMaker element and view scripts provide an interactive Ollama model selector.
 - When you run a DocMaker script, the initial confirmation dialog will show an optional dropdown listing the locally-installed Ollama models (discovered by running `ollama list`).
 - Choose an installed model to have the script use it for the AI request; the selected model is passed to the REST client (`AI_REST_JSON.js`) and included in the JSON request as `model: "<your-selected-model>"`.
 - If no models are detected, or you cancel selection, the scripts fall back to the previous default model — preserving backward compatibility.
@@ -1145,21 +1122,20 @@ require architect review.
 
 As a module of BizDiag software package, BizModelCanvas collection is a toolkit for analyzing value propositions, 
 producing enhanced views, and converting Business Model Canvas layouts into ArchiMate views. It is built to run inside 
-Archi using the jArchi (GraalJS) environment and includes two GUI launchers (BizModelCanvas-GUI-EN.ajs and 
-BizModelCanvas-GUI-FA.ajs) which serve as the GUI for accessing and executing a set of helper/analysis scripts in the 
+Archi using the jArchi (GraalJS) environment and includes a GUI launcher (BizModelCanvas-GUI-EN.ajs) for accessing and
+executing a set of helper/analysis scripts in the
 scripts/ folder. The scripts in this script-suite are the result of deeply researching the field of digital business 
 model, and applying the findings of the conducted research on these scripts. These scripts perform a wide range of 
 operations on the BMC, namely, they analyze models for all the nine building blocks of their business model canvas
 [21, 23].
 
-BizDiag provides a bilingual, unified GUI system for managing nine BizModelCanvas jArchi scripts. This
-system provides professional access to enterprise architecture analysis tools with full English and Persian language 
-support.
+BizDiag provides a unified GUI system for managing BizModelCanvas jArchi scripts and accessing enterprise
+architecture analysis tools.
 
 For using the GUI, launch either BizModelCanvas GUI script from Archi’s Scripts Manager. The GUI attempts to locate the 
 suite automatically.
 
-The BizModelCanvas-GUI-EN and BizModelCanvas-GUI-FA scripts provide access to the functionality of the nine Business 
+The BizModelCanvas-GUI-EN script provides access to the functionality of the nine Business
 Model Canvas through a three-tabbed dialog box.
 
 1. The first tab, 'Analysis', lets the user analyze the model for value propositions, clean up value propositions,  
@@ -1207,9 +1183,8 @@ In the `scripts` folder, the following 11 key jArchi scripts live:
        10├── Draw BMC Graphic.ajs
        11├── Generate BMC from Model.ajs    	
 ```
-Save for the 'Draw BMC Graphic.ajs', which draws Business Model Canvas Graphic, for 'BizModelCanvas-GUI-EN.ajs' and 
-'BizModelCanvas-GUI-FA.ajs', the other ten scripts are each accessible either directly, or through the four tabs of
-BizModelCanvas-GUI-EN and BizModelCanvas-GUI-FA scripts. 
+Save for the 'Draw BMC Graphic.ajs', which draws Business Model Canvas Graphic, the other ten scripts are each
+accessible either directly, or through the four tabs of 'BizModelCanvas-GUI-EN.ajs'.
 
 Apart from the deep analysis, finding BMC errors, debugging and cleaning up the model, checking for the existence of any
 critical definition gaps, and providing the business analysts with the precious business model metrics, this BMC 
@@ -1472,8 +1447,7 @@ command-line tools, a running.txt file is included in the repository to provide 
 Run `BizDiag-GUI.ajs` from Archi's jArchi Scripts Manager to open the ten-tab
 BizDiag launcher. Its first five tabs cover the `ClientServer_DB` submodules
 and show their terminal/Archi execution steps. The remaining tabs launch the
-existing BizDiag entry scripts; bilingual modules keep English and Persian
-actions together, with English listed first. Open an ArchiMate model before
+existing BizDiag entry scripts. Open an ArchiMate model before
 running module actions. External servers and command-line applications must
 still be started separately as described in their tabs.
 
@@ -1511,13 +1485,10 @@ BizDiag/
 │       └── CBP_Ollama_Worker.js
 ├── Business_IT_Alignment/
 │   ├── BusinessITAlignment_EN.ajs
-│   ├── BusinessITAlignment_FA.ajs
 │   └── img/
 ├── DocMaker/
 │   ├── AI_Element_DocMaker_EN.ajs
-│   ├── AI_Element_DocMaker_FA.ajs
 │   ├── AI_View_DocMaker_EN.ajs
-│   ├── AI_View_DocMaker_FA.ajs
 │   ├── AI_REST_JSON.js
 │   ├── Ollama_Olalla.ajs
 │   └── Mark_it_Down.ajs
@@ -1527,7 +1498,6 @@ BizDiag/
 │   └── UML_MODULE_DOCUMENTATION.md
 ├── BizModelCanvas/
 │   ├── BizModelCanvas-GUI-EN.ajs
-│   ├── BizModelCanvas-GUI-FA.ajs
 │   ├── gui/
 │   ├── img/
 │   ├── lib/
@@ -1547,8 +1517,8 @@ Each module folder contains its own scripts, resources, or server-side source fi
 
 ## 15. Open Source & Commercial Services
 
-BizDiag is released as open-source software under the CeCILL-B Free Software License, a French-law software license 
-developed by CEA, CNRS, and Inria.
+BizDiag is released under the CeCILL-B Free Software License, a French-law software license developed by CEA, CNRS,
+and Inria.
 
 The BizDiag source code is made available for inspection, use, modification, integration, and redistribution in 
 accordance with the terms and conditions of the CeCILL-B license.
@@ -1776,15 +1746,10 @@ Copyright © 2026 Ebrahim Pak
 
 BizDiag is free software distributed under the CeCILL-B Free Software License, Version 1.0.
 
-The license is available in both English and French:
+The license is available in English and French:
 
 - [LICENSE — English](LICENSE)
 - [LICENSE-FR — Français](LICENSE-FR)
-
-The CeCILL-B license grants broad rights to use, copy, modify, and redistribute the software, subject to the terms and 
-conditions of the license, including its requirements concerning intellectual-property notices and attribution.
-
-See LICENSE for the complete CeCILL-B license text.
 
 The official CeCILL-B license and related information are maintained by the organizations that created the CeCILL 
 family of licenses: CEA, CNRS, and Inria.

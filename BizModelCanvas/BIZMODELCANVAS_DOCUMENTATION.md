@@ -2,7 +2,7 @@
 
 ## 1. Purpose
 
-BizModelCanvas is a bilingual set of jArchi tools for inspecting Business Model Canvas (BMC) content in an Archi model,
+BizModelCanvas is a set of jArchi tools for inspecting Business Model Canvas (BMC) content in an Archi model,
 analyzing value-proposition structures, and translating between BMC and ArchiMate-oriented views. Its scope is
 model-level analysis and transformation; it does not determine whether an organization's business model is viable or
 complete.
@@ -34,7 +34,7 @@ modeling work; they should not be read as a verbatim or exhaustive implementatio
   BMC blocks. The generated content is heuristic and requires business-owner review.
 - **Draw and export a BMC graphic:** render BMC content from model elements as a graphic for review or editing.
 
-The English and Persian GUI launchers provide access to the analysis, view-creation, conversion, and testing scripts.
+The GUI launcher provides access to the analysis, view-creation, conversion, and testing scripts.
 Individual scripts are also available in `scripts/`; mapping and generation helpers are in `lib/`.
 
 ## 4. Use and interpretation
