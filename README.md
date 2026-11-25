@@ -237,19 +237,22 @@ contribute to organizational objectives.
 
 #### Unit 01 – Introducing jArchi
 
-<a href="https://www.youtube.com/watch?v=ujlcxfSuajA">
-  <img src="https://img.youtube.com/vi/ujlcxfSuajA/maxresdefault.jpg"
-       alt="Unit 01 – Introducing jArchi"
-       width="180">
-</a>
-
-#### Unit 02 – An Introduction to jArchi API – GraalJS – SWT/JFace
-
-<a href="https://www.youtube.com/watch?v=xnVvNU5-Er0">
-  <img src="https://img.youtube.com/vi/xnVvNU5-Er0/maxresdefault.jpg"
-       alt="Unit 02 – An Introduction to jArchi API – GraalJS – SWT/JFace"
-       width="180">
-</a>
+<table>
+  <tr>
+    <td>
+      <a href="https://www.youtube.com/watch?v=ujlcxfSuajA">
+        <img src="https://img.youtube.com/vi/ujlcxfSuajA/mqdefault.jpg"
+             alt="Unit 01 – Introducing jArchi" width="180">
+      </a>
+    </td>
+    <td>
+      <a href="https://www.youtube.com/watch?v=xnVvNU5-Er0">
+        <img src="https://img.youtube.com/vi/xnVvNU5-Er0/mqdefault.jpg"
+             alt="Unit 02 – jArchi API, GraalJS, SWT/JFace" width="180">
+      </a>
+    </td>
+  </tr>
+</table>
 
 *More educational units are planned as part of this ongoing course.*
 
