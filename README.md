@@ -240,7 +240,7 @@ contribute to organizational objectives.
 <a href="https://www.youtube.com/watch?v=ujlcxfSuajA">
   <img src="https://img.youtube.com/vi/ujlcxfSuajA/maxresdefault.jpg"
        alt="Unit 01 – Introducing jArchi"
-       width="320">
+       width="180">
 </a>
 
 #### Unit 02 – An Introduction to jArchi API – GraalJS – SWT/JFace
@@ -248,7 +248,7 @@ contribute to organizational objectives.
 <a href="https://www.youtube.com/watch?v=xnVvNU5-Er0">
   <img src="https://img.youtube.com/vi/xnVvNU5-Er0/maxresdefault.jpg"
        alt="Unit 02 – An Introduction to jArchi API – GraalJS – SWT/JFace"
-       width="320">
+       width="180">
 </a>
 
 *More educational units are planned as part of this ongoing course.*
