@@ -244,7 +244,7 @@ contribute to organizational objectives.
 <table width="100%" style="table-layout: fixed;">
   <tr>
     <td width="50%" align="center" valign="top">
-      <strong>Unit 01 – Introducing jArchi</strong>
+      <strong>Unit 01 – Introducing jArchi                                </strong>
       <br><br>
       <a href="https://www.youtube.com/watch?v=ujlcxfSuajA">
         <img src="https://img.youtube.com/vi/ujlcxfSuajA/mqdefault.jpg"
