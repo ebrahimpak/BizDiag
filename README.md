@@ -237,18 +237,22 @@ contribute to organizational objectives.
 
 #### Unit 01 – Introducing jArchi
 
+### Course: Enterprise Architecture Automation
+
 <table>
   <tr>
-    <td>
+    <td align="center">
+      <h4>Unit 01 – Introducing jArchi</h4>
       <a href="https://www.youtube.com/watch?v=ujlcxfSuajA">
         <img src="https://img.youtube.com/vi/ujlcxfSuajA/mqdefault.jpg"
-             alt="Unit 01 – Introducing jArchi" width="180">
+             alt="Unit 01 – Introducing jArchi" width="200">
       </a>
     </td>
-    <td>
+    <td align="center">
+      <h4>Unit 02 – An Introduction to jArchi API – GraalJS – SWT/JFace</h4>
       <a href="https://www.youtube.com/watch?v=xnVvNU5-Er0">
         <img src="https://img.youtube.com/vi/xnVvNU5-Er0/mqdefault.jpg"
-             alt="Unit 02 – jArchi API, GraalJS, SWT/JFace" width="180">
+             alt="Unit 02 – jArchi API, GraalJS, SWT/JFace" width="200">
       </a>
     </td>
   </tr>
