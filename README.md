@@ -12,7 +12,7 @@
 
 BizDiag™ is an open-source software suite that transforms ArchiMate® models into structured, analyzable data to support 
 Enterprise Architecture (EA) intelligence, Business–IT alignment analysis, Business Model Canvas (BMC) synthesis, 
-Intelligent EA Architecture Blueprint, Capability-Based Planning, and AI-assisted architecture documentation. BizDiag™ 
+Intelligent EA Architecture Blueprint, Capability-Based Planning, and AI-infused architecture documentation. BizDiag™
 is composed of modules that perform Enterprise Architecture automation, architecture intelligence, Business–IT alignment
 analysis, business model analysis, EA client/server application architecture blueprints, and digital strategy support.
 BizDiag™ is the open-source core of the open-core "BizDiag Industry Intelligence™". “BizDiag Industry Intelligence™” is 
@@ -50,16 +50,15 @@ as structured data for analysis, automation, decision support, and strategy.
         - [3.2.3 GraalJS_Element_RESTLogger](#clientserver-db-graaljs-element-restlogger)
         - [3.2.4 GraalJS_NIOLoggerServer](#clientserver-db-graaljs-niologgerserver)
         - [3.2.5 Java_DBLoggerServer](#clientserver-db-java-dbloggerserver)
-    - [3.3 AI-Assisted Architecture Tools](#ai-assisted-architecture-tools)
-        - [3.3.1 UML Subsystem](#uml-subsystem)
-            - [Detailed documentation](UML/UML_MODULE_DOCUMENTATION.md)
-        - [3.3.2 DocMaker Subsystem](#docmaker-subsystem)
-        - [3.3.3 Capability-Based Planning](#capability-based-planning)
-            - [Detailed documentation](Capability_Based_Planning/CBP_SUITE_DOCUMENTATION.md)
-            - [3.3.3.1 CBP Data-Entry Properties and Values](#cbp-data-entry-properties-and-values)
-    - [3.4 BizModelCanvas](#bizmodelcanvas)
+    - [3.3 UML Module](#uml-module)
+        - [Detailed documentation](UML/UML_MODULE_DOCUMENTATION.md)
+    - [3.4 DocMaker Module](#docmaker-module)
+    - [3.5 Capability-Based Planning](#capability-based-planning)
+        - [Detailed documentation](Capability_Based_Planning/CBP_SUITE_DOCUMENTATION.md)
+        - [3.5.1 CBP Data-Entry Properties and Values](#cbp-data-entry-properties-and-values)
+    - [3.6 BizModelCanvas](#bizmodelcanvas)
         - [Detailed documentation](BizModelCanvas/BIZMODELCANVAS_DOCUMENTATION.md)
-        - [3.4.1 A Business Model Canvas Generation & Analysis](#business-model-canvas-generation--analysis)
+        - [3.6.1 A Business Model Canvas Generation & Analysis](#business-model-canvas-generation--analysis)
 - [4. Why ArchiMate & jArchi?](#4-why-archimate--jarchi)
 - [5. Technology Stack](#5-technology-stack)
 - [6. Data Flow](#6-data-flow)
@@ -71,7 +70,7 @@ as structured data for analysis, automation, decision support, and strategy.
     - [11.1 Enterprise Architecture Assessment](#111-enterprise-architecture-assessment)
     - [11.2 Business–IT Alignment](#112-businessit-alignment)
     - [11.3 Architecture Data Analysis](#113-architecture-data-analysis)
-    - [11.4 AI-Assisted Documentation](#114-ai-assisted-documentation)
+    - [11.4 AI-Infused Documentation](#114-ai-infused-documentation)
     - [11.5 Business Model to Architecture](#115-business-model-to-architecture)
     - [11.6 Architecture Reporting](#116-architecture-reporting)
     - [11.7 Custom Architecture Automation](#117-custom-architecture-automation)
@@ -207,7 +206,7 @@ knowledge and the practical challenges faced by enterprise architects.
 BizDiag draws on information-systems research methods [3] and Design Science Research [4], alongside research on
 Enterprise Architecture analysis approaches and IT governance [5–6] and practice-based enterprise coherence [7].
 The Business–IT Alignment module is informed by strategic and operational Business–IT alignment studies [8–14]
-and research on misalignment symptom detection [15–17]. The UML subsystem's view-oriented and cross-notation
+and research on misalignment symptom detection [15–17]. The UML module's view-oriented and cross-notation
 context draws on software architecture views and ArchiMate/UML guidance [18–20]. BizModelCanvas builds on
 research into modeling the Business Model Canvas with ArchiMate and aligning enterprise architecture with business
 models [21–22], as well as value proposition design [23]. These sources inform the modules' research context; the
@@ -281,7 +280,7 @@ Explore more content on the [JCodices YouTube channel](https://www.youtube.com/@
 <a id="business-it-alignment-analysis"></a>
 #### 3.1.1 A Business–IT Alignment/Misalignment Analysis
 
-BizDiag's Business_IT_Alignment subsystem includes analysis capabilities intended to help architects investigate
+BizDiag's Business_IT_Alignment module includes analysis capabilities intended to help architects investigate
 relationships between business and IT architecture [7–14]. This module has leveraged the previously-conducted studies on
 the Business–IT alignment research methodology, mostly the studies by Őri and Szabó. However, my analysis and 
 utilized technology stack drastically differ from those used by the mentioned researchers. Unlike approaches that
@@ -462,144 +461,24 @@ providing a deployment option for environments that require a pure-Java server r
 examples illustrate client/server integration patterns for enterprise applications [24].
 
 
-<a id="ai-assisted-architecture-tools"></a>
-### 3.3 **AI-Assisted Architecture Tools**: Leveraging AI REST APIs for Enterprise Architecture Operations
-
-These three root-level modules form BizDiag's AI-assisted architecture capabilities. Together, they separate Enterprise
-Architecture model interaction from AI inference and planning workflows:
-
-- an AI-enhanced ArchiMate Application View to UML transformation script
-- an AI-driven DocMaker subsystem for generating documentation
-- the Capability-Based Planning workflow with optional Move 1 Ollama Capability discovery
-
-```text
-BizDiag/
-├── Capability_Based_Planning/
-│   ├── CBP_Move_1_Setup.ajs
-│   ├── CBP_Continue_Moves_2_to_7.ajs
-│   ├── CBP_SUITE_DOCUMENTATION.md
-│   └── lib/
-│       ├── CBP_Capability_Discovery.js
-│       ├── CBP_Improvement_Tables.js
-│       ├── CBP_Strategic_Importance_Maturity_Diagrams.js
-│       ├── CBP_Assessment_Engine.js
-│       ├── CBP_Model_Inputs.js
-│       ├── CBP_Run_State.js
-│       ├── CBP_View_Generator.js
-│       └── CBP_Ollama_Worker.js
-├── DocMaker/
-│   ├── AI_Element_DocMaker_EN.ajs
-│   ├── AI_View_DocMaker_EN.ajs
-│   ├── AI_REST_JSON.js
-│   ├── Ollama_Olalla.ajs
-│   └── Mark_it_Down.ajs
-└── UML/
-    ├── Application_View_to_UML.ajs
-    └── sendToAI.js
-```
-
-_The Scripts_
-
-AI-assisted capabilities can be used to support tasks such as:
-
-- Architecture documentation
-- Element description generation
-- Architecture information enrichment
-- Analysis assistance
-- Natural-language interaction with architecture information
-- Generation of structured architecture-related content
-- Leveraging locally-installed Ollama, together with local AI Models
-
-These workflows support locally hosted, offline AI models. Some scripts use Java NIO.2 for robust filesystem and
-directory management. The following are the jArchi scripts and JavaScript files in these modules:
-
-<table width="100%">
-  <colgroup>
-    <col width="28%">
-    <col width="72%">
-  </colgroup>
-  <thead>
-    <tr>
-      <th>Script</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>AI_<br>Element_<br>DocMaker_<br>EN.ajs</code></td>
-      <td>Generates AI analysis for the selected element in Archi.</td>
-    </tr>
-    <tr>
-      <td><code>AI_<br>View_<br>DocMaker_<br>EN.ajs</code></td>
-      <td>Generates AI analysis for the selected view in Archi.</td>
-    </tr>
-    <tr>
-      <td><code>AI_<br>REST_<br>JSON.js</code></td>
-      <td>Provides REST API communication with Ollama, handles JSON serialization/deserialization, manages element context tracking, and persists AI-generated documentation to files (used by DocMaker)</td>
-    </tr>
-    <tr>
-      <td><code>Mark_<br>it_<br>Down.ajs</code></td>
-      <td>Provides Markdown export functionality for selected Archi views and elements</td>
-    </tr>
-    <tr>
-      <td><code>Ollama_<br>Olalla.ajs</code></td>
-      <td>Provides integration with the locally installed Ollama AI runtime</td>
-    </tr>
-    <tr>
-      <td><code>send<br>To<br>AI.js</code></td>
-      <td>Simple HTTP client wrapper for querying Ollama (used by Application_View_to_UML.ajs only; independent of AI_REST_JSON.js)</td>
-    </tr>
-    <tr>
-      <td><code>CBP_<br>Capability_<br>Discovery.js</code></td>
-      <td>Builds a bounded strategic-label and Business Model Canvas context, validates grounded Ollama proposals, and creates traceable provisional Capability elements.</td>
-    </tr>
-    <tr>
-      <td><code>CBP_<br>Improvement_<br>Tables.js</code></td>
-      <td>Renders the CBP roadmap, dimension-increment, and required-action tables from assessment results and accepted Goals/actions.</td>
-    </tr>
-    <tr>
-      <td><code>CBP_<br>Strategic_<br>Importance_<br>Maturity_<br>Diagrams.js</code></td>
-      <td>Renders the strategic-importance, maturity, and increment-roadmap diagrams from CBP assessment results.</td>
-    </tr>
-    <tr>
-      <td><code>CBP_<br>Assessment_<br>Engine.js</code></td>
-      <td>Calculates CBP maturity, strategic importance, landscape classifications, target Goals, and actions for Moves 2–7.</td>
-    </tr>
-    <tr>
-      <td><code>CBP_<br>Model_<br>Inputs.js</code></td>
-      <td>Validates model properties and calculates maturity and strategic-importance assessment inputs.</td>
-    </tr>
-    <tr>
-      <td><code>CBP_<br>Run_<br>State.js</code></td>
-      <td>Provides CBP model queries, allowed element scope, and persisted workflow run state.</td>
-    </tr>
-    <tr>
-      <td><code>CBP_<br>View_<br>Generator.js</code></td>
-      <td>Generates the Capability map, input worklists, and analytical CBP views.</td>
-    </tr>
-    <tr>
-      <td><code>CBP_<br>Ollama_<br>Worker.js</code></td>
-      <td>Discovers installed local Ollama models and transports asynchronous generation requests with timeout and error handling.</td>
-    </tr>
-    <tr>
-      <td><code>CBP_<br>Move_<br>1_<br>Setup.ajs</code></td>
-      <td>Creates the Capability map and input worklists; optionally discovers provisional Capabilities from bounded strategic labels and Canvas content.</td>
-    </tr>
-    <tr>
-      <td><code>CBP_<br>Continue_<br>Moves_<br>2_<br>to_<br>7.ajs</code></td>
-      <td>Validates user-entered inputs, calculates Moves 2–7, and generates the analytical CBP views.</td>
-    </tr>
-  </tbody>
-</table>
-
-
-
-<a id="uml-subsystem"></a>
-#### 3.3.1 UML Subsystem
+<a id="uml-module"></a>
+### 3.3 UML Module
 
 <p align="center"><img src="logo/img/uml_1.png" alt="UML module" width="100%"></p>
 
 > **Detailed documentation:** [UML-Inspired View Module](UML/UML_MODULE_DOCUMENTATION.md)
+
+```text
+UML/
+├── Application_View_to_UML.ajs
+├── sendToAI.js
+└── UML_MODULE_DOCUMENTATION.md
+```
+
+| Script | Description |
+|---|---|
+| `Application_View_to_UML.ajs` | Transforms a selected ArchiMate Application View into a UML-inspired view and optionally requests Ollama semantic enrichment. |
+| `sendToAI.js` | Provides the HTTP client used by the UML transformation script to query the local Ollama runtime. |
 
 Unlike Archi, which is primarily dedicated to ArchiMate modeling, Modelio software supports multiple modeling languages, 
 including UML and ArchiMate. Since version 3.6, Modelio has supported dedicated ArchiMate subprojects that can coexist 
@@ -613,17 +492,22 @@ UML modeling through its plug-in ecosystem [19, 25].
 
 <p align="center"><img src="logo/img/uml_2.png" alt="ArchiMate to UML-like notation module" width="100%"></p>
 
-The UML module complements BizDiag's business diagnostics and digital strategy capabilities by providing alternative 
-UML-like representations of ArchiMate views. By overcoming Archi's lack of native multi-metamodel support, it enables 
-architectural information to be visualized from different modelling perspectives, facilitating the interpretation, 
-communication, and analysis of business structures, processes, systems, and their relationships. This contributes to a 
-more flexible understanding of the enterprise architecture landscape, supporting business diagnostics, business–IT 
-alignment, and informed digital strategy development.
+As it is evident from the above two figures, the conversion of the ArchiMate view into the UML-like view can help
+analysts examine the same enterprise architecture from different perspectives. For example, business processes,
+supporting services, applications, and their dependencies become easier to distinguish, which can support business
+diagnostics, application rationalization, business–IT alignment, and digital transformation planning.
+
+Therefore, the UML module complements BizDiag's business diagnostics and digital strategy capabilities by providing
+alternative UML-like representations of ArchiMate views. By overcoming Archi's lack of native multi-metamodel support,
+it enables architectural information to be visualized from different modelling perspectives, facilitating the
+interpretation, communication, and analysis of business structures, processes, systems, and their relationships. This
+contributes to a more flexible understanding of the enterprise architecture landscape, supporting business diagnostics,
+business–IT alignment, and informed digital strategy development.
 
 The UML module's main script is `Application_View_to_UML.ajs`, a jArchi script that transforms the selected
-application-layer views into new views using UML-like notation instead of ArchiMate notation. It is an AI-enhanced 
-UML-like view  generation script designed for architectural transformation and semantic enrichment. The script does not 
-generate idiomatic UML, but instead it generates a UML-inspired component-diagram view from the selected ArchiMate 
+application-layer views into new views using UML-like notation instead of ArchiMate notation. It is an AI-infused
+UML-like view generation script designed for architectural transformation and semantic enrichment. The script does not
+generate idiomatic UML, but instead it generates a UML-inspired component-diagram view from the selected ArchiMate
 Application View.
 
 `Application_View_to_UML.ajs`
@@ -641,10 +525,27 @@ ArchiMate-to-UML transformation: it creates a UML-inspired, component-style Arch
 AI-suggested semantic annotations.
 
 
-<a id="docmaker-subsystem"></a>
-#### 3.3.2 DocMaker Subsystem
+<a id="docmaker-module"></a>
+### 3.4 DocMaker Module
 
 <p align="center"><img src="logo/img/DocMaker.png" alt="DocMaker module" width="100%"></p>
+
+```text
+DocMaker/
+├── AI_Element_DocMaker_EN.ajs
+├── AI_View_DocMaker_EN.ajs
+├── AI_REST_JSON.js
+├── Ollama_Olalla.ajs
+└── Mark_it_Down.ajs
+```
+
+| Script | Description |
+|---|---|
+| `AI_Element_DocMaker_EN.ajs` | Generates AI-infused documentation for a selected ArchiMate element. |
+| `AI_View_DocMaker_EN.ajs` | Generates AI-infused documentation for a selected ArchiMate view. |
+| `AI_REST_JSON.js` | Handles Ollama REST communication, JSON payloads, element context, and persistent JSON output. |
+| `Ollama_Olalla.ajs` | Orchestrates model selection and local Ollama request handling for DocMaker. |
+| `Mark_it_Down.ajs` | Formats AI-generated output as Markdown and writes it through Java NIO.2 file operations. |
 
 This module consists of `AI_View_DocMaker_EN.ajs`,
 `AI_Element_DocMaker_EN.ajs`, `AI_REST_JSON.js`,
@@ -668,7 +569,7 @@ to enterprise Java [26].
 
 ```
 ================================================================================
-        AI-Assisted Architecture Tools: High-Level Architectural Overview
+                 DocMaker Module: Architectural Overview
 ================================================================================
 ```
 ```
@@ -952,12 +853,12 @@ Result: documentation/business-service-customer-portal.md
 _Why Ollama?_
 
 Ollama was chosen as the local AI runtime instead of requiring a cloud-based AI service and an external API key. As a 
-Digital Business Practitioner, I wanted AI-assisted documentation to provide greater control over potentially sensitive 
+Digital Business Practitioner, I wanted AI-infused documentation to provide greater control over potentially sensitive
 Enterprise Architecture information and reduce dependency on external services.
 
 Other considerations, including operational cost, performance, local execution, and the ability to work without an 
 Internet connection, also motivated the development of an offline documentation generator. The project builds upon the 
-broader concept of AI-assisted ArchiMate documentation generation, while providing a distinct local-AI implementation 
+broader concept of AI-infused ArchiMate documentation generation, while providing a distinct local-AI implementation
 based on Ollama.
 
 **Ollama model selection (interactive)**
@@ -979,11 +880,40 @@ requirements.
 
 
 <a id="capability-based-planning"></a>
-#### 3.3.3 Capability-Based Planning
+### 3.5 Capability-Based Planning
 
 <p align="center"><img src="logo/img/Capability_Based_Planning.png" alt="Capability-Based Planning module" width="100%"></p>
 
 > **Detailed documentation:** [Capability-Based Planning (CBP) Suite](Capability_Based_Planning/CBP_SUITE_DOCUMENTATION.md)
+
+```text
+Capability_Based_Planning/
+├── CBP_Move_1_Setup.ajs
+├── CBP_Continue_Moves_2_to_7.ajs
+├── CBP_SUITE_DOCUMENTATION.md
+└── lib/
+    ├── CBP_Capability_Discovery.js
+    ├── CBP_Improvement_Tables.js
+    ├── CBP_Strategic_Importance_Maturity_Diagrams.js
+    ├── CBP_Assessment_Engine.js
+    ├── CBP_Model_Inputs.js
+    ├── CBP_Run_State.js
+    ├── CBP_View_Generator.js
+    └── CBP_Ollama_Worker.js
+```
+
+| Script or library | Description |
+|---|---|
+| `CBP_Move_1_Setup.ajs` | Creates the Capability Map and input worklists; optionally discovers provisional Capabilities with Ollama. |
+| `CBP_Continue_Moves_2_to_7.ajs` | Validates inputs, calculates Moves 2–7, and generates the analytical CBP views. |
+| `CBP_Capability_Discovery.js` | Builds bounded strategic context and validates grounded Ollama Capability proposals. |
+| `CBP_Assessment_Engine.js` | Calculates maturity, strategic importance, landscape classifications, Goals, and actions. |
+| `CBP_Model_Inputs.js` | Validates model properties and prepares maturity and strategic-importance inputs. |
+| `CBP_View_Generator.js` | Generates Capability maps, worklists, and analytical assessment views. |
+| `CBP_Improvement_Tables.js` | Renders CBP roadmaps, increment tables, and required-action tables. |
+| `CBP_Strategic_Importance_Maturity_Diagrams.js` | Renders maturity, strategic-importance, and increment-roadmap diagrams. |
+| `CBP_Run_State.js` | Provides model queries and persisted CBP workflow state. |
+| `CBP_Ollama_Worker.js` | Discovers local Ollama models and handles bounded AI requests and errors. |
 
 The Capability-Based Planning (CBP) module implements the seven moves described in "Capability-Based Planning, The Link
 between Strategy and Enterprise Architecture" and "Capability-based Planning in 7 moves!" through
@@ -995,7 +925,7 @@ scripts do not infer maturity ratings, strategic impact, targets, actions, or pr
 The seven-move planning method and capability-map practices inform the workflow's modeled stages and inputs [27–31].
 
 <a id="cbp-data-entry-properties-and-values"></a>
-##### 3.3.3.1 CBP Data-Entry Properties and Values
+#### 3.5.1 CBP Data-Entry Properties and Values
 
 Enter these properties on the **underlying model elements' Properties tabs**, not on the generated view cards. Move 1
 lists the inputs in its worklists. Replace `<YYYY>` with a year configured in the model's `CBP.Increments` property;
@@ -1141,14 +1071,14 @@ require architect review.
 
 
 <a id="bizmodelcanvas"></a>
-### 3.4 **BizModelCanvas**
+### 3.6 **BizModelCanvas**
 
 <p align="center"><img src="logo/img/BizModelCanvas.png" alt="BizModelCanvas module" width="100%"></p>
 
 > **Detailed documentation:** [BizModelCanvas Module](BizModelCanvas/BIZMODELCANVAS_DOCUMENTATION.md)
 
 <a id="business-model-canvas-generation--analysis"></a>
-#### 3.4.1 A Business Model Canvas Generation & Analysis
+#### 3.6.1 A Business Model Canvas Generation & Analysis
 
 As a module of BizDiag software package, BizModelCanvas collection is a toolkit for analyzing value propositions, 
 producing enhanced views, and converting Business Model Canvas layouts into ArchiMate views. It is built to run inside 
@@ -1243,6 +1173,7 @@ ArchiMate model and its evolutions over time, and be mindful of the very fact th
 and it changes throughout your organization lifetime. As a result, you have to mend your business model canvas,
 periodically, and run this script suite against your model to see if the model changes lead to a different BMC. After
 all, if you take care of your business model, your business model will take care of you!</small></p>
+
 ---
 
 ## 4. Why ArchiMate & jArchi?
@@ -1276,7 +1207,7 @@ The result is an architecture environment where models can become more than stat
 | JSON / JSONL | Structured architecture data                                                                                               |
 | XML          | Utilized in pom.xml for Apache Maven projects' build and configuration information                                         |
 | CSV / Excel  | Data export and storage for later analysis                                                                                 |
-| AI Models    | AI-assisted analysis and documentation                                                                                     |
+| AI Models    | AI-infused analysis and documentation                                                                                     |
 | Ollama       | Local AI model management and execution                                                                                    |
 
 
@@ -1410,7 +1341,7 @@ BizDiag can support use cases such as:
 
 - Business–IT Alignment
 - Architecture Reporting
-- AI-Assisted Documentation
+- AI-Infused Documentation
 - Architecture Data Analysis
 - Custom Architecture Automation
 - Business Model to Architecture
@@ -1419,37 +1350,56 @@ BizDiag can support use cases such as:
 ---
 
 ### 11.1 Enterprise Architecture Assessment
-Analyze an existing ArchiMate model and identify structural conditions that warrant further architectural investigation.
+An existing ArchiMate model can be examined through BizDiag's analysis modules to identify structural conditions that
+warrant further architectural investigation. This assessment approach is informed by Design Science Research (DSR):
+the relevance cycle connects the analysis with practical Enterprise Architecture concerns, the design cycle guides the
+development and application of research-informed analysis artifacts and rules, and the rigor cycle grounds findings in
+established academic and domain knowledge [3–4]. Evaluation can then examine whether the implemented rules and generated
+views provide useful, credible, and repeatable insights when applied to a model. BizDiag does not treat detected
+conditions as definitive judgments; its structured findings serve as evidence for architect and stakeholder evaluation.
 
 ---
 
 ### 11.2 Business–IT Alignment
-Examine relationships between business and IT architecture and identify potentially unsupported or weakly connected areas.
+Business and IT architecture relationships can be reviewed together to reveal potentially unsupported capabilities,
+services, applications, or technology dependencies. BizDiag provides a structured, literature-informed assessment
+context in which weak, missing, or conflicting relationships are classified as indicators for further investigation
+rather than as automatic statements that a misalignment exists.
 
 ---
 
 ### 11.3 Architecture Data Analysis
-Extract architecture information and perform custom SQL-based analysis.
+Architecture model information can be extracted into structured formats and analyzed as data. This enables teams to
+query element, relationship, property, and view information, combine it with other analytical inputs, and create
+organization-specific SQL or spreadsheet-based investigations without treating the model solely as a visual artifact.
 
 ---
 
-### 11.4 AI-Assisted Documentation
-Use AI models to assist with architecture descriptions and documentation.
-
+### 11.4 AI-Generated Documentation
+Architecture descriptions and documentation can be enriched through locally hosted LLMs, which help interpret
+selected elements or views and produce draft narratives for review. BizDiag's AI-infused workflows keep model extraction
+and AI interaction separate, support local Ollama deployments, and preserve the role of the enterprise architect as the 
+reviewer and final editor of generated content.
 ---
 
 ### 11.5 Business Model to Architecture
-Analyze a Business Model Canvas and transform relevant business information into an ArchiMate-oriented representation.
+A Business Model Canvas can be analyzed and connected with a corresponding ArchiMate model. BizDiag can help identify
+value propositions and related concepts, transform relevant BMC information into ArchiMate-oriented views, and support
+stakeholder review of the relationship between business model structures and enterprise architecture.
 
 ---
 
 ### 11.6 Architecture Reporting
-Export architecture information into JSONL, CSV, Excel, or other formats for reporting and downstream processing.
+Architecture information can be exported in formats such as JSONL, CSV, and Excel for reporting and downstream
+processing. These outputs support architecture reviews, dashboards, data exchange, academic analysis, and integration
+with business tools, while retaining model-derived identifiers and relevant structure where applicable.
 
 ---
 
 ### 11.7 Custom Architecture Automation
-Build organization-specific scripts and applications around an existing ArchiMate repository.
+Organization-specific scripts and applications can be built around an existing ArchiMate repository. Architects and
+developers can reuse BizDiag's modular patterns to implement local policies, recurring assessments, tailored reports,
+integrations, and transformation workflows that address their operational context.
 
 ---
 
@@ -1467,16 +1417,22 @@ Typical requirements may include:
 - Ollama and any Optional locally-installed AI model
 
 Detailed installation instructions for individual components are provided in their respective documentation. For 
-command-line tools, a running.txt file is included in the repository to provide the commands for running the applications.
+command-line tools, a running.txt file is included in the repository to provide the commands for running the 
+applications. Alternatively, `BizDiag-GUI.ajs` is the all-in-one graphical user interface entry point to BizDiag. Each 
+tab of this GUI points to the functional script/application of the correponding script/application. The five modules of 
+`ClientServer_DB` have their running instructions embedded in their respective tabs. By using `BizDiag-GUI.ajs`, users 
+do not need to browse into BizDiag's directories and subdirectories, and hence they are provided with access to the 
+GUI-based applications/scripts, and also the clear-cut instruction of the CLI modules, all in one GUI.
+
+> **NOTE** For a pre-packaged version of __`{Archi + jArchi + coArchi2 + custom splash screen + custom other plugins + BizDiag + custom BizDiag Industry Intelligence modules}`__,
+> please [contact me](mailto:ebrahimpak@mailfence.com). Please contact me, and I will provide you with the terms and conditions for obtaining the downloadable custom package.
 
 ### Central module launcher
 
-Run `BizDiag-GUI.ajs` from Archi's jArchi Scripts Manager to open the ten-tab
-BizDiag launcher. Its first five tabs cover the `ClientServer_DB` submodules
-and show their terminal/Archi execution steps. The remaining tabs launch the
-existing BizDiag entry scripts. Open an ArchiMate model before
-running module actions. External servers and command-line applications must
-still be started separately as described in their tabs.
+Run `BizDiag-GUI.ajs` from Archi's jArchi Scripts Manager to open the ten-tab BizDiag launcher. Its first five tabs
+launch the existing BizDiag entry scripts. Open an ArchiMate model before running module actions. The remaining second 
+five tabs cover the `ClientServer_DB` submodules and show their terminal/Archi execution steps. External servers and 
+command-line applications must still be started separately as described in their tabs.
 
 ---
 
@@ -1683,7 +1639,7 @@ BizDiag currently focuses on:
 - Business–IT alignment analysis
 - Architecture data extraction
 - SQL-based architecture analysis
-- AI-assisted architecture documentation
+- AI-infused architecture documentation
 - Business model analysis
 - Business Model Canvas transformation
 - Architecture data export
@@ -1844,7 +1800,7 @@ Detailed documentation for the major analysis modules:
 
 BizDiag provides analytical, automation, and decision-support capabilities.
 
-Outputs generated by automated analyses or AI-assisted functionality should be reviewed by qualified users and 
+Outputs generated by automated analyses or AI-infused functionality should be reviewed by qualified users and
 interpreted in the context of the organization's architecture, business objectives, and available information.
 
 BizDiag does not replace professional Enterprise Architecture judgment or organizational decision-making.
