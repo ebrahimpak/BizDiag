@@ -491,7 +491,8 @@
         view.documentation =
             "Move 1 Capability profile and input worklist. The separate Capability Map view contains only Capability " +
             "elements and their explicitly modeled hierarchy. Enter maturity and per-year target/action properties " +
-            "on each Capability in its Properties panel.";
+            "on each Capability in its Properties panel. AI-proposed candidates are identified by an explicit " +
+            "review note and CBP.CandidateStatus=AI-PROVISIONAL or CBP.AI.Provisional=true.";
         clearView(view);
         card(activeModel, view, "instructions:profile", "[CBP] Move 1 - Capability inputs",
             "Enter these Properties on each Capability:\nCBP.Maturity.People (0-4)\nCBP.Maturity.Process (0-4)\n" +
@@ -501,6 +502,17 @@
             "lower values rank first).\n" +
             "Do not enter the angle-bracket placeholders literally. Optional CBP.Weight.<Dimension> defaults to 1.",
             40, 35, 900, 120);
+        const hasAiProvisionalInProfile = capabilities.some(function(capability) {
+            return root.cbpRunState.property(capability, "CBP.AI.Provisional") === "true" ||
+                root.cbpRunState.property(capability, "CBP.CandidateStatus") === "AI-PROVISIONAL";
+        });
+        if (hasAiProvisionalInProfile) {
+            const candidateNote = profileView.createObject(
+                "diagram-model-note", 960, 35, 260, 120
+            );
+            candidateNote.text =
+                "AI Candidate: AI-proposed provisional Capability. Review its evidence and properties before use.";
+        }
         capabilities.forEach(function(capability, index) {
             const candidateStatus = root.cbpRunState.property(capability, "CBP.CandidateStatus");
             const source = root.cbpRunState.property(capability, "CBP.Candidate.SourceType") +
