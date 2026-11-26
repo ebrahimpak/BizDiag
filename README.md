@@ -41,6 +41,7 @@ as structured data for analysis, automation, decision support, and strategy.
     - [2.2 Learning Resources](#22-learning-resources)
 - [3. Key Capabilities](#3-key-capabilities)
     - [3.1 Business_IT_Alignment](#business-it-alignment)
+        - [Detailed documentation](Business_IT_Alignment/BUSINESS-IT_ALIGNMENT_DOCUMENTATION.md)
         - [3.1.1 A Business–IT Alignment/Misalignment Analysis](#business-it-alignment-analysis)
         - [3.1.2 Business-IT Alignment Research Methodology](#business-it-alignment-research-methodology)
     - [3.2 ClientServer_DB: Client/Server and Data Integration Modules](#clientserver-db)
@@ -51,10 +52,13 @@ as structured data for analysis, automation, decision support, and strategy.
         - [3.2.5 Java_DBLoggerServer](#clientserver-db-java-dbloggerserver)
     - [3.3 AI-Assisted Architecture Tools](#ai-assisted-architecture-tools)
         - [3.3.1 UML Subsystem](#uml-subsystem)
+            - [Detailed documentation](UML/UML_MODULE_DOCUMENTATION.md)
         - [3.3.2 DocMaker Subsystem](#docmaker-subsystem)
         - [3.3.3 Capability-Based Planning](#capability-based-planning)
+            - [Detailed documentation](Capability_Based_Planning/CBP_SUITE_DOCUMENTATION.md)
             - [3.3.3.1 CBP Data-Entry Properties and Values](#cbp-data-entry-properties-and-values)
     - [3.4 BizModelCanvas](#bizmodelcanvas)
+        - [Detailed documentation](BizModelCanvas/BIZMODELCANVAS_DOCUMENTATION.md)
         - [3.4.1 A Business Model Canvas Generation & Analysis](#business-model-canvas-generation--analysis)
 - [4. Why ArchiMate & jArchi?](#4-why-archimate--jarchi)
 - [5. Technology Stack](#5-technology-stack)
@@ -272,6 +276,8 @@ Explore more content on the [JCodices YouTube channel](https://www.youtube.com/@
 
 <p align="center"><img src="logo/img/Business_IT_Alignment.png" alt="Business-IT Alignment module" width="100%"></p>
 
+> **Detailed documentation:** [Business-IT Alignment and Misalignment Detection](Business_IT_Alignment/BUSINESS-IT_ALIGNMENT_DOCUMENTATION.md)
+
 <a id="business-it-alignment-analysis"></a>
 #### 3.1.1 A Business–IT Alignment/Misalignment Analysis
 
@@ -471,6 +477,7 @@ BizDiag/
 ├── Capability_Based_Planning/
 │   ├── CBP_Move_1_Setup.ajs
 │   ├── CBP_Continue_Moves_2_to_7.ajs
+│   ├── CBP_SUITE_DOCUMENTATION.md
 │   └── lib/
 │       ├── CBP_Capability_Discovery.js
 │       ├── CBP_Improvement_Tables.js
@@ -592,6 +599,8 @@ directory management. The following are the jArchi scripts and JavaScript files 
 
 <p align="center"><img src="logo/img/uml_1.png" alt="UML module" width="100%"></p>
 
+> **Detailed documentation:** [UML-Inspired View Module](UML/UML_MODULE_DOCUMENTATION.md)
+
 Unlike Archi, which is primarily dedicated to ArchiMate modeling, Modelio software supports multiple modeling languages, 
 including UML and ArchiMate. Since version 3.6, Modelio has supported dedicated ArchiMate subprojects that can coexist 
 with UML subprojects within the same model. ArchiMate modeling was introduced through a free, dedicated plug-in and has 
@@ -603,6 +612,13 @@ can use the other extension, ArchiMate. Archi, by contrast, does not natively su
 UML modeling through its plug-in ecosystem [19, 25].
 
 <p align="center"><img src="logo/img/uml_2.png" alt="ArchiMate to UML-like notation module" width="100%"></p>
+
+The UML module complements BizDiag's business diagnostics and digital strategy capabilities by providing alternative 
+UML-like representations of ArchiMate views. By overcoming Archi's lack of native multi-metamodel support, it enables 
+architectural information to be visualized from different modelling perspectives, facilitating the interpretation, 
+communication, and analysis of business structures, processes, systems, and their relationships. This contributes to a 
+more flexible understanding of the enterprise architecture landscape, supporting business diagnostics, business–IT 
+alignment, and informed digital strategy development.
 
 The UML module's main script is `Application_View_to_UML.ajs`, a jArchi script that transforms the selected
 application-layer views into new views using UML-like notation instead of ArchiMate notation. It is an AI-enhanced 
@@ -622,8 +638,7 @@ view using UML-style diagram notation enhanced with AI-generated semantic classi
 Kruchten’s 4+1 model informs the module’s view-oriented architectural context, while Open Group guidance informs its
 ArchiMate/UML cross-notation context [18–20]. The script does not implement the complete 4+1 model or a formal
 ArchiMate-to-UML transformation: it creates a UML-inspired, component-style ArchiMate view, optionally enriched with
-AI-suggested semantic annotations. See the [UML module documentation](UML/UML_MODULE_DOCUMENTATION.md)
-for scope, workflow, and limitations.
+AI-suggested semantic annotations.
 
 
 <a id="docmaker-subsystem"></a>
@@ -968,6 +983,8 @@ requirements.
 
 <p align="center"><img src="logo/img/Capability_Based_Planning.png" alt="Capability-Based Planning module" width="100%"></p>
 
+> **Detailed documentation:** [Capability-Based Planning (CBP) Suite](Capability_Based_Planning/CBP_SUITE_DOCUMENTATION.md)
+
 The Capability-Based Planning (CBP) module implements the seven moves described in "Capability-Based Planning, The Link
 between Strategy and Enterprise Architecture" and "Capability-based Planning in 7 moves!" through
 [`CBP_Move_1_Setup.ajs`](Capability_Based_Planning/CBP_Move_1_Setup.ajs) and
@@ -1128,6 +1145,8 @@ require architect review.
 
 <p align="center"><img src="logo/img/BizModelCanvas.png" alt="BizModelCanvas module" width="100%"></p>
 
+> **Detailed documentation:** [BizModelCanvas Module](BizModelCanvas/BIZMODELCANVAS_DOCUMENTATION.md)
+
 <a id="business-model-canvas-generation--analysis"></a>
 #### 3.4.1 A Business Model Canvas Generation & Analysis
 
@@ -1208,9 +1227,6 @@ architectural view representation can help organizations to analyze the business
 architecture, and hence to identify potential gaps, misalignments, or opportunities for improvement. Moreover, a wide 
 variety of new views, e.g., 'Core Capability View', 'Customer Interaction View', and 'Value Proposition View', in 
 ArchiMate notation, will be derived from the BMC input [21–22].
-
-See the [BizModelCanvas module documentation](BizModelCanvas/BIZMODELCANVAS_DOCUMENTATION.md) for a concise account
-of its research basis, implemented capabilities, and usage considerations.
 
 There are three omnipresent traits, constructing business model foundation, on almost each and every definition of
 business model:
@@ -1496,6 +1512,7 @@ BizDiag/
 │       └── CBP_Ollama_Worker.js
 ├── Business_IT_Alignment/
 │   ├── BusinessITAlignment_EN.ajs
+│   ├── BUSINESS-IT_ALIGNMENT_DOCUMENTATION.md
 │   └── img/
 ├── DocMaker/
 │   ├── AI_Element_DocMaker_EN.ajs
@@ -1509,6 +1526,7 @@ BizDiag/
 │   └── UML_MODULE_DOCUMENTATION.md
 ├── BizModelCanvas/
 │   ├── BizModelCanvas-GUI-EN.ajs
+│   ├── BIZMODELCANVAS_DOCUMENTATION.md
 │   ├── gui/
 │   ├── img/
 │   ├── lib/
@@ -1803,7 +1821,12 @@ and related professional services.
 
 ## 23. Related Documentation
 
-Additional documentation will be added as the project develops.
+Detailed documentation for the major analysis modules:
+
+- [Business-IT Alignment and Misalignment Detection](Business_IT_Alignment/BUSINESS-IT_ALIGNMENT_DOCUMENTATION.md)
+- [Capability-Based Planning (CBP) Suite](Capability_Based_Planning/CBP_SUITE_DOCUMENTATION.md)
+- [UML-Inspired View Module](UML/UML_MODULE_DOCUMENTATION.md)
+- [BizModelCanvas Module](BizModelCanvas/BIZMODELCANVAS_DOCUMENTATION.md)
 
 - Architecture Automation
 - Business–IT Alignment Analysis
