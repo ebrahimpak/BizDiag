@@ -1380,6 +1380,7 @@ Architecture descriptions and documentation can be enriched through locally host
 selected elements or views and produce draft narratives for review. BizDiag's AI-infused workflows keep model extraction
 and AI interaction separate, support local Ollama deployments, and preserve the role of the enterprise architect as the 
 reviewer and final editor of generated content.
+
 ---
 
 ### 11.5 Business Model to Architecture
@@ -1424,8 +1425,8 @@ tab of this GUI points to the functional script/application of the correponding 
 do not need to browse into BizDiag's directories and subdirectories, and hence they are provided with access to the 
 GUI-based applications/scripts, and also the clear-cut instruction of the CLI modules, all in one GUI.
 
-> **NOTE** For a pre-packaged version of __`{Archi + jArchi + coArchi2 + custom splash screen + custom other plugins + BizDiag + custom BizDiag Industry Intelligence modules}`__,
-> please [contact me](mailto:ebrahimpak@mailfence.com). Please contact me, and I will provide you with the terms and conditions for obtaining the downloadable custom package.
+> **NOTE** For an all-in-one pre-packaged version of __`{Archi + jArchi + coArchi2 + custom splash screen + other custom plugins + BizDiag + custom BizDiag Industry Intelligence modules}`__,
+> please [contact me](mailto:ebrahimpak@mailfence.com), and I will provide you with the terms and conditions for obtaining the downloadable custom package.
 
 ### Central module launcher
 
