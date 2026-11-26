@@ -209,9 +209,15 @@ console.show();
         {
             title: "Capability-based Planning",
             description:
-                "Capability-Based Planning is a two-stage workflow. Run Move 1 to define the scope and prepare inputs. " +
-                "Review, edit, and save the model before running Moves 2-7. Move 1's optional capability discovery " +
-                "uses local Ollama.",
+                "1. Open an ArchiMate model and make sure its strategy, value-stream, and capability content is available.\n" +
+                "2. Click 'Move 1 - Setup'; if prompted, enter consecutive planning years such as 2027,2028.\n" +
+                "3. To limit the run, select one or more existing Capabilities before Move 1; otherwise, the script uses all model Capabilities.\n" +
+                "4. Optional: approve local Ollama discovery, choose an installed model, and review the proposed provisional Capabilities.\n" +
+                "5. Move 1 creates or updates 'CBP - Capability Map', 'CBP - Capability Profiles and Inputs', and 'CBP - Strategy Inputs'.\n" +
+                "6. In 'CBP - Capability Profiles and Inputs', open each Capability in the Properties panel and enter its CBP maturity, target, action, project, and priority values.\n" +
+                "7. In 'CBP - Strategy Inputs', set CBP.Role=Strategy only on intended Courses of Action and enter their CBP.Impact.<CapabilityCode> values.\n" +
+                "8. Review, accept or remove AI candidates, verify custom-property values and the Capability Map scope, then save the Archi model.\n" +
+                "9. Click 'Moves 2-7 - Continue' to validate inputs and generate the maturity, strategic-importance, matrix, portfolio, and roadmap views.",
             scripts: [
                 { label: "Move 1 - Setup", path: "Capability_Based_Planning\\CBP_Move_1_Setup.ajs" },
                 { label: "Moves 2-7 - Continue", path: "Capability_Based_Planning\\CBP_Continue_Moves_2_to_7.ajs" }
