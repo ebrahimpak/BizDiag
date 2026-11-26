@@ -212,16 +212,17 @@ elaborate on the methodology and its research contributions.
 ### 2.2 **Learning Resources**
 
 
-#### 2.2.1 Learning Resources – JCodices: Course: Enterprise Architecture Automation
+#### 2.2.1 Learning Resources – JCodices: Enterprise Architecture Automation
 
 [JCodices](https://www.youtube.com/@JCodices) is an ongoing educational initiative focused on software development, 
-Enterprise Architecture automation, and related technologies.
+Enterprise Architecture intelligence and automation, analysis of the research underlying EA intelligence, digital 
+strategy foundations, Business Model formulation, and the development of AI-infused Enterprise Architecture applications.
 
 The YouTube channel provides practical educational content on Enterprise Architecture Automation and Intelligence. Its
 main topics deal with jArchi scripting, Java and GraalJS development, ArchiMate language, Developing AI-Infused EA
 Applications, Intelligent Business Model Generation scripting, and theoretical concepts of Digital Strategy. The aim of 
 this YouTube channel is to provide modern and detailed learning materials for the development of digital strategy 
-applications.
+applications, and achieving digital transformation through Intelligent Enterprise Architecture.
 
 It is noteworthy to emphasize that the upcoming videos will explore the theoretical foundations of digital strategy too, 
 bridging academic concepts with practical industry applications. These topics will provide you with the knowledge and 
@@ -586,6 +587,9 @@ directory management. The following are the jArchi scripts and JavaScript files 
 
 <a id="uml-subsystem"></a>
 #### 3.3.1 UML Subsystem
+
+<p align="center"><img src="logo/img/uml_1.png" alt="UML module" width="100%"></p>
+
 Unlike Archi, which is primarily dedicated to ArchiMate modeling, Modelio software supports multiple modeling languages, 
 including UML and ArchiMate. Since version 3.6, Modelio has supported dedicated ArchiMate subprojects that can coexist 
 with UML subprojects within the same model. ArchiMate modeling was introduced through a free, dedicated plug-in and has 
@@ -595,6 +599,8 @@ tagged values, they should not be confused with the dedicated ArchiMate metamode
 developer can apply the profile on an existing model, even if the developer is in the middle of a project, the developer
 can use the other extension, ArchiMate. Archi, by contrast, does not natively support UML and is not designed to provide 
 UML modeling through its plug-in ecosystem [19, 25].
+
+<p align="center"><img src="logo/img/uml_2.png" alt="ArchiMate to UML-like notation module" width="100%"></p>
 
 The UML module's main script is `Application_View_to_UML.ajs`, a jArchi script that transforms the selected
 application-layer views into new views using UML-like notation instead of ArchiMate notation. It is an AI-enhanced 
@@ -807,7 +813,7 @@ User Input
 │   • Calls Ollama_Olalla to initiate AI processing                           │
 │   • Returns formatted result to user                                        │
 │                                                                             │
-│ AI_View_DocMaker_EN.ajs                                                    │
+│ AI_View_DocMaker_EN.ajs                                                     │
 │   • Triggered when user selects an ArchiMate view                           │
 │   • Extracts view structure, contained elements, relationships              │
 │   • Prepares comprehensive view metadata                                    │
@@ -839,7 +845,7 @@ User Input
 │   • Persists AI-generated documentation to JSON files via Java NIO.2        │
 │   • Tracks element context (ID, name, type, view name, timestamps)          │
 │   • Bridges jArchi data structures ↔ REST API contract                      │
-│   • Used by: AI_Element_DocMaker_EN.ajs and AI_View_DocMaker_EN.ajs        │
+│   • Used by: AI_Element_DocMaker_EN.ajs and AI_View_DocMaker_EN.ajs         │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 

@@ -26,7 +26,7 @@ federated view. For instance, ArchiMate could be utilized for process maps, whil
 detailed BPM, and UML utilized for data modeling, e.g., on conceptual, logical, or physical level of data modeling.
 Moreover, one can begin with legacy models and move to higher level of abstraction representation by means of such 
 an amalgamation of standards. In addition to this, the architect will be able to perform Use ***Case Modeling***, 
-for modeling detailed business collaborations or applicatoin components, and ***State Machine Modeling*** for 
+for modeling detailed business collaborations or application components, and ***State Machine Modeling*** for 
 modeling the different states of business objects [3].
 
 According to Desfray [3], combining ArchiMate with UML and BPMN provides a broad modeling scope, full coverage of IT and 
@@ -40,14 +40,14 @@ types of UML diagram modeling. They can also perform data modeling, on conceptua
 architects can benefit from mapping exploitation and combined documentation generation.
 
 Moreover, Desfray [3] demonstrates, the juxtaposition of UML and ArchiMate in a view opens up the possibility of 
-refining any model element by any other model element of any metamodel. e.g., an ArchiMate business object could be 
+refining any model element by any other model element of any metamodel, e.g., an ArchiMate business object could be 
 mapped to a UML business class, or mapping business collaboration to use case. 
 
 Modelio’s UML Profiles provide a UML/ArchiMate lightweight, flexible, and dynamic shared mechanism for extending UML 
 meta-classes through stereotypes and tagged values. By utilizing this mechanism, a UML developer can apply the profile 
 on an existing model, even if the developer is in the middle of a project, the developer can use the other extension, 
 ArchiMate  [3]. This Profile mechanism in Modelio has encouraged the creator and architect of BizDiag, Pak, to provide 
-Archi with sucha similar mechanism. However, there has been some limitation to materializing this great feature, 
+Archi with such a similar mechanism. However, there has been some limitation to materializing this great feature, 
 in Archi/jArchi environment. Compared with Modelio, Archi does not natively support UML, and is not designed to provide 
 UML modeling through its plug-in ecosystem.
 
@@ -77,7 +77,10 @@ generated view and annotations before relying on them.
 ## 5. Requirements
 
 Run the script in Archi with jArchi and an open model. `sendToAI.js` is the optional local-AI integration helper; Ollama
-is not required for heuristic-only generation.
+is not required for heuristic-only generation. However, if you want to use the local Ollama AI for enriching the UML 
+view with suggested stereotypes and documentation, you need to have it installed and running on your machine. The script 
+will attempt to connect to Ollama if it is available. You also have to install some at least one LLM in Ollama, e.g., 
+LLaMA 2, to be able to use the local AI integration feature of the script.
 
 ## 6. Author and Copyright
 
