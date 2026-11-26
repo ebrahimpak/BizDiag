@@ -235,12 +235,6 @@ contribute to organizational objectives.
 
 ### Course: Enterprise Architecture Automation
 
-#### Unit 01 – Introducing jArchi
-
-### Course: Enterprise Architecture Automation
-
-### Course: Enterprise Architecture Automation
-
 <table width="100%" style="table-layout: fixed;">
   <tr>
     <td width="50%" align="center" valign="top">
