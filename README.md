@@ -19,6 +19,8 @@ BizDiag™ is the open-source core of the open-core "BizDiag Industry Intelligen
 an umbrella product with high-end EA applications for specific industries, e.g., “BizDiag Tourism Intelligence™”, 
 “BizDiag Manufacturing Intelligence™”, and “BizDiag Banking Intelligence™”.
 
+<p align="center"><img src="logo/img/bizdiag_gui.png" alt="BizDiag GUI entry point" width="100%"></p>
+
 BizDiag™ extracts data from EA models, and transforms ArchiMate® models into structured, analyzable data that can be 
 queried, transformed, enriched with AI, and used to support architecture analysis and strategic decision-making [1].
 Its decision-support role also relates to research on decision-support frameworks for collaborative networks [2].
