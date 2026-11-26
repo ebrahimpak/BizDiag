@@ -222,12 +222,10 @@ console.show();
             description:
                 "Choose the target elements or ArchiMate views directly in Archi using the selection controls below; " +
                 "you do not need to select them before opening this GUI. AI-assisted scripts require a configured local " +
-                "Ollama installation and model. " +
-                "Mark_it_Down is the module's Markdown post-processing utility.",
+                "Ollama installation and model.",
             scripts: [
                 { label: "View documentation", path: "DocMaker\\AI_View_DocMaker_EN.ajs", selectionType: "views" },
-                { label: "Element documentation", path: "DocMaker\\AI_Element_DocMaker_EN.ajs", selectionType: "elements" },
-                { label: "Markdown export", path: "DocMaker\\Mark_it_Down.ajs", selectionType: "views" }
+                { label: "Element documentation", path: "DocMaker\\AI_Element_DocMaker_EN.ajs", selectionType: "elements" }
             ]
         },
         {
