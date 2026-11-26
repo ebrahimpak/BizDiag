@@ -212,7 +212,7 @@ elaborate on the methodology and its research contributions.
 ### 2.2 **Learning Resources**
 
 
-#### 2.2.1 Learning Resources – JCodices
+#### 2.2.1 Learning Resources – JCodices: Course: Enterprise Architecture Automation
 
 [JCodices](https://www.youtube.com/@JCodices) is an ongoing educational initiative focused on software development, 
 Enterprise Architecture automation, and related technologies.
@@ -232,8 +232,6 @@ My aim is to equip you with both academic insights and industry-based knowledge,
 with practical experience. I am particularly keen on helping you develop not only the technical skills to build digital 
 solutions but also the strategic thinking required to ensure that these solutions address genuine business needs and 
 contribute to organizational objectives.
-
-### Course: Enterprise Architecture Automation
 
 <table width="100%" style="table-layout: fixed;">
   <tr>
