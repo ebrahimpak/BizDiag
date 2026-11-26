@@ -244,7 +244,7 @@ contribute to organizational objectives.
 <table width="100%" style="table-layout: fixed;">
   <tr>
     <td width="50%" align="center" valign="top">
-      <strong>Unit 01 – Introducing jArchi (Archi's Extension for GraalJS Scripting)</strong>
+      <strong>Unit 01 – Introducing jArchi: Archi's GraalJS Scripting plugin</strong>
       <br><br>
       <a href="https://www.youtube.com/watch?v=ujlcxfSuajA">
         <img src="https://img.youtube.com/vi/ujlcxfSuajA/mqdefault.jpg"
@@ -341,8 +341,8 @@ The Business-IT Alignment module implements a five-phase Enterprise Architecture
 - **Phase 4**: Analyzability and Severity Filtering — The catalogue distinguishes checks marked
   analyzable from those marked non-analyzable, such as checks that may depend on metadata or
   modeling context. This flag is a classification, not a guarantee that every analyzable check
-  is determined by relationships alone. In the English script, non-analyzable findings are
-  included by default, and the minimum severity is LOW; the report controls allow filtering.
+  is determined by relationships alone. In the script, non-analyzable findings are included by 
+  default, and the minimum severity is LOW; the report controls allow filtering.
 
 
 - **Phase 5**: Assessment and Reporting — Findings are summarized by severity and aspect, shown in
@@ -525,11 +525,11 @@ directory management. The following are the jArchi scripts and JavaScript files 
   <tbody>
     <tr>
       <td><code>AI_<br>Element_<br>DocMaker_<br>EN.ajs</code></td>
-      <td>Generates AI analysis for the selected element in Archi, in English</td>
+      <td>Generates AI analysis for the selected element in Archi.</td>
     </tr>
     <tr>
       <td><code>AI_<br>View_<br>DocMaker_<br>EN.ajs</code></td>
-      <td>Generates AI analysis for the selected view in Archi, in English</td>
+      <td>Generates AI analysis for the selected view in Archi.</td>
     </tr>
     <tr>
       <td><code>AI_<br>REST_<br>JSON.js</code></td>
