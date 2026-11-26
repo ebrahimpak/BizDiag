@@ -1785,16 +1785,6 @@ Detailed documentation for the major analysis modules:
 - [UML-Inspired View Module](UML/UML_MODULE_DOCUMENTATION.md)
 - [BizModelCanvas Module](BizModelCanvas/BIZMODELCANVAS_DOCUMENTATION.md)
 
-- Architecture Automation
-- Business–IT Alignment Analysis
-- AI Integration
-- Business Model Analysis
-- Architecture Data Analysis
-- jArchi Scripting
-- Java Applications
-- Deployment
-- Customization and Integration
-
 ---
 
 ## 24. Disclaimer
