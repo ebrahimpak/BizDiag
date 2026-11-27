@@ -64,7 +64,7 @@ as structured data for analysis, automation, decision support, and strategy.
 - [6. Data Flow](#6-data-flow)
 - [7. Modular Architecture](#7-modular-architecture)
 - [8. Extensibility](#8-extensibility)
-- [9. Client / Server Capabilities](#9-client--server-capabilities)
+- [9. Deployment Capabilities](#9-deployment-capabilities)
 - [10. Intended Users](#10-intended-users)
 - [11. Example Use Cases](#11-example-use-cases)
     - [11.1 Enterprise Architecture Assessment](#111-enterprise-architecture-assessment)
@@ -110,7 +110,7 @@ information can remain difficult to analyze systematically.
 
 BizDiag addresses this by treating the architecture model as structured data rather than only as a visual diagram. 
 Automated analysis identifies suspicious structures, while architects and stakeholders determine their actual 
-significance and appropriate remedies. This briefly states BizDiag's philosophy and the importance of the "human in the
+significance and appropriate remedies. This briefly states BizDiag's philosophy and the importance of the "human in the 
 loop" maxim.
 
 The general workflow is:
@@ -151,6 +151,9 @@ BizDiag modules
       ├── ClientServer_DB
       │   ├── DB_Log
       │   │   ├── ArchiModelDumper.ajs
+      │   │   ├── archi_external_sync.mv.db
+      │   │   ├── pom.xml
+      │   │   ├── Running.txt
       │   │   └── src\main\java\ArchiJDBC
       │   │       ├── H2JdbcProcessor_EN.java
       │   │       └── H2ConsoleLauncher.java
@@ -159,16 +162,29 @@ BizDiag modules
       │   │   ├── nio_interop_client.ajs
       │   │   └── nio_interop_server.js
       │   ├── GraalJS_Element_RESTLogger
+      │   │   ├── CreateDB.sql
       │   │   ├── GraalJSRESTClient.ajs
-      │   │   └── GraalJSRESTServer.js
+      │   │   ├── GraalJSRESTServer.js
+      │   │   ├── h2-2.4.240.jar
+      │   │   └── running.txt
       │   ├── GraalJS_NIOLoggerServer
+      │   │   ├── log_click.ajs
       │   │   ├── nio_interop_client.js
       │   │   ├── nio_interop_server.js
-      │   │   └── src\main\java\com\bizdiag
+      │   │   ├── pom.xml
+      │   │   ├── running.txt
+      │   │   ├── h2~mysql_migration/
+      │   │   ├── lib/
+      │   │   └── src/main/java/com/bizdiag
       │   │       └── NioInteropLauncher.java
       │   └── Java_DBLoggerServer
+      │       ├── database.sql
+      │       ├── h2-2.4.240.jar
+      │       ├── log_click.ajs
       │       ├── nio_interop_client.js
-      │       └── src\main\java\com\archi
+      │       ├── pom.xml
+      │       ├── Running.txt
+      │       └── src/main/java/com/archi
       │           └── NioInteropServer.java
       ├── DocMaker
       │   ├── AI_Element_DocMaker_EN.ajs
@@ -277,6 +293,19 @@ Explore more content on the [JCodices YouTube channel](https://www.youtube.com/@
 
 > **Detailed documentation:** [Business-IT Alignment and Misalignment Detection](Business_IT_Alignment/BUSINESS-IT_ALIGNMENT_DOCUMENTATION.md)
 
+```text
+Business_IT_Alignment/
+├── BusinessITAlignment_EN.ajs
+├── BUSINESS-IT_ALIGNMENT_DOCUMENTATION.md
+└── img/
+    ├── labelPic.png
+    └── sellIcon.png
+```
+
+| Script | Description |
+|---|---|
+| `BusinessITAlignment_EN.ajs` | Performs the Business–IT alignment/misalignment assessment through jArchi, applies the configurable EA finding catalogue, generates the interactive report, and exports CSV/Excel results. |
+
 <a id="business-it-alignment-analysis"></a>
 #### 3.1.1 A Business–IT Alignment/Misalignment Analysis
 
@@ -377,6 +406,25 @@ through client/server workflows, REST or TCP communication, JSON/JSONL exports, 
 #### 3.2.1 DB_Log
 <p align="center"><img src="logo/img/DB_Log.png" alt="DB_Log [JDBCLog] module" width="100%"></p>
 
+```text
+DB_Log/
+├── ArchiModelDumper.ajs
+├── archi_external_sync.mv.db
+├── pom.xml
+├── Running.txt
+├── src/main/java/ArchiJDBC/
+│   ├── H2JdbcProcessor_EN.java
+│   └── H2ConsoleLauncher.java
+├── ArchiSyncDump/
+└── img/
+```
+
+| Script or application | Description |
+|---|---|
+| `ArchiModelDumper.ajs` | Extracts selected ArchiMate model data and sends it to the JDBC-backed database workflow. |
+| `H2JdbcProcessor_EN.java` | Loads the architecture data into H2 and provides JDBC database-processing and analysis support. |
+| `H2ConsoleLauncher.java` | Starts H2 and opens the H2 web console so users can inspect and query the extracted architecture data using SQL. |
+
 DB_Log can transform architecture information into structured data suitable for programmatic analysis. Architecture 
 data can be loaded into an in-memory database, like the utilized H2 database, or any other relational database systems, 
 and queried using SQL, in a Java Swing GUI.
@@ -435,11 +483,46 @@ client and provides a basis for connection-management and lightweight TCP integr
 <a id="clientserver-db-graaljs-element-restlogger"></a>
 #### 3.2.3 GraalJS_Element_RESTLogger
 
+```text
+GraalJS_Element_RESTLogger/
+├── CreateDB.sql
+├── GraalJSRESTClient.ajs
+├── GraalJSRESTServer.js
+├── h2-2.4.240.jar
+└── running.txt
+```
+
+| Script | Description |
+|---|---|
+| `GraalJSRESTClient.ajs` | Extracts model-element data in jArchi and sends it to the GraalJS REST server. |
+| `GraalJSRESTServer.js` | Receives REST requests and stores the submitted architecture data in H2 for later analysis. |
+
 This module pairs `GraalJSRESTClient.ajs` with `GraalJSRESTServer.js`. The jArchi client sends extracted model-element
 data to the GraalJS REST server, which records the received data in H2 for later analysis.
 
 <a id="clientserver-db-graaljs-niologgerserver"></a>
 #### 3.2.4 GraalJS_NIOLoggerServer
+
+```text
+GraalJS_NIOLoggerServer/
+├── log_click.ajs
+├── nio_interop_client.js
+├── nio_interop_server.js
+├── pom.xml
+├── running.txt
+├── h2~mysql_migration/
+├── lib/
+├── src/main/java/com/bizdiag/
+│   └── NioInteropLauncher.java
+└── target/
+```
+
+| Script or application | Description |
+|---|---|
+| `log_click.ajs` | Runs in Archi/jArchi and forwards selected element click events to the JavaScript transport client. |
+| `nio_interop_client.js` | Receives element event payloads and sends them to the standalone NIO logger server over TCP. |
+| `nio_interop_server.js` | Runs the NIO selector loop and writes received architecture data to H2 and JSONL. |
+| `NioInteropLauncher.java` | Starts the GraalJS/Java launcher for the standalone NIO logging server. |
 
 This module exports element information for further analysis and integration. Its click-dumper client,
 `nio_interop_client.js`, receives element click events in Archi and writes them to both an H2 database and a JSONL file.
@@ -454,12 +537,30 @@ tools.
 <a id="clientserver-db-java-dbloggerserver"></a>
 #### 3.2.5 Java_DBLoggerServer
 
+```text
+Java_DBLoggerServer/
+├── database.sql
+├── h2-2.4.240.jar
+├── log_click.ajs
+├── nio_interop_client.js
+├── pom.xml
+├── Running.txt
+├── src/main/java/com/archi/
+│   └── NioInteropServer.java
+└── target/
+```
+
+| Script or application | Description |
+|---|---|
+| `log_click.ajs` | Captures selected element metadata in Archi/jArchi and sends it to the transport adapter. |
+| `nio_interop_client.js` | Decodes or prepares the received Base64 payload and transmits it to the Java TCP server. |
+| `NioInteropServer.java` | Runs the standalone vanilla-Java NIO server and stores logged element metadata in H2. |
+
 This module connects a jArchi client to a standalone Java server for database-backed logging. The client sends selected
 element metadata as Base64 through `log_click.ajs`; the `nio_interop_client.js` transport adapter decodes the payload
 and sends it over TCP to `NioInteropServer.java`. The server runs outside Archi and jArchi as a vanilla Java program,
 providing a deployment option for environments that require a pure-Java server rather than a GraalJS runtime. These
 examples illustrate client/server integration patterns for enterprise applications [24].
-
 
 <a id="uml-module"></a>
 ### 3.3 UML Module
@@ -709,7 +810,7 @@ User Input
 │
 ├─→ AI_REST_JSON.js Parses Response & Persists to documentation/ folder
 │
-├─→ AI_REST_JSON.js Tracks element context (ID, name, type, timestamp)
+├─→ AI_REST_JSON.js Tracks element context (ID, name, type, timestamp, content, viewName)
 │
 ├─→ Formats as Markdown (Mark_it_Down.ajs) — optional post-processing
 │
@@ -785,7 +886,6 @@ User Input
 ================================================================================
                      KEY ARCHITECTURAL CHARACTERISTICS
 ================================================================================
-```
 1. LOCAL AI & OFFLINE OPERATION
    ✓ All AI processing occurs on user's local machine via Ollama
    ✓ No cloud API calls, no external service dependencies
@@ -809,7 +909,7 @@ User Input
    ✓ Output automatically saved to project folder
    ✓ Can chain with other BizDiag components
    ✓ Results exportable for further processing
-
+```
 ```
 ================================================================================
                        TYPICAL INTERACTION SEQUENCE
@@ -1005,8 +1105,7 @@ strategy/resource/goal/outcome/driver labels, and existing Capability names. Oll
 provisional Capabilities with grounded source-label or BMC-content evidence. The request also includes bounded text
 from native `canvas-model` or `archimate-diagram-model` views. A view qualifies when at least six of the nine
 standard Business Model Canvas block headings are recognized among its Canvas blocks or ArchiMate elements, or its
-name identifies it as a Business Model Canvas. Folder names do not affect selection. Included text can contain Canvas block/sticky labels and text, ArchiMate element
-labels/documentation, and diagram-note text inside qualifying views. At most three qualifying content-bearing views,
+name identifies it as a Business Model Canvas. Folder names do not affect selection. Included text can contain Canvas block/sticky labels and text, ArchiMate element labels/documentation, and diagram-note text inside qualifying views. At most three qualifying content-bearing views,
 12 items per view, 24 items total, 180 characters per item, and 2,400 BMC text characters total are included.
 View and item names are limited to 60 characters. These labels and excerpts are limited evidence, so architects must
 review proposals and determine coverage, granularity, hierarchy, and strategic relevance [28–31].
@@ -1046,7 +1145,7 @@ bounded strategic element names/types, directly composed Value Stream stage name
 identified Business Model Canvas views. Proposals must cite supplied source references and quote an
 exact source/stage name or BMC excerpt; the script validates that evidence and rejects duplicates before creating
 any candidates. Review, edit, or remove each proposal before continuing. Ollama does not provide maturity ratings,
-strategic impacts, weights, targets, actions, projects, or priorities; those remain user-entered.
+strategic impacts, weights, targets, actions, or priorities; those remain user-entered.
 
 Move 1 creates the Capability-only Map, Capability Profiles and Inputs, and Strategy Inputs views; it does not create
 analytical assessment views. The continuation creates the maturity and strategic-importance heatmaps, ML-SI matrix,
@@ -1062,12 +1161,11 @@ Ollama is optional and is called only when the user enables Capability discovery
 model. The single request contains bounded strategic element names/types, directly composed Value Stream stage names,
 existing Capability names, and text from `canvas-model` or `archimate-diagram-model` views whose Canvas block or
 ArchiMate element headings match at least six standard BMC categories, or the view name identifies it as a Business
-Model Canvas. Folder names do not affect selection. Included text is limited to Canvas block/sticky labels and text, ArchiMate element labels/documentation, and
-diagram-note text inside qualifying views. Content is capped at three qualifying views, 12 items per view,
-24 items total, 180 characters per item, and 2,400 BMC text characters total; view and item names are limited to
-60 characters. The worker communicates with the local endpoint at
-`http://localhost:11434`; discovery is limited to one request and up to three provisional candidates. All candidates
-require architect review.
+Model Canvas. Folder names do not affect selection. Included text is limited to Canvas block/sticky labels and text, 
+ArchiMate element labels/documentation, and diagram-note text inside qualifying views. Content is capped at three 
+qualifying views, 12 items per view, 24 items total, 180 characters per item, and 2,400 BMC text characters total. The 
+worker communicates with the local endpoint at`http://localhost:11434`; discovery is limited to one request and up to 
+three provisional candidates. All candidates require architect review.
 
 
 <a id="bizmodelcanvas"></a>
@@ -1076,6 +1174,48 @@ require architect review.
 <p align="center"><img src="logo/img/BizModelCanvas.png" alt="BizModelCanvas module" width="100%"></p>
 
 > **Detailed documentation:** [BizModelCanvas Module](BizModelCanvas/BIZMODELCANVAS_DOCUMENTATION.md)
+
+```text
+BizModelCanvas/
+├── BizModelCanvas-GUI-EN.ajs
+├── BIZMODELCANVAS_DOCUMENTATION.md
+├── gui/
+│   └── BizModelCanvasUI.js
+├── img/
+│   └── labelPic_EN.png
+├── lib/
+│   ├── bmcDetector.ajs
+│   └── bmcGenerator.ajs
+└── scripts/
+    ├── Analyze Model for Value Proposition.ajs
+    ├── Cleanup Value Propositions.ajs
+    ├── convertBMCtoArchiMate.ajs
+    ├── Create Enhanced Value View.ajs
+    ├── Debug View and Model.ajs
+    ├── Deep Model Intelligence.ajs
+    ├── Detect Duplicate Value Propositions.ajs
+    ├── Diagnose Value Proposition Structure.ajs
+    ├── Draw BMC Graphic.ajs
+    ├── Generate BMC from Model.ajs
+    └── Test Relationship Types.ajs
+```
+
+| Script | Description |
+|---|---|
+| `BizModelCanvas-GUI-EN.ajs` | Provides the graphical launcher for the BizModelCanvas analysis, view-creation, testing, and generation tools. |
+| `Analyze Model for Value Proposition.ajs` | Analyzes the model and its relationships for value-proposition evidence. |
+| `Cleanup Value Propositions.ajs` | Removes or cleans duplicated or structurally weak value-proposition content. |
+| `convertBMCtoArchiMate.ajs` | Extracts the nine BMC building blocks and creates a corresponding ArchiMate view. |
+| `Create Enhanced Value View.ajs` | Creates an enhanced value-proposition view using ArchiMate notation. |
+| `Debug View and Model.ajs` | Displays diagnostic information for the BMC view and underlying model. |
+| `Deep Model Intelligence.ajs` | Performs deeper model-level analysis and business-model metrics. |
+| `Detect Duplicate Value Propositions.ajs` | Finds duplicate or highly similar value-proposition concepts. |
+| `Diagnose Value Proposition Structure.ajs` | Checks the structure and completeness of value-proposition definitions. |
+| `Draw BMC Graphic.ajs` | Draws a high-resolution Business Model Canvas graphic outside the ArchiMate model. |
+| `Generate BMC from Model.ajs` | Generates or updates Business Model Canvas elements from existing model content. |
+| `Test Relationship Types.ajs` | Tests supported relationship types and their behavior in the BMC workflow. |
+| `bmcDetector.ajs` | Detects and extracts the existing BMC structure from the ArchiMate model. |
+| `bmcGenerator.ajs` | Generates the converted ArchiMate representation and related view content. |
 
 <a id="business-model-canvas-generation--analysis"></a>
 #### 3.6.1 A Business Model Canvas Generation & Analysis
@@ -1128,21 +1268,6 @@ business artifact whose importance could be far beyond than anything else in the
 auto-generated once could not be trusted without human supervision. Therefore, as the author of this script, I strongly 
 believe that the auto-generated BMC should only be used as a draft, or a hint, for drawing the final BMC.
 
-In the `scripts` folder, the following 11 key jArchi scripts live: 
-
-```text
-        1├── Analyze Model for Value Proposition.ajs
-        2├── Cleanup Value Propositions.ajs
-        3├── convertBMCtoArchiMate.ajs
-        4├── Create Enhanced Value View.ajs
-        5├── Debug View and Model.ajs
-        6├── Deep Model Intelligence.ajs
-        7├── Detect Duplicate Value Propositions.ajs
-        8├── Diagnose Value Proposition Structure.ajs
-     	9├── Test Relationship Types.ajs
-       10├── Draw BMC Graphic.ajs
-       11├── Generate BMC from Model.ajs    	
-```
 Save for the 'Draw BMC Graphic.ajs', which draws Business Model Canvas Graphic, the other ten scripts are each
 accessible either directly, or through the four tabs of 'BizModelCanvas-GUI-EN.ajs'.
 
@@ -1298,7 +1423,7 @@ extend the implementation according to the terms of the license.
 
 ---
 
-## 9. Client / Server Capabilities
+## 9. Deployment Capabilities
 
 BizDiag components can be used in different deployment scenarios, including:
 
@@ -1343,9 +1468,10 @@ BizDiag can support use cases such as:
 - Architecture Reporting
 - AI-Infused Documentation
 - Architecture Data Analysis
+- Digital Strategy Formulation
 - Custom Architecture Automation
-- Business Model to Architecture
 - Enterprise Architecture Assessment
+- Business Model to Architecture & vice versa
 
 ---
 
@@ -1410,7 +1536,7 @@ BizDiag consists of multiple components, and installation depends on the specifi
 
 Typical requirements may include:
 
-- Archi (5.8 or later)
+- Archi (5.10 or later)
 - jArchi plugin (1.11 or later)
 - An ArchiMate or compatible XML EA model
 - GraalVM (25 or later) for standalone Java applications
@@ -1418,7 +1544,7 @@ Typical requirements may include:
 - Ollama and any Optional locally-installed AI model
 
 Detailed installation instructions for individual components are provided in their respective documentation. For 
-command-line tools, a running.txt file is included in the repository to provide the commands for running the 
+command-line tools, a `running.txt` file is included in the repository to provide the commands for running the 
 applications. Alternatively, `BizDiag-GUI.ajs` is the all-in-one graphical user interface entry point to BizDiag. Each 
 tab of this GUI points to the functional script/application of the correponding script/application. The five modules of 
 `ClientServer_DB` have their running instructions embedded in their respective tabs. By using `BizDiag-GUI.ajs`, users 
@@ -1471,6 +1597,8 @@ BizDiag/
 │   ├── BusinessITAlignment_EN.ajs
 │   ├── BUSINESS-IT_ALIGNMENT_DOCUMENTATION.md
 │   └── img/
+│       ├── labelPic.png
+│       └── sellIcon.png
 ├── DocMaker/
 │   ├── AI_Element_DocMaker_EN.ajs
 │   ├── AI_View_DocMaker_EN.ajs
