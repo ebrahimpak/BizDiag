@@ -116,7 +116,7 @@ loop" maxim.
 
 The general workflow is:
 
-```text
+```
 ArchiMate Model
       │
       ▼
@@ -408,7 +408,7 @@ through client/server workflows, REST or TCP communication, JSON/JSONL exports, 
 #### 3.2.1 DB_Log
 <p align="center"><img src="logo/img/DB_Log.png" alt="DB_Log [JDBCLog] module" width="100%"></p>
 
-```text
+```
 DB_Log/
 ├── ArchiModelDumper.ajs
 ├── archi_external_sync.mv.db
@@ -436,7 +436,7 @@ credentials, allowing users to query the architecture data using SQL, through a 
 
 The high-level structure of the DB_Log workflow is as follows:
 
-```text
+```
 ArchiMate Model
         │
         ▼
@@ -860,7 +860,7 @@ requirements.
 
 > **Detailed documentation:** [Capability-Based Planning (CBP) Suite](Capability_Based_Planning/CBP_SUITE_DOCUMENTATION.md)
 
-```text
+```
 Capability_Based_Planning/
 ├── CBP_Move_1_Setup.ajs
 ├── CBP_Continue_Moves_2_to_7.ajs
@@ -1049,7 +1049,7 @@ three provisional candidates. All candidates require architect review.
 
 > **Detailed documentation:** [BizModelCanvas Module](BizModelCanvas/BIZMODELCANVAS_DOCUMENTATION.md)
 
-```text
+```
 BizModelCanvas/
 ├── BizModelCanvas-GUI-EN.ajs
 ├── BIZMODELCANVAS_DOCUMENTATION.md
@@ -1216,7 +1216,7 @@ The result is an architecture environment where models can become more than stat
 
 A typical BizDiag workflow can be represented as:
 
-```text
+```
                  +----------------------+
                  |   ArchiMate Model    |
                  +----------+-----------+
@@ -1448,7 +1448,7 @@ BizDiag architecture-analysis workflows operate on ArchiMate models created or m
 The repository is organized into module folders at the repository root. Build outputs and IDE metadata are omitted from
 this overview.
 
-```text
+```
 BizDiag/
 ├── README.md
 ├── LICENSE
