@@ -107,7 +107,7 @@ console.show();
     const headingFont = new Font(display, headingFontData);
 
     // Recognize only actual command/query starts so explanatory prose and file paths stay normally styled.
-    const terminalCommandPattern = /^(?:&\s|mvn(?:\s|$)|where\s+java\b|java(?:\.exe)?\s|SELECT\b|FROM\b|WHERE\b)/i;
+    const terminalCommandPattern = /^(?:&\s|mvn(?:\s|$)|where\s+java\b|java(?:\.exe)?\s+-|SELECT\b|FROM\b|WHERE\b)/i;
 
     // These are disposed explicitly because Image and Color resources are not part of the widget tree.
     let logoImage = null;
