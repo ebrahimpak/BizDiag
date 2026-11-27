@@ -1419,21 +1419,21 @@ Typical requirements may include:
 
 Detailed installation instructions for individual components are provided in their respective documentation. For 
 command-line tools, a `running.txt` file is included in the repository to provide the commands for running the 
-applications. Alternatively, `BizDiag-GUI.ajs` is the all-in-one graphical user interface entry point to BizDiag. Each 
-tab of this GUI points to the functional script/application of the correponding script/application. The five modules of 
-`ClientServer_DB` have their running instructions embedded in their respective tabs. By using `BizDiag-GUI.ajs`, users 
-do not need to browse into BizDiag's directories and subdirectories, and hence they are provided with access to the 
-GUI-based applications/scripts, and also the clear-cut instruction of the CLI modules, all in one GUI.
-
-> **NOTE** For an all-in-one pre-packaged version of __`{Archi + jArchi + coArchi2 + custom splash screen + other custom plugins + BizDiag + custom BizDiag Industry Intelligence modules}`__,
-> please [contact me](mailto:ebrahimpak@mailfence.com), and I will provide you with the terms and conditions for obtaining the downloadable custom package.
+applications. Alternatively, `BizDiag-GUI.ajs` is the all-in-one graphical user interface entry point to BizDiag.
+Its five runnable-module tabs provide access to their scripts, while one `ClientServer_DB` tab contains a visually
+distinct nested tab for each of the five client/server modules and its setup and command-line instructions. Users can
+access the GUI-based applications and client/server guidance without browsing through BizDiag's directories and 
+subdirectories.
 
 ### Central module launcher
 
-Run `BizDiag-GUI.ajs` from Archi's jArchi Scripts Manager to open the ten-tab BizDiag launcher. Its first five tabs
-launch the existing BizDiag entry scripts. Open an ArchiMate model before running module actions. The remaining second 
-five tabs cover the `ClientServer_DB` submodules and show their terminal/Archi execution steps. External servers and 
-command-line applications must still be started separately as described in their tabs.
+Run `BizDiag-GUI.ajs` from Archi's jArchi Scripts Manager to open the six-tab BizDiag launcher. Five tabs launch
+existing BizDiag entry scripts; the `ClientServer_DB` tab contains a distinct nested tab for each of its five
+submodules. Open an ArchiMate model before running module actions. External servers and command-line applications
+must still be started separately as described in the relevant sub-tab.
+
+> **NOTE** For an all-in-one pre-packaged version of __`{Archi + jArchi + coArchi2 + custom splash screen + other custom plugins + BizDiag + custom BizDiag Industry Intelligence modules}`__,
+> please [contact me](mailto:ebrahimpak@mailfence.com), and I will provide you with the terms and conditions for obtaining the downloadable custom package.
 
 ---
 

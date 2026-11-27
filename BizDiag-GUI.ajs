@@ -15,22 +15,14 @@
  *
  * --------------------------------------------------------------------------------------------------------------------
  * @file BizDiag-GUI.ajs
- * @version 1.0
+ * @version 1.1
  *
- * This module-launcher is an SWT script, created for serving as the entry point to
- * BizDiag's modules. Version 1.0 of 'BizDiag-GUI.ajs' consists of 10 scripts.
- * However, since BizDiag is an ongoing project, the future versions of this script
- * will cater to more BizDiag's modules. As a software-suite, BizDiag needed this
- * belatedly-added GUI script for gathering its modules under an umbrella, as
- * BizDiag-GUI is.
+ * This SWT launcher is the entry point to BizDiag's modules. It brings the suite
+ * together under one umbrella and can be extended as additional modules are added.
  *
- * So far, this script is comprised of ten modules, whose second five scripts, are
- * grouped together in five adjacent tabs in this GUI. The first five tabbed modules
- * are all GUI-based, while the second five adjacent tabbed are a mix of CLI-cum-GUI,
- * or only CLI. The tab colors have been chosen for an
- * enhanced user experience, so the five modules belonging to the ClientServer_DB
- * category have all a common color, in the blue spectrum; while the other five tabs
- * have their own distinguished tab color.
+ * The launcher presents five interactive module tabs and one combined ClientServer_DB
+ * tab. The ClientServer_DB tab contains a nested, classic SWT tab folder for the five
+ * modules, visually distinct from the main custom-styled module tabs.
  */
 
 console.clear();
@@ -54,6 +46,8 @@ console.show();
     const Canvas = Java.type("org.eclipse.swt.widgets.Canvas");
     const CTabFolder = Java.type("org.eclipse.swt.custom.CTabFolder");
     const CTabItem = Java.type("org.eclipse.swt.custom.CTabItem");
+    const TabFolder = Java.type("org.eclipse.swt.widgets.TabFolder");
+    const TabItem = Java.type("org.eclipse.swt.widgets.TabItem");
     const Label = Java.type("org.eclipse.swt.widgets.Label");
     const StyledText = Java.type("org.eclipse.swt.custom.StyledText");
     const Button = Java.type("org.eclipse.swt.widgets.Button");
@@ -108,6 +102,9 @@ console.show();
     const terminalBackground = new Color(display, new RGB(35, 45, 58));
     const terminalForeground = new Color(display, new RGB(190, 238, 204));
     const terminalFont = new Font(display, "Consolas", 10, SWT.NORMAL);
+    const headingFontData = display.getSystemFont().getFontData()[0];
+    headingFontData.setStyle(headingFontData.getStyle() | SWT.BOLD);
+    const headingFont = new Font(display, headingFontData);
 
     // Recognize only actual command/query starts so explanatory prose and file paths stay normally styled.
     const terminalCommandPattern = /^(?:&\s|mvn(?:\s|$)|where\s+java\b|java(?:\.exe)?\s|SELECT\b|FROM\b|WHERE\b)/i;
@@ -119,10 +116,9 @@ console.show();
     // Shared by callbacks so actions can report their current state in the bottom status bar.
     let statusLabel = null;
 
-    // clientServerTabs is an array of JavaScript objects. Its instructions values are built with
-    // string concatenation, which JSON does not support.
-    // The five terminal-oriented modules are instructional tabs, not scripts launched by this GUI.
-    const clientServerTabs = [
+    // clientServerModules is an array of JavaScript objects whose instructions are shown together
+    // in one scrollable tab. These terminal-oriented modules are instructional, not launched here.
+    const clientServerModules = [
         {
             title: "DB_Log",
             executionMode: "CLI + standalone GUI | H2 web console or Java Swing clients",
@@ -209,14 +205,14 @@ console.show();
         {
             title: "Capability-based Planning",
             description:
-                "1. Open an ArchiMate model and make sure its strategy, value-stream, and capability content is available.\n" +
-                "2. Click 'Move 1 - Setup'; if prompted, enter consecutive planning years such as 2027,2028.\n" +
-                "3. To limit the run, select one or more existing Capabilities before Move 1; otherwise, the script uses all model Capabilities.\n" +
-                "4. Optional: approve local Ollama discovery, choose an installed model, and review the proposed provisional Capabilities.\n" +
-                "5. Move 1 creates or updates 'CBP - Capability Map', 'CBP - Capability Profiles and Inputs', and 'CBP - Strategy Inputs'.\n" +
-                "6. In 'CBP - Capability Profiles and Inputs', open each Capability in the Properties panel and enter its CBP maturity, target, action, project, and priority values.\n" +
-                "7. In 'CBP - Strategy Inputs', set CBP.Role=Strategy only on intended Courses of Action and enter their CBP.Impact.<CapabilityCode> values.\n" +
-                "8. Review, accept or remove AI candidates, verify custom-property values and the Capability Map scope, then save the Archi model.\n" +
+                "1. Open an ArchiMate model and make sure its strategy, value-stream, and capability content is available.\n\n" +
+                "2. Click 'Move 1 - Setup'; if prompted, enter consecutive planning years such as 2027,2028.\n\n" +
+                "3. To limit the run, select one or more existing Capabilities before Move 1; otherwise, the script uses all model Capabilities.\n\n" +
+                "4. Optional: approve local Ollama discovery, choose an installed model, and review the proposed provisional Capabilities.\n\n" +
+                "5. Move 1 creates or updates 'CBP - Capability Map', 'CBP - Capability Profiles and Inputs', and 'CBP - Strategy Inputs'.\n\n" +
+                "6. In 'CBP - Capability Profiles and Inputs', open each Capability in the Properties panel and enter its CBP maturity, target, action, project, and priority values.\n\n" +
+                "7. In 'CBP - Strategy Inputs', set CBP.Role=Strategy only on intended Courses of Action and enter their CBP.Impact.<CapabilityCode> values.\n\n" +
+                "8. Review, accept or remove AI candidates, verify custom-property values and the Capability Map scope, then save the Archi model.\n\n" +
                 "9. Click 'Moves 2-7 - Continue' to validate inputs and generate the maturity, strategic-importance, matrix, portfolio, and roadmap views.",
             scripts: [
                 { label: "Move 1 - Setup", path: "Capability_Based_Planning\\CBP_Move_1_Setup.ajs" },
@@ -303,7 +299,7 @@ console.show();
     }
 
     /**
-     * Adds a full-width module ribbon and selects black or white text for legibility.
+     * Adds a full-width module ribbon with centered bold text and selects black or white text for legibility.
      * The weighted brightness estimate is a simple contrast heuristic, not a WCAG contrast
      * calculation; it keeps labels readable across the launcher palette's light and dark blues.
      *
@@ -313,9 +309,19 @@ console.show();
      * @returns {void}
      */
     function addHeading(parent, text, accentColor) {
-        // SWT.WRAP is defensive for narrow windows; CENTER aligns the ribbon title horizontally.
-        const heading = new Label(parent, SWT.WRAP | SWT.CENTER);
+        const ribbon = new Composite(parent, SWT.NONE);
+        ribbon.setLayout(new GridLayout(1, false));
+        ribbon.getLayout().marginWidth = 0;
+        ribbon.getLayout().marginHeight = 0;
+        ribbon.setBackground(accentColor);
+        const ribbonData = new GridData(GridData.FILL_HORIZONTAL);
+        ribbonData.heightHint = 36;
+        ribbon.setLayoutData(ribbonData);
+
+        // Center the bold title in both dimensions inside the colored ribbon.
+        const heading = new Label(ribbon, SWT.WRAP | SWT.CENTER);
         heading.setText(text);
+        heading.setFont(headingFont);
         heading.setBackground(accentColor);
         // Use perceived brightness to choose a contrasting foreground; this is intentionally a small palette heuristic.
         const brightness = 0.299 * accentColor.getRed() +
@@ -324,8 +330,7 @@ console.show();
         heading.setForeground(display.getSystemColor(
             brightness < 150 ? SWT.COLOR_WHITE : SWT.COLOR_BLACK
         ));
-        const headingData = new GridData(GridData.FILL_HORIZONTAL);
-        headingData.heightHint = 32;
+        const headingData = new GridData(SWT.FILL, SWT.CENTER, true, true);
         heading.setLayoutData(headingData);
     }
 
@@ -341,7 +346,6 @@ console.show();
      * @returns {void}
      */
     function addInstructions(parent, text, styleTerminalCommands) {
-        // StyledText provides per-line colors/fonts; setEditable(false) preserves the old read-only behavior.
         const instructions = new StyledText(parent, SWT.MULTI | SWT.WRAP | SWT.V_SCROLL | SWT.BORDER);
         instructions.setEditable(false);
         instructions.setMargins(8, 6, 8, 6);
@@ -557,24 +561,44 @@ console.show();
     }
 
     /**
-     * Builds a ClientServer_DB page with a shared-color ribbon, a concise execution-mode subtitle,
-     * and scrollable CLI/server setup instructions. These tabs explain how to use the module;
-     * they intentionally do not launch terminal processes themselves.
+     * Builds one ClientServer_DB page with a shared-color ribbon and a classic SWT sub-tab for
+     * each module. The stock TabFolder style distinguishes these sub-tabs from the main CTabFolder.
+     * Each sub-tab contains its execution mode and scrollable setup instructions.
      *
      * @param {CTabFolder} folder Tab folder that owns the instruction page.
-     * @param {{title: string, executionMode: string, instructions: string}} module Display name,
-     *        brief CLI/server description, and detailed usage steps.
+     * @param {Array<{title: string, executionMode: string, instructions: string}>} modules
+     *        Client/server module names, execution modes, and detailed usage steps.
      * @returns {void}
      */
-    function createClientServerTab(folder, module) {
-        const page = createTab(folder, module);
-        addHeading(page, module.title, getAccentColor("ClientServer_DB"));
-        // Separate subtitle keeps the CLI/server nature visible without crowding the colored title ribbon.
-        // SWT.WRAP allows longer descriptors to flow onto another line on smaller displays.
-        const executionMode = new Label(page, SWT.WRAP | SWT.CENTER);
-        executionMode.setText(module.executionMode);
-        executionMode.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        addInstructions(page, module.instructions, true);
+    function createClientServerTab(folder, modules) {
+        const page = createTab(folder, {
+            title: "ClientServer_DB",
+            executionMode: "Setup and CLI instructions for five client/server modules"
+        });
+        addHeading(page, "ClientServer_DB: Client/Server and Data Integration Modules",
+            getAccentColor("ClientServer_DB"));
+
+        const moduleTabs = new Label(page, SWT.WRAP);
+        moduleTabs.setText("Client/server modules");
+        moduleTabs.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+        const subTabs = new TabFolder(page, SWT.BORDER);
+        subTabs.setLayoutData(new GridData(GridData.FILL_BOTH));
+
+        modules.forEach(function(module) {
+            const tab = new TabItem(subTabs, SWT.NONE);
+            tab.setText(module.title);
+
+            const content = new Composite(subTabs, SWT.NONE);
+            content.setLayout(new GridLayout(1, false));
+            tab.setControl(content);
+
+            const executionMode = new Label(content, SWT.WRAP);
+            executionMode.setText(module.executionMode);
+            executionMode.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+            addInstructions(content, module.instructions, true);
+        });
     }
 
     /**
@@ -721,7 +745,7 @@ console.show();
 
         const sidebarDescription = new Label(sidebar, SWT.WRAP);
         sidebarDescription.setText("\n\nChoose a module from the tabs.\n\n" +
-            "The five ClientServer_DB tabs contain setup and execution instructions.");
+            "The ClientServer_DB tab groups setup and execution instructions for all five modules.");
         sidebarDescription.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
         // CTabFolder supports selected-tab highlighting; standard TabFolder does not expose that styling.
@@ -756,13 +780,7 @@ console.show();
             function(module) {
                 createRunnableTab(tabFolder, module);
             });
-        clientServerTabs.forEach(
-            /** Creates the instructional tab for one ClientServer_DB module.
-             * @param {Object} module Terminal-oriented module metadata.
-             */
-            function(module) {
-                createClientServerTab(tabFolder, module);
-            });
+        createClientServerTab(tabFolder, clientServerModules);
 
         // Kept outside mainArea so status remains visible regardless of which module page is selected.
         statusLabel = new Label(launcherShell, SWT.BORDER);
@@ -794,7 +812,7 @@ console.show();
                         }
                     });
                 // Shared style resources are not owned by StyledText widgets, so release them here.
-                [terminalBackground, terminalForeground, terminalFont].forEach(
+                [terminalBackground, terminalForeground, terminalFont, headingFont].forEach(
                     /** Disposes one terminal style resource when the launcher closes.
                      * @param {Color|Font} resource SWT resource shared by all instruction panels.
                      */
