@@ -674,9 +674,9 @@ to enterprise Java [26].
 
 
 ```
-================================================================================
-                 DocMaker Module: Architectural Overview
-================================================================================
+===========================================================
+          DocMaker Module: Architectural Overview
+===========================================================
 ```
 ```
 ┌──────────────────────────────────────────────────┐
@@ -828,7 +828,7 @@ grouped by ArchiMate layers and enriched with visible relationships and diagram 
 may contain reasonable architectural assumptions, unsupported inferences, or model-context gaps, they are intended for 
 architect review and correction before becoming approved EA documentation or decision evidence [26].
 
-_Why Ollama?_
+_**Why Ollama?**_
 
 Ollama was chosen as the local AI runtime instead of requiring a cloud-based AI service and an external API key. As a
 Digital Business Practitioner, I wanted AI-infused documentation to provide greater control over potentially sensitive
