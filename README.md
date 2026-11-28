@@ -402,7 +402,11 @@ Therefore, each finding captures a misalignment JSON object as follows:
 <a id="clientserver-db"></a>
 
 `ClientServer_DB/` groups related components that extract architecture data from ArchiMate models and make it available
-through client/server workflows, REST or TCP communication, JSON/JSONL exports, and H2 databases.
+through client/server workflows, REST or TCP communication, JSON/JSONL exports, and H2 databases. The following five 
+submodules are categorized under the rubric of `ClientServer_DB`, providing a range of data-extraction, transport, and 
+storage capabilities, which could be utilized as blueprints for building more complex client/server applications or for 
+integrating enterprise architecture data into other software applications. By clicking `ClientServer_DB` tab in 
+`BizDiag-GUI` script, users can access the following five submodules, through their corresponding nested tabs:
 
 <a id="clientserver-db-log"></a>
 #### 3.2.1 DB_Log
